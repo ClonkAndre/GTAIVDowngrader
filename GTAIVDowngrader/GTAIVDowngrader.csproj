@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{109602E4-DB52-4FFE-9006-83A528021BA5}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>GTAIVDowngrader</RootNamespace>
+    <AssemblyName>GTAIVDowngrader</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>false</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\icoNew.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetZip, Version=1.15.0.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetZip.1.15.0\lib\net40\DotNetZip.dll</HintPath>
+    </Reference>
+    <Reference Include="INIController">
+      <HintPath>E:\Visual Studio Extensions\INI_Controller\INIController.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack-Core.1.1.1\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack-Shell.1.1.1\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="Controls\CommandlineItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\CustomTextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\ModItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\CommandlineUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\ConfirmUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\DowngradingUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\ErrorUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\FinishUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\S1_SelectIVExe.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\S2_SelectDwngrdVersion.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\S3_1_SelectVladivostokType.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\S3_SelectRadioDwngrd.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\S4_SelectComponents.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\SavefileDowngradeUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\StandaloneWarningUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\WelcomeUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Controls\CommandlineItem.xaml.cs">
+      <DependentUpon>CommandlineItem.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\CustomTextBox.xaml.cs">
+      <DependentUpon>CustomTextBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ModItem.xaml.cs">
+      <DependentUpon>ModItem.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CommandlineUC.xaml.cs">
+      <DependentUpon>CommandlineUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ConfirmUC.xaml.cs">
+      <DependentUpon>ConfirmUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\DowngradingUC.xaml.cs">
+      <DependentUpon>DowngradingUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ErrorUC.xaml.cs">
+      <DependentUpon>ErrorUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\FinishUC.xaml.cs">
+      <DependentUpon>FinishUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\S1_SelectIVExe.xaml.cs">
+      <DependentUpon>S1_SelectIVExe.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\S2_SelectDwngrdVersion.xaml.cs">
+      <DependentUpon>S2_SelectDwngrdVersion.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\S3_1_SelectVladivostokType.xaml.cs">
+      <DependentUpon>S3_1_SelectVladivostokType.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\S3_SelectRadioDwngrd.xaml.cs">
+      <DependentUpon>S3_SelectRadioDwngrd.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\S4_SelectComponents.xaml.cs">
+      <DependentUpon>S4_SelectComponents.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\SavefileDowngradeUC.xaml.cs">
+      <DependentUpon>SavefileDowngradeUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\StandaloneWarningUC.xaml.cs">
+      <DependentUpon>StandaloneWarningUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\WelcomeUC.xaml.cs">
+      <DependentUpon>WelcomeUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Helper.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\libertyBgDarkOverlay.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\chars\char6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\chars\sadNiko.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\chars\char1.png" />
+    <Resource Include="Resources\chars\char2.png" />
+    <Resource Include="Resources\chars\char3.png" />
+    <Resource Include="Resources\chars\niko.png" />
+    <Resource Include="Resources\chars\roman.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\chars\luis.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\warningWhite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\errorWhite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\checkCircleWhite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\questionWhite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\chars\char5.png" />
+    <Resource Include="Resources\chars\char4.png" />
+    <Resource Include="Resources\chars\johnny.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icoNew.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\chars\char7.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
