@@ -17,7 +17,7 @@ Here on GitHub, you can only download the source code of this tool.
 If you're looking for the actual complete download, check out the [GTAForums thread](https://gtaforums.com/topic/976691-gta-iv-downgrader).  
 
 ## Credits
-Thanks to @catsmackaroo for helping me creating this downgrader and of course for creating that epic logo :)
+Thanks to [catsmackaroo](https://gtaforums.com/profile/1196909-catsmackaroo/) for helping me creating this downgrader and of course for creating that epic logo :)
 
 ## How to Contribute
 Do you have an idea to improve this mod, or did you happen to run into a bug? Please share your idea or the bug you found in the **[issues page](https://github.com/ClonkAndre/GTAIVDowngrader/issues)**, or even better: feel free to fork and contribute to this project with a **[Pull Request](https://github.com/ClonkAndre/GTAIVDowngrader/pulls)**.
