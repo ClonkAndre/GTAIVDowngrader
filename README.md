@@ -4,19 +4,17 @@
 
 This tool allows you to easily downgrade the Steam/RGL Complete Edition (1.2.0.32 and up) of GTA IV to either 1.0.8.0, 1.0.7.0 or 1.0.4.0!
 
-There will be 2 versions of this tool, one is the offline downgrader, this downgrader won't download any file from the internet.
-
-This downgrader is 1,6GB big because it already includes everything, and because it can't download anything from the internet. And there will be the online downgrader, that version of the downgrader will download files from the internet, and will also update them while you're downgrading your game if they are old. This downgrader will be significantly smaller.  
-
 ## Requirements
-[.NET Framework 4.7.2](https://go.microsoft.com/fwlink/?LinkId=863262) (Should be installed on every Windows 10 machine)  
-Windows 10, 8.1, 8 or 7. Works **best** on Windows 10.  
+- [.NET Framework 4.7.2](https://go.microsoft.com/fwlink/?LinkId=863262) (Should be installed on every Windows 10 machine)  
+- Windows 11 (Not tested), 10, 8.1, 8 or 7. Works best on Windows 10.  
+- Internet Connection
 
-## Downloads
+## Downloads and more informationa
 Here on GitHub, you can only download the source code of this tool.  
-If you're looking for the actual complete download, check out the [GTAForums thread](https://gtaforums.com/topic/976691-gta-iv-downgrader).  
+If you're looking for the actual download, check out the [GTAForums](https://gtaforums.com/topic/976691-gta-iv-downgrader) or the [LCPDFR](https://www.lcpdfr.com/downloads/gta4mods/misc/38986-gta-iv-downgrader/) thread.
 
 ## Credits
+Thanks to [Internet Rob](https://gtaforums.com/profile/1196922-internet-rob/) for being my QA tester, and also for all of his ideas!  
 Thanks to [catsmackaroo](https://gtaforums.com/profile/1196909-catsmackaroo/) for helping me creating this downgrader and of course for creating that epic logo :)
 
 ## How to Contribute
