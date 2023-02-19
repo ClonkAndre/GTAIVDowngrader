@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTAIVDowngrader", "GTAIVDowngrader\GTAIVDowngrader.csproj", "{109602E4-DB52-4FFE-9006-83A528021BA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileEncrypter", "FileEncrypter\FileEncrypter.csproj", "{C5BD1A54-8D0F-487C-9CB2-1FB69DF859A0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{109602E4-DB52-4FFE-9006-83A528021BA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{109602E4-DB52-4FFE-9006-83A528021BA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{109602E4-DB52-4FFE-9006-83A528021BA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{109602E4-DB52-4FFE-9006-83A528021BA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5BD1A54-8D0F-487C-9CB2-1FB69DF859A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5BD1A54-8D0F-487C-9CB2-1FB69DF859A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5BD1A54-8D0F-487C-9CB2-1FB69DF859A0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {15394D93-DBF7-4FB4-9907-EC356AF33D58}
+	EndGlobalSection
+EndGlobal
