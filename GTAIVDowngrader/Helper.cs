@@ -74,123 +74,6 @@ internal static class Helper {
 
     #region Classes
     /// <summary>
-    /// Convert stuff.
-    /// </summary>
-    public class ConverterStuff {
-
-        public static bool ConvertIntToBool(int number)
-        {
-            return number == 1;
-        }
-
-    }
-
-    /// <summary>
-    /// If you override the <see cref="Console.Out"/> property with a new instance of the <see cref="ConsoleOutputRedirector"/>
-    /// you can subscribe to its <see cref="ConsoleOutputRedirector.OnLineAdded"/> event to be notified when a new line got written to the console using <see cref="Console.WriteLine(string)"/>.
-    /// <br/><br/>
-    /// You also have the possibility to view the history of the console using <see cref="ConsoleOutputRedirector.GetLines()"/>.
-    /// </summary>
-    public class ConsoleOutputRedirector : TextWriter {
-
-        #region Variables
-        private List<string> lines;
-        private TextWriter original;
-        #endregion
-
-        #region Events
-        public delegate void LineAdded(string value);
-        public event LineAdded OnLineAdded;
-        #endregion
-
-        #region Constructor
-        public ConsoleOutputRedirector(TextWriter original)
-        {
-            lines = new List<string>();
-            this.original = original;
-        }
-        #endregion
-
-        #region Overrides
-        public override Encoding Encoding
-        {
-            get { return Encoding.Default; }
-        }
-        public override void WriteLine(string value)
-        {
-            lines.Add(value);
-            original.WriteLine(value);
-            OnLineAdded?.Invoke(value);
-        }
-        // You need to override other methods also
-        #endregion
-
-        #region Functions
-        public string[] GetLines()
-        {
-            return lines.ToArray();
-        }
-        #endregion
-
-    }
-
-    /// <summary>
-    /// String Compression stuff.
-    /// </summary>
-    public class StringCompression {
-        /// <summary>
-        /// Compresses a string and returns a deflate compressed, Base64 encoded string.
-        /// </summary>
-        /// <param name="uncompressedString">String to compress</param>
-        public static string Compress(string uncompressedString, string returnStringOnError = "")
-        {
-            try {
-                byte[] compressedBytes;
-
-                using (var uncompressedStream = new MemoryStream(Encoding.UTF8.GetBytes(uncompressedString))) {
-                    using (var compressedStream = new MemoryStream()) {
-                        using (var compressorStream = new DeflateStream(compressedStream, CompressionLevel.Optimal, true)) {
-                            uncompressedStream.CopyTo(compressorStream);
-                        }
-                        compressedBytes = compressedStream.ToArray();
-                    }
-                }
-
-                return Convert.ToBase64String(compressedBytes);
-            }
-            catch (Exception) {
-                return returnStringOnError;
-            }
-        }
-
-        /// <summary>
-        /// Decompresses a deflate compressed, Base64 encoded string and returns an uncompressed string.
-        /// </summary>
-        /// <param name="compressedString">String to decompress.</param>
-        public static string Decompress(string compressedString, string returnStringOnError = "")
-        {
-            try {
-                byte[] decompressedBytes;
-
-                var compressedStream = new MemoryStream(Convert.FromBase64String(compressedString));
-
-                using (var decompressorStream = new DeflateStream(compressedStream, CompressionMode.Decompress)) {
-                    using (var decompressedStream = new MemoryStream()) {
-                        decompressorStream.CopyTo(decompressedStream);
-
-                        decompressedBytes = decompressedStream.ToArray();
-                    }
-                }
-
-                return Encoding.UTF8.GetString(decompressedBytes);
-            }
-            catch (Exception) {
-                return returnStringOnError;
-            }
-        }
-    }
-
-    /// <summary>
     /// Parsing stuff.
     /// </summary>
     public class ParseExtension {
@@ -257,6 +140,168 @@ internal static class Helper {
             }
             return defaultValue;
         }
+    }
+
+    /// <summary>
+    /// If you override the <see cref="Console.Out"/> property with a new instance of the <see cref="ConsoleOutputRedirector"/>
+    /// you can subscribe to its <see cref="ConsoleOutputRedirector.OnLineAdded"/> event to be notified when a new line got written to the console using <see cref="Console.WriteLine(string)"/>.
+    /// <br/><br/>
+    /// You also have the possibility to view the history of the console using <see cref="ConsoleOutputRedirector.GetLines()"/>.
+    /// </summary>
+    public class ConsoleOutputRedirector : TextWriter {
+
+        #region Variables
+        private List<string> lines;
+        private TextWriter original;
+        #endregion
+
+        #region Events
+        public delegate void LineAdded(string value);
+        public event LineAdded OnLineAdded;
+        #endregion
+
+        #region Constructor
+        public ConsoleOutputRedirector(TextWriter original)
+        {
+            lines = new List<string>();
+            this.original = original;
+        }
+        #endregion
+
+        #region Overrides
+        public override Encoding Encoding
+        {
+            get { return Encoding.Default; }
+        }
+        public override void WriteLine(string value)
+        {
+            lines.Add(value);
+            original.WriteLine(value);
+            OnLineAdded?.Invoke(value);
+        }
+        // You need to override other methods also
+        #endregion
+
+        #region Functions
+        public string[] GetLines()
+        {
+            return lines.ToArray();
+        }
+        #endregion
+
+    }
+
+    /// <summary>
+    /// Compression stuff.
+    /// </summary>
+    public class DataCompression {
+
+        #region Byte Array
+        /// <summary>
+        /// Compresses and returns a byte array.
+        /// </summary>
+        /// <param name="uncompressedByteArray">Byte array to compress</param>
+        public static byte[] CompressByteArray(byte[] uncompressedByteArray)
+        {
+            try {
+                byte[] compressedBytes;
+
+                using (var uncompressedStream = new MemoryStream(uncompressedByteArray)) {
+                    using (var compressedStream = new MemoryStream()) {
+                        using (var compressorStream = new DeflateStream(compressedStream, CompressionLevel.Optimal, true)) {
+                            uncompressedStream.CopyTo(compressorStream);
+                        }
+                        compressedBytes = compressedStream.ToArray();
+                    }
+                }
+
+                return compressedBytes;
+            }
+            catch (Exception) {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Decompresses and returns a compressed byte array.
+        /// </summary>
+        /// <param name="compressedByteArray">Byte array to decompress.</param>
+        public static byte[] DecompressByteArray(byte[] compressedByteArray)
+        {
+            try {
+                byte[] decompressedBytes;
+
+                var compressedStream = new MemoryStream(compressedByteArray);
+
+                using (var decompressorStream = new DeflateStream(compressedStream, CompressionMode.Decompress)) {
+                    using (var decompressedStream = new MemoryStream()) {
+                        decompressorStream.CopyTo(decompressedStream);
+
+                        decompressedBytes = decompressedStream.ToArray();
+                    }
+                }
+
+                return decompressedBytes;
+            }
+            catch (Exception) {
+                return null;
+            }
+        }
+        #endregion
+
+        #region String
+        /// <summary>
+        /// Compresses a string and returns a deflate compressed, Base64 encoded string.
+        /// </summary>
+        /// <param name="uncompressedString">String to compress</param>
+        public static string CompressString(string uncompressedString, string returnStringOnError = "")
+        {
+            try {
+                byte[] compressedBytes;
+
+                using (var uncompressedStream = new MemoryStream(Encoding.UTF8.GetBytes(uncompressedString))) {
+                    using (var compressedStream = new MemoryStream()) {
+                        using (var compressorStream = new DeflateStream(compressedStream, CompressionLevel.Optimal, true)) {
+                            uncompressedStream.CopyTo(compressorStream);
+                        }
+                        compressedBytes = compressedStream.ToArray();
+                    }
+                }
+
+                return Convert.ToBase64String(compressedBytes);
+            }
+            catch (Exception) {
+                return returnStringOnError;
+            }
+        }
+
+        /// <summary>
+        /// Decompresses a deflate compressed, Base64 encoded string and returns an uncompressed string.
+        /// </summary>
+        /// <param name="compressedString">String to decompress.</param>
+        public static string DecompressString(string compressedString, string returnStringOnError = "")
+        {
+            try {
+                byte[] decompressedBytes;
+
+                var compressedStream = new MemoryStream(Convert.FromBase64String(compressedString));
+
+                using (var decompressorStream = new DeflateStream(compressedStream, CompressionMode.Decompress)) {
+                    using (var decompressedStream = new MemoryStream()) {
+                        decompressorStream.CopyTo(decompressedStream);
+
+                        decompressedBytes = decompressedStream.ToArray();
+                    }
+                }
+
+                return Encoding.UTF8.GetString(decompressedBytes);
+            }
+            catch (Exception) {
+                return returnStringOnError;
+            }
+        }
+        #endregion
+
     }
     #endregion
 
@@ -388,7 +433,9 @@ internal static class Helper {
         double num = Math.Round(bytes / Math.Pow(1024, place), 1);
         return string.Format("{0} {1}", (Math.Sign(byteCount) * num).ToString(), suf[place]);
     }
+    #endregion
 
+    #region Extensions
     /// <summary>
     /// Converts a <see cref="string"/> to a <see cref="SolidColorBrush"/>.
     /// </summary>

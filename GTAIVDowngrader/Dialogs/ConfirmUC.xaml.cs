@@ -18,10 +18,9 @@ namespace GTAIVDowngrader.Dialogs {
         private void LogInfos()
         {
             // Application Information
-            if (MainFunctions.gotStartedWithValidCommandLineArgs) {
-                MainFunctions.AddLogItem(LogType.Info, "- - - Application Information - - -");
-                MainFunctions.AddLogItem(LogType.Info, string.Format("Downgrader got started with commandline argument to path: {0}", MainFunctions.commandLineArgPath));
-            }
+            MainFunctions.AddLogItem(LogType.Info, "- - - Application Information - - -");
+            MainFunctions.AddLogItem(LogType.Info, string.Format("Downgrader Version: {0}", MainFunctions.updateChecker.currentVersion));
+            if (MainFunctions.gotStartedWithValidCommandLineArgs) MainFunctions.AddLogItem(LogType.Info, string.Format("Downgrader got started with commandline argument to path: {0}", MainFunctions.commandLineArgPath));
 
             // MD5 Check
             MainFunctions.AddLogItem(LogType.Info, "- - - MD5 Check - - -");
@@ -124,7 +123,28 @@ namespace GTAIVDowngrader.Dialogs {
             // Calculate download size
             long size = 0;
 
+            // Game stuff
+            switch (MainFunctions.downgradingInfo.DowngradeTo) {
+                case GameVersion.v1080:
+                    size += MainFunctions.GetDowngradeFileSizeByFileName("1080.zip");
+                    break;
+                case GameVersion.v1070:
+                    size += MainFunctions.GetDowngradeFileSizeByFileName("1070.zip");
+                    break;
+                case GameVersion.v1040:
+                    size += MainFunctions.GetDowngradeFileSizeByFileName("1040.zip");
+                    break;
+            }
+
             // Radio stuff
+            switch (MainFunctions.downgradingInfo.SelectedRadioDowngrader) {
+                case RadioDowngrader.SneedsDowngrader:
+                    size += MainFunctions.GetDowngradeFileSizeByFileName("SneedsRadioDowngrader.zip");
+                    break;
+                case RadioDowngrader.LegacyDowngrader:
+                    size += MainFunctions.GetDowngradeFileSizeByFileName("LegacyRadioDowngrader.zip");
+                    break;
+            }
             switch (MainFunctions.downgradingInfo.SelectedVladivostokType) {
                 case VladivostokTypes.New:
                     size += MainFunctions.GetDowngradeFileSizeByFileName("WithNewVladivostok.zip");

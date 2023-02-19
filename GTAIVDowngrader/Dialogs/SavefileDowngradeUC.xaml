@@ -32,27 +32,30 @@
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
                 <TextBlock Text="Save file downgrading" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0">
-                This step is necessary if you want to keep your current save files because by default, downgrading and trying to load your saves won't work properly.
-                <LineBreak/><LineBreak/>
-                To get your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users > (Username) > Documents > Rockstar Games > GTA IV > savegames</Hyperlink><LineBreak/>
-                You should see <Run Text="SGTA4[NUMBER]" FontWeight="Bold" FontStyle="Oblique"/> file(s), these are your saves.
-                <LineBreak/><LineBreak/>
-                Then to downgrade you current saves, head to <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com/" FontWeight="Bold">GTASnP</Hyperlink>.<LineBreak/>
-                Upload your save file that you want to downgrade, click <Run Text="Modifications" FontWeight="Bold"/>, then click the dropdown for downgrading, and downgrade it to <Run Text="1.0.8.0 / 1.1.3.0 and older" FontWeight="Bold"/>, now click any of the slots below, and it'll download.
-                <LineBreak/><LineBreak/>
-                Now head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoLocalAppDataFolder/" FontWeight="Bold">Users > (Username) > AppData > Local > Rockstar Games > GTA IV > savegames > user_ee000000deadc0de</Hyperlink> (Your saves should <Run Text="always" FontWeight="Bold"/> be here while using <Run Text="xLiveless" FontWeight="Bold"/>)<LineBreak/>
-                Now just drag and drop the save you downloaded into there, and you're done!
+                    This step is necessary if you want to keep your current save files because trying to load your saves won't work after downgrading. Conveniently, this process is automatic now thanks to <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>!
+                    <LineBreak/><LineBreak/>
+                    
+                    You can skip this step if you do not wish to downgrade your save files.
+                    <LineBreak/><LineBreak/>
+                    
+                    Locate your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users > (Username) > Documents > Rockstar Games > GTA IV > savegames</Hyperlink>.
+                    In the savegames folder, you should see <Run Text="SGTA4[NUMBER]" FontWeight="Bold" FontStyle="Oblique"/> file(s), these are your saves.
+                    <LineBreak/><LineBreak/>
+
                 </TextBlock>
             </StackPanel>
 
-            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
+            <TextBlock Text="To proceed, press the 'Next' button. Or 'Skip' if you want to skip this step." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
         </Grid>
 
         <!-- Bottom Grid -->
         <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
         <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" IsEnabled="True" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="SkipButton" Click="SkipButton_Click" Content="Skip" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
         </Grid>
         
     </Grid>

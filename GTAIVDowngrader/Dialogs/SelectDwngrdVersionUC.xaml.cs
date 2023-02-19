@@ -1,7 +1,5 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace GTAIVDowngrader.Dialogs {
     public partial class SelectDwngrdVersionUC : UserControl {
@@ -40,38 +38,6 @@ namespace GTAIVDowngrader.Dialogs {
             else {
                 BackButton.IsEnabled = !MainFunctions.downgradingInfo.GTAIVInstallationGotMovedByDowngrader;
             }
-
-            // File check
-            if (!File.Exists(".\\Data\\Files\\1080\\1080.zip")) {
-                IV1080Radiobtn.IsEnabled = false;
-            }
-            else {
-                IV1080Radiobtn.IsEnabled = true;
-            }
-            if (!File.Exists(".\\Data\\Files\\1070\\1070.zip")) {
-                IV1070Radiobtn.IsEnabled = false;
-            }
-            else {
-                IV1070Radiobtn.IsEnabled = true;
-            }
-            if (!File.Exists(".\\Data\\Files\\1040\\1040.zip")) {
-                IV1040Radiobtn.IsEnabled = false;
-            }
-            else {
-                IV1070Radiobtn.IsEnabled = true;
-            }
-
-            if (IV1080Radiobtn.IsEnabled || IV1070Radiobtn.IsEnabled || IV1040Radiobtn.IsEnabled) {
-                ErrorLabel.Visibility = Visibility.Collapsed;
-            }
-            else if (!IV1080Radiobtn.IsEnabled && !IV1070Radiobtn.IsEnabled && !IV1040Radiobtn.IsEnabled) {
-                ErrorLabel.Visibility = Visibility.Visible;
-                NextButton.IsEnabled = false;
-            }
-            else {
-                ErrorLabel.Visibility = Visibility.Visible;
-                NextButton.IsEnabled = false;
-            }
         }
 
         private void IV1080Radiobtn_Checked(object sender, RoutedEventArgs e)
@@ -88,34 +54,6 @@ namespace GTAIVDowngrader.Dialogs {
         {
             MainFunctions.downgradingInfo.SetDowngradeVersion(GameVersion.v1040);
             NextButton.IsEnabled = true;
-        }
-
-        private void IV1080Radiobtn_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (IV1080Radiobtn.IsEnabled) {
-                IV1080Radiobtn.Foreground = Brushes.White;
-            }
-            else {
-                IV1080Radiobtn.Foreground = Brushes.Gray;
-            }
-        }
-        private void IV1070Radiobtn_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (IV1070Radiobtn.IsEnabled) {
-                IV1070Radiobtn.Foreground = Brushes.White;
-            }
-            else {
-                IV1070Radiobtn.Foreground = Brushes.Gray;
-            }
-        }
-        private void IV1040Radiobtn_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (IV1040Radiobtn.IsEnabled) {
-                IV1040Radiobtn.Foreground = Brushes.White;
-            }
-            else {
-                IV1040Radiobtn.Foreground = Brushes.Gray;
-            }
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)

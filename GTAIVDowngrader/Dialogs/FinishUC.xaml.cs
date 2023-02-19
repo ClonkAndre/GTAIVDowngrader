@@ -9,6 +9,7 @@ namespace GTAIVDowngrader.Dialogs {
 
         #region Variables
         private MainWindow instance;
+        private string latestLogFileName;
         #endregion
 
         #region Constructor
@@ -32,6 +33,22 @@ namespace GTAIVDowngrader.Dialogs {
                 else { // Use Rainbow Colours
                     BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
                 }
+            }
+
+            // Create log file
+            try {
+                string logFolder = ".\\Data\\Logs";
+                if (!Directory.Exists(logFolder))
+                    Directory.CreateDirectory(logFolder);
+
+                latestLogFileName = string.Format("{0}\\Log.{1}.{2}_{3}_{4}.log", logFolder, DateTime.Now.Year.ToString(), DateTime.Now.Hour.ToString(), DateTime.Now.Minute.ToString(), DateTime.Now.Second.ToString());
+                File.WriteAllLines(latestLogFileName, MainFunctions.logItems);
+            }
+            catch (UnauthorizedAccessException) {
+                MainFunctions.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", "A UnauthorizedAccessException occured while trying to create log file.", "COULD_NOT_CREATE_LOG_FILE");
+            }
+            catch (Exception) {
+                MainFunctions.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", "A unknown error occured while trying to create log file.", "COULD_NOT_CREATE_LOG_FILE");
             }
         }
 
@@ -63,9 +80,8 @@ namespace GTAIVDowngrader.Dialogs {
 
         private void ShowLog_Click(object sender, RoutedEventArgs e)
         {
-            string logFile = instance.downgradingUC.latestLogFileName;
-            if (File.Exists(logFile)) {
-                Process.Start(logFile);
+            if (File.Exists(latestLogFileName)) {
+                Process.Start(latestLogFileName);
             }
             else {
                 MainFunctions.Notification.ShowNotification(NotificationType.Warning, 4000, "Log file does not exists", "Could not open log file because it does not exists.", "FILE_DOES_NOT_EXISTS");

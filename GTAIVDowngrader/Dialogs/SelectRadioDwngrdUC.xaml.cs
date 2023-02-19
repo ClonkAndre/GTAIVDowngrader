@@ -1,7 +1,5 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace GTAIVDowngrader.Dialogs {
     public partial class SelectRadioDwngrdUC : UserControl {
@@ -34,10 +32,6 @@ namespace GTAIVDowngrader.Dialogs {
                 }
             }
 
-            // File check
-            SneedsRadioDowngraderCheckbox.IsEnabled = File.Exists(".\\Data\\Files\\Radio\\SneedsRadioDowngrader.zip");
-            LegacyRadioDowngraderCheckbox.IsEnabled = File.Exists(".\\Data\\Files\\Radio\\LegacyRadioDowngrader.zip");
-
             // Reset
             MainFunctions.downgradingInfo.SetRadioDowngrader(RadioDowngrader.None);
             MainFunctions.downgradingInfo.SetVladivostokType(VladivostokTypes.None);
@@ -46,28 +40,6 @@ namespace GTAIVDowngrader.Dialogs {
             LegacyRadioDowngraderCheckbox.IsChecked = false;
             NoEFLCMusicInIVCheckbox.IsChecked = false;
             NextButton.IsEnabled = false;
-
-            // Version check
-            if (MainFunctions.downgradingInfo.DowngradeTo == GameVersion.v1040) {
-
-                // Check if Sneeds or Legacy Downgrader Checkbox is enabled
-                if (!SneedsRadioDowngraderCheckbox.IsEnabled || !LegacyRadioDowngraderCheckbox.IsEnabled) {
-                    ErrorLabel.Visibility = Visibility.Visible;
-                }
-
-                SkipButton.IsEnabled = false;
-                NoEFLCMusicInIVCheckbox.IsEnabled = false;
-            }
-            else {
-
-                // Check if Sneeds or Legacy Downgrader Checkbox is enabled
-                if (SneedsRadioDowngraderCheckbox.IsEnabled || LegacyRadioDowngraderCheckbox.IsEnabled) {
-                    NoEFLCMusicInIVCheckbox.IsEnabled = true;
-                }
-
-                ErrorLabel.Visibility = Visibility.Collapsed;
-                SkipButton.IsEnabled = true;
-            }
         }
 
         private void SneedsRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
@@ -83,34 +55,6 @@ namespace GTAIVDowngrader.Dialogs {
         private void NoEFLCMusicInIVCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
         {
             MainFunctions.downgradingInfo.SetInstallNoEFLCMusicInIVFix(NoEFLCMusicInIVCheckbox.IsChecked.Value);
-        }
-
-        private void LegacyRadioDowngraderCheckbox_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (!LegacyRadioDowngraderCheckbox.IsEnabled) {
-                LegacyRadioDowngraderCheckbox.Foreground = Brushes.Gray;
-            }
-            else {
-                LegacyRadioDowngraderCheckbox.Foreground = Brushes.White;
-            }
-        }
-        private void SneedsRadioDowngraderCheckbox_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (!SneedsRadioDowngraderCheckbox.IsEnabled) {
-                SneedsRadioDowngraderCheckbox.Foreground = Brushes.Gray;
-            }
-            else {
-                SneedsRadioDowngraderCheckbox.Foreground = Brushes.White;
-            }
-        }
-        private void NoEFLCMusicInIVCheckbox_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (!NoEFLCMusicInIVCheckbox.IsEnabled) {
-                NoEFLCMusicInIVCheckbox.Foreground = Brushes.Gray;
-            }
-            else {
-                NoEFLCMusicInIVCheckbox.Foreground = Brushes.White;
-            }
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)

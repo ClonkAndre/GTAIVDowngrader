@@ -42,7 +42,7 @@
                     It depends on what you want to do. If you want to use ASI mods, chances are that you want <Run Text="1080" FontWeight="Bold"/> because it has great modding support.
                     <Run Text="1080" FontWeight="Bold"/> can also be better for the performance if you have more then 2 GB of VRAM, but there could also be a rare issue where <Run Text="1080" FontWeight="Bold"/> runs way worse then <Run Text="1070" FontWeight="Bold"/>.
                     <LineBreak/>
-                    If you want to use ENBs, you probably want <Run Text="1040" FontWeight="Bold"/> because it has the best visuals! Picking <Run Text="1080" FontWeight="Bold"/> is recommended if you don't want to use ENBs but want to use mods.
+                    If you want to use ENBs, you probably want <Run Text="1040" FontWeight="Bold"/> because it has the best visuals! A huge downside of <Run Text="1040" FontWeight="Bold"/> is that you can <Run Text="NOT" FontWeight="Bold"/> play the DLCs with it. Picking <Run Text="1080" FontWeight="Bold"/> is recommended if you don't want to use ENBs but want to use mods.
                     
                     <LineBreak/><LineBreak/>
                     A quick summary on all the benefits of each version
@@ -56,9 +56,9 @@
                     <LineBreak/><LineBreak/><LineBreak/>
                     <Run Text="Select which version you would like to downgrade to" FontSize="15"/>
                 </TextBlock>
-                <RadioButton x:Name="IV1080Radiobtn" Checked="IV1080Radiobtn_Checked" IsEnabledChanged="IV1080Radiobtn_IsEnabledChanged" Content="1.0.8.0 (Recommended)" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,9,0,0"/>
-                <RadioButton x:Name="IV1070Radiobtn" Checked="IV1070Radiobtn_Checked" IsEnabledChanged="IV1070Radiobtn_IsEnabledChanged" Content="1.0.7.0" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
-                <RadioButton x:Name="IV1040Radiobtn" Checked="IV1040Radiobtn_Checked" IsEnabledChanged="IV1040Radiobtn_IsEnabledChanged" Content="1.0.4.0" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
+                <RadioButton x:Name="IV1080Radiobtn" Checked="IV1080Radiobtn_Checked" Content="1.0.8.0 (Recommended)" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,9,0,0"/>
+                <RadioButton x:Name="IV1070Radiobtn" Checked="IV1070Radiobtn_Checked" Content="1.0.7.0" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
+                <RadioButton x:Name="IV1040Radiobtn" Checked="IV1040Radiobtn_Checked" Content="1.0.4.0" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
             </StackPanel>
 
             <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>

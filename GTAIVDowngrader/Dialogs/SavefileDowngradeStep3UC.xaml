@@ -1,0 +1,97 @@
+﻿<UserControl x:Class="GTAIVDowngrader.Dialogs.SavefileDowngradeStep3UC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
+             mc:Ignorable="d" 
+             Loaded="UserControl_Loaded"
+             d:DesignHeight="634" d:DesignWidth="1050">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="60"/>
+        </Grid.RowDefinitions>
+
+        <!-- MainGrid -->
+        <Grid x:Name="MainGrid" Grid.Row="0">
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+
+            <!-- Background Char -->
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\char10.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,20,20,-61"/>
+
+            <!-- Content -->
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
+                <TextBlock Text="Save file downgrading Part 3" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock Text="If you used the automatic save file downgrader, follow the steps below to know where to find, and where to put your just downgraded save files." TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0"/>
+
+                <StackPanel Margin="10,25,20,0">
+
+                    <!-- Step 1 -->
+                    <StackPanel>
+                        <TextBlock Text="Step 1 - Locate your just downgraded save files." FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock FontSize="14" Foreground="White" Margin="0,5,0,0">
+                            If everything went as it should, your new save files should be located <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotosavegamesoutputfolder/" FontWeight="Bold">in here</Hyperlink>.
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Step 2 -->
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="Step 2 - Move save files to target folder." FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock x:Name="xliveLocationTextBlock" Visibility="Visible" FontSize="14" Foreground="White" Margin="0,5,0,0">
+                            The save files for xlive are located <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotolocalappdataxlivefolder/" FontWeight="Bold">in here</Hyperlink>. Place your saves in there.
+                        </TextBlock>
+                        <TextBlock x:Name="gfwlLocationTextBlock" Visibility="Collapsed" TextWrapping="Wrap" FontSize="14" Foreground="White" Margin="0,5,0,0">
+                            The save files for Games For Windows Live are located <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotolocalappdatafolder/" FontWeight="Bold">here</Hyperlink>.
+                            You should see a folder named something like <Run Text="user_e0000..." FontWeight="Bold"/> and some random characters behind the zeros. The folder name is around 21 characters long, this is your GFWL User ID. Place your saves in there.
+                            <LineBreak/><LineBreak/>
+                            If you don't see any folders, start GTA IV, log in with your GFWL Account, and the folder should be created.
+                            If you see a folder named like <Run Text="user_ee000000deadc0de" FontWeight="Bold"/> this is only for xlive. So the saves won't work if you put them in there cause you would need to switch from <Run Text="dsound" FontWeight="Bold"/> asi loader to <Run Text="xlive" FontWeight="Bold"/>.
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Step 3 -->
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="Step 3 - Finish!" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="Press the Next button to go to the next page." FontSize="14" Foreground="White" Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Problems? -->
+                    <StackPanel Margin="0,55,0,0">
+                        <TextBlock Text="Did you had any issues with the automatic save file downgrader?" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="White" Margin="0,5,0,0">
+                            If you had any issues while using the automatic save file downgrader, you can still manually downgrade your save files on <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>
+                            <LineBreak/>
+                            Please send the log file created by the downgrader in the #bug-report channel on our
+                            <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://discord.gg/QtAgvkMeJ5" FontWeight="SemiBold">Discord server</Hyperlink>
+                            if you had any issues so we can fix any problems and make it more robust. The log file will be created in
+                            <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotologsfolder/" FontWeight="Bold">in here</Hyperlink> once you've reached the last page of the Downgrader.
+                        </TextBlock>
+                    </StackPanel>
+
+                </StackPanel>
+
+            </StackPanel>
+
+            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
+        </Grid>
+
+        <!-- Bottom Grid -->
+        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
+        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
+            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
+        </Grid>
+
+    </Grid>
+</UserControl>

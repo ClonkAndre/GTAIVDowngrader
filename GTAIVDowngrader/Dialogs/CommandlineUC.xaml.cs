@@ -271,7 +271,7 @@ namespace GTAIVDowngrader.Dialogs {
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            instance.PreviousStep();
+            instance.PreviousStep(2);
         }
         private void SkipButton_Click(object sender, RoutedEventArgs e)
         {

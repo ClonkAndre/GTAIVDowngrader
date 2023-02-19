@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace GTAIVDowngrader.JsonObjects {
+﻿namespace GTAIVDowngrader.JsonObjects {
     public class MD5Hash {
 
         #region Variables

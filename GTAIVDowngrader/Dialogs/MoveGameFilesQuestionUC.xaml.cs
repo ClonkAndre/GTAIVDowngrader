@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace GTAIVDowngrader.Dialogs {
@@ -40,21 +38,7 @@ namespace GTAIVDowngrader.Dialogs {
 
         private void SetStatusText(string str)
         {
-            StatusLabel.Text = str;
-        }
-        private void SetStatusImage(int imgToSet)
-        {
-            switch (imgToSet) {
-                case 0: // Question mark
-                    StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\questionWhite.png", UriKind.RelativeOrAbsolute));
-                    break;
-                case 1: // Check symbol
-                    StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\checkCircleWhite.png", UriKind.RelativeOrAbsolute));
-                    break;
-                case 2: // Error
-                    StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\errorWhite.png", UriKind.RelativeOrAbsolute));
-                    break;
-            }
+            StatusTextBlock.Text = str;
         }
         private void SetNextButtonEnabledState(bool enabled)
         {
@@ -65,13 +49,11 @@ namespace GTAIVDowngrader.Dialogs {
         {
             if (string.IsNullOrWhiteSpace(loc)) {
                 SetNextButtonEnabledState(false);
-                SetStatusImage(2);
                 SetStatusText("Path can't be empty!");
                 return;
             }
             if (!Directory.Exists(loc)) {
                 SetNextButtonEnabledState(false);
-                SetStatusImage(2);
                 SetStatusText("Directory not found!");
                 return;
             }
@@ -79,7 +61,6 @@ namespace GTAIVDowngrader.Dialogs {
             string path = loc.ToLower();
             if (path.Contains("program files") || path.Contains("program files (x86)")) {
                 SetNextButtonEnabledState(false);
-                SetStatusImage(2);
                 SetStatusText("GTA IV can't be moved in the selected directory.");
                 return;
             }
@@ -95,12 +76,10 @@ namespace GTAIVDowngrader.Dialogs {
                 // Passed test
                 NewGTAIVTargetLocation = loc;
                 SetNextButtonEnabledState(true);
-                SetStatusImage(1);
                 SetStatusText("GTA IV can be moved to this directory!");
             }
             catch (Exception) {
                 SetNextButtonEnabledState(false);
-                SetStatusImage(2);
                 SetStatusText("GTA IV can't be moved in the selected directory. Not enough permissions.");
             }
 

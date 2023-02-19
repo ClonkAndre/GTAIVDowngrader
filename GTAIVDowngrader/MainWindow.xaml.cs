@@ -31,6 +31,8 @@ namespace GTAIVDowngrader {
         S9_Confirm,
         S10_Downgrade,
         S11_SavefileDowngrade,
+        S11_SavefileDowngrade_2,
+        S11_SavefileDowngrade_3,
         S12_Commandline,
         S13_Finish,
 
@@ -89,7 +91,8 @@ namespace GTAIVDowngrader {
     public partial class MainWindow : Window {
 
         #region Variables
-        // Other
+        // Downloading
+        private WebClient downloadWebClient;
         private bool finishedDownloadingFileInfo, finishedDownloadingMD5Hashes;
 
         // Current step/dialog
@@ -109,6 +112,8 @@ namespace GTAIVDowngrader {
         public ConfirmUC confirmUC;
         public DowngradingUC downgradingUC;
         public SavefileDowngradeUC savefileDowngradeUC;
+        public SavefileDowngradeStep2UC savefileDowngradeStep2UC;
+        public SavefileDowngradeStep3UC savefileDowngradeStep3UC;
         public CommandlineUC commandlineUC;
         public FinishUC finishUC;
         public StandaloneWarningUC standaloneWarningUC;
@@ -172,6 +177,12 @@ namespace GTAIVDowngrader {
                     case Steps.S11_SavefileDowngrade:
                         ContentGrid.Children.Add(savefileDowngradeUC);
                         break;
+                    case Steps.S11_SavefileDowngrade_2:
+                        ContentGrid.Children.Add(savefileDowngradeStep2UC);
+                        break;
+                    case Steps.S11_SavefileDowngrade_3:
+                        ContentGrid.Children.Add(savefileDowngradeStep3UC);
+                        break;
                     case Steps.S12_Commandline:
                         ContentGrid.Children.Add(commandlineUC);
                         break;
@@ -211,7 +222,10 @@ namespace GTAIVDowngrader {
         public void ShowExitMsg(bool suppressMsg = false)
         {
             if (!suppressMsg) {
-                switch (MessageBox.Show("Do you really want to quit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question)) {
+                string exitMsg = "Do you really want to quit?";
+
+                // Show confirm message
+                switch (MessageBox.Show(exitMsg, "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question)) {
                     case MessageBoxResult.Yes:
                         Close();
                         break;
@@ -275,7 +289,7 @@ namespace GTAIVDowngrader {
                             case "IS_PRIDE_MONTH_CHECK":
 
                                 MainFunctions.isPrideMonth = e.Result == "1";
-                                MainFunctions.downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v1.7_and_up/downgradingFiles.json"), "DOWNGRADING_FILES");
+                                downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v1.9_and_up/downgradingFiles.json"), "DOWNGRADING_FILES");
 
                                 break;
                             #endregion
@@ -289,7 +303,7 @@ namespace GTAIVDowngrader {
                                 if (MainFunctions.downgradeFiles.Count != 0) MainFunctions.downgradeFiles.ForEach(d => Console.WriteLine(d.ToString())); // Print to console
 
                                 Console.WriteLine("");
-                                MainFunctions.downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v1.7_and_up/md5Hashes.json"), "MD5_HASHES");
+                                downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v1.9_and_up/md5Hashes.json"), "MD5_HASHES");
                                 finishedDownloadingFileInfo = true;
 
                                 break;
@@ -304,7 +318,12 @@ namespace GTAIVDowngrader {
                                 if (MainFunctions.mD5Hashes.Count != 0) MainFunctions.mD5Hashes.ForEach(hash => Console.WriteLine(hash.ToString())); // Print to console
 
                                 finishedDownloadingMD5Hashes = true;
-                                MainFunctions.downloadWebClient.DownloadStringCompleted -= DownloadWebClient_DownloadStringCompleted;
+
+                                // Destroy WebClient
+                                downloadWebClient.DownloadStringCompleted -= DownloadWebClient_DownloadStringCompleted;
+                                downloadWebClient.CancelAsync();
+                                downloadWebClient.Dispose();
+                                downloadWebClient = null;
 
                                 break;
                                 #endregion
@@ -360,10 +379,13 @@ namespace GTAIVDowngrader {
             }
 
             // MainFunctions
-            MainFunctions mainFunctions = new MainFunctions(this, "1.7");
+            MainFunctions mainFunctions = new MainFunctions(this, "1.9");
             MainFunctions.updateChecker.VersionCheckCompleted += UpdateChecker_VersionCheckCompleted;
             MainFunctions.updateChecker.VersionCheckFailed += UpdateChecker_VersionCheckFailed;
-            MainFunctions.downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
+
+            // Init WebClient
+            downloadWebClient = new WebClient();
+            downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
 
             // Dialogs
             welcomeUC = new WelcomeUC(this);
@@ -378,6 +400,8 @@ namespace GTAIVDowngrader {
             selectComponentsUC = new SelectComponentsUC(this);
             confirmUC = new ConfirmUC(this);
             savefileDowngradeUC = new SavefileDowngradeUC(this);
+            savefileDowngradeStep2UC = new SavefileDowngradeStep2UC(this);
+            savefileDowngradeStep3UC = new SavefileDowngradeStep3UC(this);
             commandlineUC = new CommandlineUC(this);
             finishUC = new FinishUC(this);
             downgradingUC = new DowngradingUC(this);
@@ -387,12 +411,9 @@ namespace GTAIVDowngrader {
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            string tempDirLoc = ".\\Data\\Temp";
-
             if (currentStep == Steps.S10_Downgrade) {
                 switch (MessageBox.Show("Do you really want to quit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question)) {
                     case MessageBoxResult.Yes:
-                        if (Directory.Exists(tempDirLoc)) Directory.Delete(tempDirLoc, true);
                         Environment.Exit(0);
                         break;
                     default:
@@ -400,8 +421,6 @@ namespace GTAIVDowngrader {
                         return;
                 }
             }
-
-            if (Directory.Exists(tempDirLoc)) Directory.Delete(tempDirLoc, true);
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -442,10 +461,10 @@ namespace GTAIVDowngrader {
                     Dispatcher.Invoke(() => {
 
                         // Download required data
-                        MainFunctions.downloadWebClient.DownloadStringAsync(new Uri("https://www.dropbox.com/s/egrkznd2xl7cdd9/isPrideMonth.txt?dl=1"), "IS_PRIDE_MONTH_CHECK");
+                        downloadWebClient.DownloadStringAsync(new Uri("https://www.dropbox.com/s/egrkznd2xl7cdd9/isPrideMonth.txt?dl=1"), "IS_PRIDE_MONTH_CHECK");
                         MainFunctions.updateChecker.CheckForUpdates(true);
 
-                        ChangeStep(Steps.StandaloneWarning, new List<object> { "Retrieving informations", "Please wait while the downgrader finished retrieving necessary informations... If you are stuck at this step, please try to restart the downgrader." });
+                        ChangeStep(Steps.StandaloneWarning, new List<object> { "Retrieving information", "Please wait while the downgrader finished retrieving necessary information... If you are stuck at this step, please try to restart the downgrader." });
 
                         Task.Run(() => {
                             while (!finishedDownloadingFileInfo && !finishedDownloadingMD5Hashes) { // Wait till downloads are complete

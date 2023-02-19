@@ -1,0 +1,93 @@
+﻿<UserControl x:Class="GTAIVDowngrader.Dialogs.SavefileDowngradeStep2UC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
+             mc:Ignorable="d" 
+             Loaded="UserControl_Loaded"
+             d:DesignHeight="634" d:DesignWidth="1050">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="60"/>
+        </Grid.RowDefinitions>
+
+        <!-- MainGrid -->
+        <Grid x:Name="MainGrid" Grid.Row="0">
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+
+            <!-- Background Char -->
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\char9.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,20,20,-61"/>
+
+            <!-- Content -->
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
+                <TextBlock Text="Save file downgrading Part 2" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock Text="Follow the steps below to get your save files downgraded." TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0"/>
+
+                <StackPanel Margin="10,25,0,0">
+
+                    <!-- Step 1 -->
+                    <StackPanel>
+                        <TextBlock Text="Step 1 - Select your save file(s)." FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <WrapPanel>
+                            <Button x:Name="SelectFilesButton" Click="SelectFilesButton_Click" Content="Select files" Background="#0050bf" Style="{StaticResource MetroButton}" Width="100" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="SelectedFilesTextBlock" Visibility="Collapsed" Text="0 save files selected" FontSize="15" Foreground="White" VerticalAlignment="Center" Margin="10,1,0,0"/>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <!-- Step 2 -->
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="Step 2 - Click the downgrade button to downgrade your selected saves!" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <Button x:Name="DowngradeButton" Click="DowngradeButton_Click" Content="Downgrade" Background="#0050bf" Style="{StaticResource MetroButton}" Width="100" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Step 3 -->
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="Step 3 - Finish!" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock FontSize="14" Foreground="White" Margin="0,5,0,0">
+                            If your saves are downgraded, press the Next button to get to the next step in which you will find
+                            <LineBreak/>
+                            the location of your just downgraded save files. It will also tell you where to put the downgraded save files.
+                        </TextBlock>
+                    </StackPanel>
+
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel VerticalAlignment="Bottom" Margin="30,0,30,100">
+                <TextBlock x:Name="StatusTextBlock" Text="Idle" FontSize="14" TextTrimming="WordEllipsis" Foreground="White" Margin="0,0,0,5"/>
+                <ProgressBar x:Name="StatusProgressBar" Foreground="#0050BF" Background="#1Affffff" BorderThickness="0" Height="20"/>
+            </StackPanel>
+            
+            <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,15">
+                <StackPanel Margin="0,0,10,0">
+                    <TextBlock Text="Powered by" Foreground="White" FontSize="16"/>
+                    <TextBlock>
+                        <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+                <Image Source="..\Resources\gtasnpLogo.png" RenderOptions.BitmapScalingMode="HighQuality" Width="40"/>
+            </WrapPanel>
+            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
+        </Grid>
+
+        <!-- Bottom Grid -->
+        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
+        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
+            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
+            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
+        </Grid>
+        
+    </Grid>
+</UserControl>

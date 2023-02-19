@@ -8,11 +8,11 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("GTA IV Downgrader")]
-[assembly: AssemblyDescription("A Downgrader for the Game Grand Theft Auto IV.")]
+[assembly: AssemblyDescription("An advanced automatic Downgrader for Grand Theft Auto IV.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ItsClonkAndre")]
 [assembly: AssemblyProduct("GTA IV Downgrader")]
-[assembly: AssemblyCopyright("Copyright © ItsClonkAndre 2021-2022")]
+[assembly: AssemblyCopyright("Copyright © ItsClonkAndre 2021-2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,5 +51,5 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7.0.*")]
+[assembly: AssemblyVersion("1.9.0.*")]
 // [assembly: AssemblyFileVersion("1.1.*")]

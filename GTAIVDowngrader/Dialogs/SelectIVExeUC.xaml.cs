@@ -2,8 +2,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media.Imaging;
+
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace GTAIVDowngrader.Dialogs {
@@ -11,36 +10,40 @@ namespace GTAIVDowngrader.Dialogs {
 
         #region Variables
         private MainWindow instance;
+        private string gtaivExecutablePath;
         #endregion
 
         #region Methods
-        private void CheckFileVersion(string v)
+        private void CheckDirectory(string dir)
         {
             try {
-                string fName = v;
-                IVExecutablePathTextbox.Text = fName;
-                if (!string.IsNullOrWhiteSpace(fName)) {
-                    if (File.Exists(fName)) {
-                        IVExeStatusLabel.Text = "Valid file";
-                        IVExeStatusImage.Source = new BitmapImage(new Uri(@"..\Resources\checkCircleWhite.png", UriKind.RelativeOrAbsolute));
-                        NextButton.IsEnabled = true;
-                        return;
-                    }
-                    else {
-                        IVExeStatusLabel.Text = "File not found";
-                        IVExeStatusImage.Source = new BitmapImage(new Uri(@"..\Resources\errorWhite.png", UriKind.RelativeOrAbsolute));
+                if (!Directory.Exists(dir)) {
+                    StatusTextBlock.Text = "Directory does not exists!";
+                    NextButton.IsEnabled = false;
+                    return;
+                }
+
+                // Check if GTA IV exists in the directory
+                bool foundGTAIV = false;
+                string[] files = Directory.GetFiles(dir, "*.exe", SearchOption.TopDirectoryOnly);
+                for (int i = 0; i < files.Length; i++) {
+                    string file = files[i];
+                    string fileName = Path.GetFileName(file).ToLower();
+
+                    if (fileName.Contains("gtaiv")) {
+                        foundGTAIV = true;
+                        gtaivExecutablePath = file;
+                        break;
                     }
                 }
-                else {
-                    IVExeStatusLabel.Text = "Invalid path";
-                    IVExeStatusImage.Source = new BitmapImage(new Uri(@"..\Resources\warningWhite.png", UriKind.RelativeOrAbsolute));
-                }
+
+                StatusTextBlock.Text = foundGTAIV ? "Valid directory!" : "GTAIV.exe was not found in the selected directory! If you are sure it's in there, you can continue.";
+                NextButton.IsEnabled = true;
             }
             catch (Exception ex) {
-                IVExeStatusLabel.Text = string.Format("An error occured{0}Error: {1}", Environment.NewLine, ex.Message);
-                IVExeStatusImage.Source = new BitmapImage(new Uri(@"..\Resources\errorWhite.png", UriKind.RelativeOrAbsolute));
+                StatusTextBlock.Text = string.Format("Error: {0}", ex.Message);
+                NextButton.IsEnabled = false;
             }
-            NextButton.IsEnabled = false;
         }
         #endregion
 
@@ -79,32 +82,24 @@ namespace GTAIVDowngrader.Dialogs {
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
             // Set IVExecutablePath and IVWorkingDirectory
-            MainFunctions.downgradingInfo.SetPath(IVExecutablePathTextbox.Text);
+            MainFunctions.downgradingInfo.SetPath(gtaivExecutablePath);
 
             // Go to next step
             instance.NextStep();
         }
 
-        private void IVExecutablePathTextbox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (e.Key == Key.Enter) {
-                CheckFileVersion(IVExecutablePathTextbox.Text);
-            }
-        }
-        private void IVExecutablePathTextbox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(IVExecutablePathTextbox.Text)) {
-                CheckFileVersion(IVExecutablePathTextbox.Text);
-            }
-        }
-        private void BrowseIVExecutableButton_Click(object sender, RoutedEventArgs e)
-        {
-            using (CommonOpenFileDialog ofd = new CommonOpenFileDialog("Select the GTA IV executable")) {
-                ofd.Filters.Add(new CommonFileDialogFilter("Executable", ".exe"));
+            using (CommonOpenFileDialog ofd = new CommonOpenFileDialog("Select GTA IV directory that should be downgraded")) {
+                ofd.IsFolderPicker = true;
                 if (ofd.ShowDialog() == CommonFileDialogResult.Ok) {
-                    CheckFileVersion(ofd.FileName);
+                    PathTextBox.Text = ofd.FileName;
                 }
             }
+        }
+        private void PathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CheckDirectory(PathTextBox.Text);
         }
 
     }

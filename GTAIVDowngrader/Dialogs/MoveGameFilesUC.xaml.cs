@@ -181,7 +181,7 @@ namespace GTAIVDowngrader.Dialogs {
                     SetNextButtonEnabledState(true);
                 }
                 else {
-                    instance.ChangeStep(Steps.StandaloneWarning, new List<object>() { true, "Moving process did not complete successfully", string.Format("Your GTA IV directory might be corrupted now.{0}" +
+                    instance.ChangeStep(Steps.StandaloneWarning, new List<object>() { "Moving process did not complete successfully", string.Format("Your GTA IV directory might be corrupted now.{0}" +
                         "Please close the downgrader and verify that the old GTA IV directory still contains all files. If not, then you might be able to just copy all files that got moved to the new directory back into the old GTA IV directory.{0}{0}" +
                         "Error details: {2} {3} {1}{0}{0}" +
                         "Please copy the error and send it into the #help channel on Clonk's discord!", Environment.NewLine, result.Exception.StackTrace, result.Exception.GetType().Name, result.Exception.Message) });

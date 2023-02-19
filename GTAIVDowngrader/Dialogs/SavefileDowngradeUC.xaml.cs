@@ -38,6 +38,15 @@ namespace GTAIVDowngrader.Dialogs {
             // Change TaskbarItem ProgressState to none
             instance.taskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
         }
+
+        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        {
+            instance.ShowExitMsg();
+        }
+        private void SkipButton_Click(object sender, RoutedEventArgs e)
+        {
+            instance.NextStep(2);
+        }
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
             instance.NextStep();
@@ -72,6 +81,7 @@ namespace GTAIVDowngrader.Dialogs {
                     break;
             }
         }
+
 
     }
 }

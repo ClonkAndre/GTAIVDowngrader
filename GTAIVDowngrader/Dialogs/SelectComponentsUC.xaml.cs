@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,6 +14,7 @@ namespace GTAIVDowngrader.Dialogs {
         #region Variables
         private MainWindow instance;
 
+        private WebClient downloadWebClient;
         private List<JsonObjects.ModInformation> allMods;
 
         private ModCheck modCheck;
@@ -116,7 +116,7 @@ namespace GTAIVDowngrader.Dialogs {
             try {
                 Clear();
                 ChangeLoadingPageState(true, "Retrieving all mods");
-                MainFunctions.downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v1.7_and_up/modInfos.json"));
+                downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v1.9_and_up/modInfos.json"));
             }
             catch (Exception ex) {
                 ChangeLoadingPageState(true, string.Format("An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, ex.Message), false);
@@ -328,11 +328,20 @@ namespace GTAIVDowngrader.Dialogs {
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            MainFunctions.downloadWebClient.DownloadStringCompleted -= DownloadWebClient_DownloadStringCompleted;
+            // Destroy WebClient
+            downloadWebClient.DownloadStringCompleted -= DownloadWebClient_DownloadStringCompleted;
+            downloadWebClient.CancelAsync();
+            downloadWebClient.Dispose();
+            downloadWebClient = null;
+
             Clear();
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            // Init WebClient
+            downloadWebClient = new WebClient();
+            downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
+
             // BottomGrid Colours
             if (MainFunctions.isPrideMonth) {
                 if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
@@ -343,11 +352,21 @@ namespace GTAIVDowngrader.Dialogs {
                 }
             }
 
+            // Set ToolTip for InstallPrerequisites CheckBox
+            if (MainFunctions.downgradingInfo.ConfigureForGFWL) {
+                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and Visual C++ 2005 SP1 which is required for GTA IV and most mods.{0}" +
+                    "It will also install the Prerequisites required by GFWL because you checked the 'Configure this downgrade for GFWL' checkbox earlier.{0}",
+                    "You can uncheck this if you are sure that you already have everything.", Environment.NewLine);
+            }
+            else {
+                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and Visual C++ 2005 SP1 which is required for GTA IV and most mods.{0}" +
+                    "You can uncheck this if you are sure that you already have those.", Environment.NewLine);
+            }
+
             // Remove previously selected mods so they aren't twice in the list
             MainFunctions.downgradingInfo.SelectedMods.Clear();
 
             // Download stuff
-            MainFunctions.downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
             RetrieveMods();
         }
 

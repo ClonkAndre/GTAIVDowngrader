@@ -42,6 +42,22 @@ namespace GTAIVDowngrader.Dialogs {
             else {
                 RestartAdminButton.Visibility = Visibility.Collapsed;
             }
+
+            // Create log file
+            try {
+                string logFolder = ".\\Data\\Logs";
+                if (!Directory.Exists(logFolder))
+                    Directory.CreateDirectory(logFolder);
+
+                string fileName = string.Format("{0}\\Log.{1}.{2}_{3}_{4}.log", logFolder, DateTime.Now.Year.ToString(), DateTime.Now.Hour.ToString(), DateTime.Now.Minute.ToString(), DateTime.Now.Second.ToString());
+                File.WriteAllLines(fileName, MainFunctions.logItems);
+            }
+            catch (UnauthorizedAccessException) {
+                MainFunctions.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", "A UnauthorizedAccessException occured while trying to create log file.", "COULD_NOT_CREATE_LOG_FILE");
+            }
+            catch (Exception) {
+                MainFunctions.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", "A unknown error occured while trying to create log file.", "COULD_NOT_CREATE_LOG_FILE");
+            }
         }
         #endregion
 

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
-using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
@@ -134,7 +134,6 @@ namespace GTAIVDowngrader {
         public static bool gotStartedWithValidCommandLineArgs;
         public static bool isPrideMonth, wantsToDisableRainbowColours;
         public static string commandLineArgPath;
-        public static WebClient downloadWebClient;
         public static BrushConverter brushConverter;
         public static UpdateChecker updateChecker;
         public static DowngradingInfo downgradingInfo;
@@ -375,8 +374,6 @@ namespace GTAIVDowngrader {
             mD5Hashes = new List<JsonObjects.MD5Hash>();
 
             // Other
-            downloadWebClient = new WebClient();
-            downloadWebClient.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.33 Safari/537.36");
             brushConverter = new BrushConverter();
             updateChecker = new UpdateChecker(currentVersion,
                 "https://www.dropbox.com/s/oxk4bwioqmurr1b/version.txt?dl=1",
@@ -462,14 +459,11 @@ namespace GTAIVDowngrader {
             }
             return null;
         }
-        public static JsonObjects.MD5Hash GetMD5HashFromVersion(string version)
+        public static List<string> GetMD5HashesFromVersion(string version)
         {
-            for (int i = 0; i < mD5Hashes.Count; i++) {
-                JsonObjects.MD5Hash hash = mD5Hashes[i];
-                if (hash.Version == version) return hash;
-            }
-            return null;
+            return mD5Hashes.Where(x => x.Version == version).Select(y => y.Hash).ToList();
         }
+
         public static long GetDowngradeFileSizeByFileName(string fileName)
         {
             for (int i = 0; i < downgradeFiles.Count; i++) {
@@ -488,13 +482,13 @@ namespace GTAIVDowngrader {
                 brush.StartPoint = new Point(0, 0.5);
                 brush.EndPoint = new Point(1, 0.5);
 
-                brush.GradientStops.Add(new GradientStop() { Offset = 0.100, Color = "#B3FF0000".ToColor() });
-                brush.GradientStops.Add(new GradientStop() { Offset = 0.1666, Color = "#B3FF7F00".ToColor() });
-                brush.GradientStops.Add(new GradientStop() { Offset = 0.450, Color = "#B3FFFF00".ToColor() });
-                brush.GradientStops.Add(new GradientStop() { Offset = 0.600, Color = "#B300FF00".ToColor() });
-                brush.GradientStops.Add(new GradientStop() { Offset = 0.7700, Color = "#B30000FF".ToColor() });
-                brush.GradientStops.Add(new GradientStop() { Offset = 0.8699, Color = "#B34B0082".ToColor() });
-                brush.GradientStops.Add(new GradientStop() { Offset = 1, Color = "#B39400D3".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 0.100,    Color = "#B3FF0000".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 0.1666,   Color = "#B3FF7F00".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 0.450,    Color = "#B3FFFF00".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 0.600,    Color = "#B300FF00".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 0.7700,   Color = "#B30000FF".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 0.8699,   Color = "#B34B0082".ToColor() });
+                brush.GradientStops.Add(new GradientStop() { Offset = 1,        Color = "#B39400D3".ToColor() });
 
                 return brush;
             }

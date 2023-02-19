@@ -30,7 +30,7 @@
             <StackPanel Margin="30,20">
                 <TextBlock Text="Downgrading" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0">
-                    Your GTA IV installation is currently being downgraded, this process shouldn't take more than 5 minutes (Might take more than 5 minutes if you want a backup). If it does, please try to run the Downgrader with or without admin rights.
+                    Your GTA IV directory is currently being downgraded, this process might take a few minutes. If you think the downgrader is stuck, please try to run the Downgrader with admin rights.
                 </TextBlock>
                 <TextBlock x:Name="CurrentStepLabel" Text="Current step: None" FontWeight="Medium" Foreground="White" Width="720" HorizontalAlignment="Left" Margin="10,20,0,0"/>
                 <TextBlock x:Name="StatusLabel" Text="Starting..." TextTrimming="WordEllipsis" Foreground="White" Width="720" HorizontalAlignment="Left" Margin="10,2,0,0"/>

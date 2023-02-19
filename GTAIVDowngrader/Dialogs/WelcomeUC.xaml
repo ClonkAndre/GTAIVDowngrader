@@ -33,7 +33,7 @@
             <StackPanel MaxHeight="300" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
                 <TextBlock Text="Welcome to the GTA IV Downgrader!" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextTrimming="WordEllipsis" TextWrapping="Wrap" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0">
-                This downgrader allows you to downgrade the <Run FontWeight="Bold" Text="Steam/RGL Complete Edition (1.2.0.32 and up)"/> of GTA IV to either <Run FontWeight="Bold" Text="1.0.4.0"/>, <Run FontWeight="Bold" Text="1.0.7.0"/> or <Run FontWeight="Bold" Text="1.0.8.0"/>.
+                This downgrader allows you to downgrade the <Run FontWeight="Bold" Text="Steam/RGL Complete Edition (1.2.0.30 and up)"/> of GTA IV to either <Run FontWeight="Bold" Text="1.0.4.0"/>, <Run FontWeight="Bold" Text="1.0.7.0"/> or <Run FontWeight="Bold" Text="1.0.8.0"/>.
                 
                 <LineBreak/><LineBreak/><LineBreak/>
                 <Run Text="Why should I downgrade and what are the advantages of it?" FontSize="18" FontWeight="Bold" FontStyle="Italic"/>

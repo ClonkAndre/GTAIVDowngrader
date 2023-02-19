@@ -53,7 +53,7 @@
                 </TextBlock>
             </StackPanel>
 
-            <TextBlock TextWrapping="Wrap" FontSize="17" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,0,30,80">
+            <TextBlock TextWrapping="Wrap" FontSize="17" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,0,30,65">
                 If you want to support me or this project, you can do that via
                 <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.patreon.com/itsclonkandre?fan_landing=true" FontWeight="SemiBold">Patreon</Hyperlink>,
                 <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://ko-fi.com/itsclonkandre" FontWeight="SemiBold">Ko-fi</Hyperlink>
@@ -61,6 +61,10 @@
                 <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://paypal.me/ItsClonkAndre" FontWeight="SemiBold">PayPal</Hyperlink>.
                 <LineBreak/>
                 Any support would be greatly appreciated!
+                <LineBreak/><LineBreak/>
+                Join my
+                <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://discord.gg/QtAgvkMeJ5" FontWeight="SemiBold">Discord server</Hyperlink>
+                for help with GTA IV, or if you want to report bugs or give feedback.
             </TextBlock>
             <TextBlock Text="Click on 'Show Log' to show the current log, 'Play GTA IV' if you want to play GTA IV or 'Exit' if you are done." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
         </Grid>

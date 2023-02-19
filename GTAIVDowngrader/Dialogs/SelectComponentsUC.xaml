@@ -56,7 +56,7 @@
                 </Grid>
             </ScrollViewer>
 
-            <CheckBox x:Name="InstallPrerequisitesCheckBox" ToolTip="If you already installed DirectX June 2010 SDK and Visual C++ 2005 SP1 you can uncheck this." IsChecked="True" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Margin="30,0,0,37">
+            <CheckBox x:Name="InstallPrerequisitesCheckBox" IsChecked="True" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Margin="30,0,0,37">
                 <TextBlock>
                 Download and install Prerequisites (<Run Text="Recommended" FontWeight="Bold"/>)
                 </TextBlock>

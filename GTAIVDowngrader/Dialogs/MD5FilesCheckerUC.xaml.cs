@@ -78,7 +78,7 @@ namespace GTAIVDowngrader.Dialogs {
                         StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\warningWhite.png", UriKind.RelativeOrAbsolute));
                         break;
                     case 3: // Error Red Symbol
-                        StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\errorRed.png", UriKind.RelativeOrAbsolute));
+                        StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\errorWhite.png", UriKind.RelativeOrAbsolute));
                         break;
                 }
             });
@@ -187,7 +187,7 @@ namespace GTAIVDowngrader.Dialogs {
                 // Get file version of the selected executable file and the related MD5 Hash
                 FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(MainFunctions.downgradingInfo.IVExecutablePath);
                 string fileVersion = (fvi != null && fvi.FileVersion != null) ? fvi.FileVersion.Replace(",", ".").Replace(" ", "") : "";
-                JsonObjects.MD5Hash relatedMD5Hash = MainFunctions.GetMD5HashFromVersion(fileVersion);
+                List<string> relatedMD5Hashes = MainFunctions.GetMD5HashesFromVersion(fileVersion);
 
                 Task.Run(() => {
                     return Helper.GetMD5StringFromFolder(MainFunctions.downgradingInfo.IVWorkingDirectoy, new List<string>() { "installscript.vdf", "installscript_sdk.vdf" }); // Get MD5 from selected directory
@@ -199,8 +199,8 @@ namespace GTAIVDowngrader.Dialogs {
                     if (result.Exception == null) {
                         if (result.Result != null) {
 
-                            if (relatedMD5Hash != null) {
-                                if (result.Result.ToString() == relatedMD5Hash.Hash) { // Generated Hash is equal to related Hash. Version is NOT modified.
+                            if (relatedMD5Hashes != null) {
+                                if (relatedMD5Hashes.Contains(result.Result.ToString())) { // Generated Hash is equal to one of the related Hashes. Version is NOT modified.
 
                                     SetStatusImage(1);
                                     SetProgressBarState(1);
@@ -208,25 +208,26 @@ namespace GTAIVDowngrader.Dialogs {
 
                                     // Set Hashes for log file
                                     MainFunctions.downgradingInfo.SetReceivedMD5Hash(result.Result.ToString());
-                                    MainFunctions.downgradingInfo.SetRelatedMD5Hash(relatedMD5Hash.Hash);
+                                    MainFunctions.downgradingInfo.SetRelatedMD5Hash(result.Result.ToString());
 
                                     if (MainFunctions.gotStartedWithValidCommandLineArgs) NextStep();
 
                                 }
-                                else { // Generated Hash is NOT equal to related Hash! This means that the version is modified.
+                                else { // Generated Hash is NOT equal to any of the seemingly related Hashes! This means that the version is modified.
 
                                     SetStatusImage(2);
                                     SetProgressBarState(3);
-                                    SetStatusText(string.Format("WARNING: MD5 Hash of version {1} does not match the expected MD5 Hash!{0}{0}" +
+                                    SetStatusText(string.Format("WARNING: MD5 Hash of version {1} does not match any of the expected MD5 Hashes!{0}{0}" +
                                         "- What does this mean?{0}" +
                                         "This means that the selected directory of GTA IV is probably modified (contains mods) and it is HIGHLY recommended to downgrade a fresh, unmodified copy of GTA IV.{0}{0}" +
                                         "- What now?{0}" +
                                         "To get the best downgrading experience, redownload GTA IV, and downgrade the freshly downloaded copy of GTA IV.{0}{0}" +
-                                        "If you know what you're doing, and still want to continue (which is not recommended), press the Next button.", Environment.NewLine, fileVersion));
+                                        "If you are sure that there are NO mods in the selected directory, you can safely continue by pressing the Next button. " +
+                                        "Please also consider sending the log file created by the downgrader at the end of the downgrading process in our Discord server to help improve the GTA IV Downgrader. Thanks!", Environment.NewLine, fileVersion));
 
                                     // Set Hashes for log file
                                     MainFunctions.downgradingInfo.SetReceivedMD5Hash(result.Result.ToString());
-                                    MainFunctions.downgradingInfo.SetRelatedMD5Hash(relatedMD5Hash.Hash);
+                                    MainFunctions.downgradingInfo.SetRelatedMD5Hash(string.Format("No related MD5 Hash found for this GTA IV {0} installation.", fileVersion));
 
                                 }
                             }
@@ -238,13 +239,14 @@ namespace GTAIVDowngrader.Dialogs {
 
                                 // Set Hashes for log file
                                 MainFunctions.downgradingInfo.SetReceivedMD5Hash(result.Result.ToString());
-                                MainFunctions.downgradingInfo.SetRelatedMD5Hash(string.Empty);
+                                MainFunctions.downgradingInfo.SetRelatedMD5Hash(string.Format("No MD5 Hash found for version {0} of GTA IV.", fileVersion));
 
                             }
 
                             return;
                         }
                         else {
+
                             SetStatusText("An unknown error occured while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.");
 
                             // Log
@@ -253,6 +255,7 @@ namespace GTAIVDowngrader.Dialogs {
                         }
                     }
                     else {
+
                         SetStatusText(string.Format("An error occured while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.{0}Details: {1}", Environment.NewLine, result.Exception.Message));
 
                         // Log

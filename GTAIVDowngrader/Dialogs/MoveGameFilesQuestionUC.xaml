@@ -45,14 +45,15 @@
             </StackPanel>
 
             <StackPanel x:Name="BackupStackPanel" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,250,25,0">
-                <DockPanel Margin="5,15,5,0">
-                    <Controls:CustomTextBox x:Name="MoveLocationTextbox" TextChanged="MoveLocationTextbox_TextChanged" WatermarkText="New GTA IV path" Width="320" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <Button x:Name="BrowseMoveLocationButton" Click="BrowseMoveLocationButton_Click" Content="Browse" Background="Transparent" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                </DockPanel>
-                <DockPanel Margin="5,15,5,10">
-                    <Image x:Name="StatusImage" Source="..\Resources\questionWhite.png" Width="40" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                    <TextBlock x:Name="StatusLabel" Text="Please select a directory in which GTA IV should be moved to." TextWrapping="Wrap" FontSize="18" Foreground="White" MaxHeight="200" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,100,2"/>
-                </DockPanel>
+
+                <WrapPanel Margin="0,20,0,0">
+                    <StackPanel Width="500">
+                        <Controls:CustomTextBox x:Name="MoveLocationTextbox" TextChanged="MoveLocationTextbox_TextChanged" WatermarkText="New location"/>
+                        <TextBlock x:Name="StatusTextBlock" Text="Please select a new location for your GTA IV." TextWrapping="Wrap" FontSize="13" Foreground="#d6d6d6" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="BrowseMoveLocationButton" Click="BrowseMoveLocationButton_Click" Content="Browse" FontSize="16" Padding="0,0,0,3" Background="Transparent" Style="{StaticResource MetroButton}" MinWidth="70" Margin="15,13,0,13"/>
+                </WrapPanel>
+
             </StackPanel>
         </Grid>
 
