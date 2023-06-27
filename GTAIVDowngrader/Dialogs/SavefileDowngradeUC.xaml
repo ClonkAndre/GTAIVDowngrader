@@ -5,36 +5,29 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
              mc:Ignorable="d"
-             Loaded="UserControl_Loaded"
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
              d:DesignHeight="634" d:DesignWidth="1050">
-    
+
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
-        </Grid.RowDefinitions>
 
         <!-- MainGrid -->
-        <Grid x:Name="MainGrid" Grid.Row="0">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
+        <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char6.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,10,20,-61"/>
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\char6.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,10,20,0"/>
 
             <!-- Content -->
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
-                <TextBlock Text="Save file downgrading" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
                 
-                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0">
-                    This step is necessary if you want to keep your current save files because trying to load your saves won't work after downgrading. Conveniently, this process is automatic now thanks to <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>!
+                <TextBlock Text="Save file downgrading" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+
+                <TextBlock x:Name="NonOfflineModeText" Visibility="Visible" TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
+                    This step is necessary if you want to keep your current save files because trying to load your saves won't work after downgrading.
+                    <LineBreak/>
+                    Conveniently, this process is automatic now thanks to <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>!
+                    <LineBreak/><LineBreak/>
+                    
+                    If you still want to downgrade your save files manually, and you need help, you can watch <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://youtu.be/ObvIv5Q-8zU?t=1212" FontWeight="Bold">this video</Hyperlink> which shows you how to downgrade your save files.
                     <LineBreak/><LineBreak/>
                     
                     You can skip this step if you do not wish to downgrade your save files.
@@ -43,20 +36,31 @@
                     Locate your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users > (Username) > Documents > Rockstar Games > GTA IV > savegames</Hyperlink>.
                     In the savegames folder, you should see <Run Text="SGTA4[NUMBER]" FontWeight="Bold" FontStyle="Oblique"/> file(s), these are your saves.
                     <LineBreak/><LineBreak/>
-
+                    Nothing in there? Your save files could also be in your profile folder. Open the folder above, go back one folder, go into the <Run Text="Profiles" FontWeight="Bold"/> folder, then there should be a folder with random <Run Text="numbers" FontWeight="Bold"/> and <Run Text="letters" FontWeight="Bold"/>, go into this folder and then in there you might see your save files.
                 </TextBlock>
+
+                <TextBlock x:Name="OfflineModeText" Visibility="Collapsed" TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
+                    <Run Text="Automatic downgrader not available in offline mode." FontStyle="Italic"/>
+                    <LineBreak/><LineBreak/>
+                    
+                    This step is necessary if you want to keep your current save files because trying to load your saves won't work after downgrading.
+                    <LineBreak/>
+                    Head over to <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink> to downgrade your save files. Need help? Watch <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://youtu.be/ObvIv5Q-8zU?t=1212" FontWeight="Bold">this video</Hyperlink> which shows you how to downgrade your save files.
+                    <LineBreak/><LineBreak/>
+                    
+                    You can skip this step if you do not wish to downgrade your save files.
+                    <LineBreak/><LineBreak/>
+                    
+                    Locate your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users > (Username) > Documents > Rockstar Games > GTA IV > savegames</Hyperlink>.
+                    In the savegames folder, you should see <Run Text="SGTA4[NUMBER]" FontWeight="Bold" FontStyle="Oblique"/> file(s), these are your saves.
+                    <LineBreak/><LineBreak/>
+                    Nothing in there? Your save files could also be in your profile folder. Open the folder above, go back one folder, go into the <Run Text="Profiles" FontWeight="Bold"/> folder, then there should be a folder with random <Run Text="numbers" FontWeight="Bold"/> and <Run Text="letters" FontWeight="Bold"/>, go into this folder and then in there you might see your save files.
+                </TextBlock>
+
             </StackPanel>
 
-            <TextBlock Text="To proceed, press the 'Next' button. Or 'Skip' if you want to skip this step." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
+            <TextBlock Text="To proceed, press the 'Next' button. Or 'Skip' if you want to skip this step." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
         </Grid>
 
-        <!-- Bottom Grid -->
-        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
-        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="SkipButton" Click="SkipButton_Click" Content="Skip" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
-        </Grid>
-        
     </Grid>
 </UserControl>

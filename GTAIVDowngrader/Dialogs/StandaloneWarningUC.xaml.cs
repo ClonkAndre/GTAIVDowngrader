@@ -2,8 +2,12 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class StandaloneWarningUC : UserControl {
+using CCL;
+
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class StandaloneWarningUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -27,23 +31,40 @@ namespace GTAIVDowngrader.Dialogs {
             TitleLabel.Text = title;
             DescriptionLabel.Text = desc;
         }
+        public void SetRedProgressBar()
+        {
+            Dispatcher.Invoke(() => {
+                instance.GetMainProgressBar().Foreground = "#B3bd0000".ToBrush();
+                instance.GetMainProgressBar().Value = 100;
+            });
+        }
+        public void SetContinueAnywayButton()
+        {
+            Dispatcher.Invoke(() => {
+                instance.ChangeActionButtonVisiblity(true, false, false, true);
+                instance.NextButton.Content = "Continue anyway";
+            });
+        }
         #endregion
 
+        #region Events
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
+        {
+            Core.AddLogItem(LogType.Info, "User continued using the downgrader after internet check failed.");
+            instance.DownloadRequiredData();
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.NextButton.Content = "Next";
+        }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
-        }
+            instance.NextButtonClicked += Instance_NextButtonClicked;
 
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.Close();
+            instance.ChangeActionButtonVisiblity(true, false, false, false);
         }
 
     }

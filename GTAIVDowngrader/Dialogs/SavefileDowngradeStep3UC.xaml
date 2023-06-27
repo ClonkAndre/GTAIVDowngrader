@@ -5,36 +5,23 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
              mc:Ignorable="d" 
-             Loaded="UserControl_Loaded"
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
              d:DesignHeight="634" d:DesignWidth="1050">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
-        </Grid.RowDefinitions>
 
         <!-- MainGrid -->
-        <Grid x:Name="MainGrid" Grid.Row="0">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
+        <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char10.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,20,20,-61"/>
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\char10.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,20,20,0"/>
 
             <!-- Content -->
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
-                <TextBlock Text="Save file downgrading Part 3" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-                <TextBlock Text="If you used the automatic save file downgrader, follow the steps below to know where to find, and where to put your just downgraded save files." TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0"/>
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
+                <TextBlock Text="Save file downgrading Part 3" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock Text="If you used the automatic save file downgrader, follow the steps below to know where to find, and where to put your just downgraded save files." TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left"/>
 
-                <StackPanel Margin="10,25,20,0">
+                <StackPanel Margin="5,25,20,0">
 
                     <!-- Step 1 -->
                     <StackPanel>
@@ -66,7 +53,7 @@
                     </StackPanel>
 
                     <!-- Problems? -->
-                    <StackPanel Margin="0,55,0,0">
+                    <StackPanel Margin="0,50,0,0">
                         <TextBlock Text="Did you had any issues with the automatic save file downgrader?" FontSize="16" FontWeight="Bold" Foreground="White"/>
                         <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="White" Margin="0,5,0,0">
                             If you had any issues while using the automatic save file downgrader, you can still manually downgrade your save files on <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>
@@ -82,15 +69,7 @@
 
             </StackPanel>
 
-            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
-        </Grid>
-
-        <!-- Bottom Grid -->
-        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
-        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
+            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
         </Grid>
 
     </Grid>

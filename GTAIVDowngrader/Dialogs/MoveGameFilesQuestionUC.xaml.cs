@@ -42,24 +42,27 @@ namespace GTAIVDowngrader.Dialogs {
         }
         private void SetNextButtonEnabledState(bool enabled)
         {
-            NextButton.IsEnabled = enabled;
+            instance.ChangeActionButtonEnabledState(true, instance.BackButton.IsEnabled, true, enabled);
         }
 
         private void CheckMoveLocation(string loc)
         {
-            if (string.IsNullOrWhiteSpace(loc)) {
+            if (string.IsNullOrWhiteSpace(loc))
+            {
                 SetNextButtonEnabledState(false);
                 SetStatusText("Path can't be empty!");
                 return;
             }
-            if (!Directory.Exists(loc)) {
+            if (!Directory.Exists(loc))
+            {
                 SetNextButtonEnabledState(false);
                 SetStatusText("Directory not found!");
                 return;
             }
 
             string path = loc.ToLower();
-            if (path.Contains("program files") || path.Contains("program files (x86)")) {
+            if (path.Contains("program files") || path.Contains("program files (x86)"))
+            {
                 SetNextButtonEnabledState(false);
                 SetStatusText("GTA IV can't be moved in the selected directory.");
                 return;
@@ -69,7 +72,8 @@ namespace GTAIVDowngrader.Dialogs {
             string testFolderLoc = string.Format("{0}\\DowngraderPermissionTestDir", path).ToLower();
             testLocations.Add(testFolderLoc);
 
-            try {
+            try
+            {
                 Directory.CreateDirectory(testFolderLoc);
                 File.WriteAllText(testFolderLoc + "\\test.txt", "This is a test.");
 
@@ -78,12 +82,14 @@ namespace GTAIVDowngrader.Dialogs {
                 SetNextButtonEnabledState(true);
                 SetStatusText("GTA IV can be moved to this directory!");
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 SetNextButtonEnabledState(false);
                 SetStatusText("GTA IV can't be moved in the selected directory. Not enough permissions.");
             }
 
-            for (int i = 0; i < testLocations.Count; i++) {
+            for (int i = 0; i < testLocations.Count; i++)
+            {
                 string testLoc = testLocations[i];
                 if (Directory.Exists(testLoc)) Directory.Delete(testLoc, true);
                 testLocations.RemoveAt(i);
@@ -91,48 +97,49 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        #region Events
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
-
-            // Commandline
-            if (MainFunctions.gotStartedWithValidCommandLineArgs) {
-                BackButton.IsEnabled = false;
-            }
-        }
-
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
+            Core.CDowngradingInfo.SetNewGTAIVTargetLocation(MoveLocationTextbox.Text);
             instance.NextStep();
         }
-        private void SkipButton_Click(object sender, RoutedEventArgs e)
+        private void Instance_SkipButtonClicked(object sender, EventArgs e)
         {
             instance.NextStep(1);
         }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
             instance.PreviousStep(1);
         }
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            instance.ShowExitMsg();
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+            instance.SkipButtonClicked -= Instance_SkipButtonClicked;
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            instance.BackButtonClicked += Instance_BackButtonClicked;
+            instance.SkipButtonClicked += Instance_SkipButtonClicked;
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, true, true, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, false);
+
+            // Commandline
+            if (Core.GotStartedWithValidCommandLineArgs)
+                instance.ChangeActionButtonEnabledState(true, false, true, false);
         }
 
         private void BrowseMoveLocationButton_Click(object sender, RoutedEventArgs e)
         {
-            using (CommonOpenFileDialog ofd = new CommonOpenFileDialog("Select new location GTA IV should be moved to")) {
+            using (CommonOpenFileDialog ofd = new CommonOpenFileDialog("Select new location GTA IV should be moved to"))
+            {
                 ofd.IsFolderPicker = true;
-                if (ofd.ShowDialog() == CommonFileDialogResult.Ok) {
+                if (ofd.ShowDialog() == CommonFileDialogResult.Ok)
                     MoveLocationTextbox.Text = ofd.FileName;
-                }
             }
         }
         private void MoveLocationTextbox_TextChanged(object sender, TextChangedEventArgs e)

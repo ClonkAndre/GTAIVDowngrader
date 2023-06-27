@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace GTAIVDowngrader.JsonObjects {
-    public class ModInformation {
+namespace GTAIVDowngrader.JsonObjects
+{
+    public class ModInformation
+    {
 
         #region Variables
         // Type
@@ -9,11 +11,13 @@ namespace GTAIVDowngrader.JsonObjects {
         public bool IsScriptHook;
         public bool IsScriptHookHook;
         public bool IsScriptHookDotNet;
+        public bool IsIVSDKDotNet;
 
         // Requirements
         public bool RequiresASILoader;
         public bool RequiresScriptHook;
         public bool RequiresScriptHookDotNet;
+        public bool RequiresIVSDKDotNet;
 
         // Other
         public bool CompatibleWithGFWL;
@@ -26,8 +30,12 @@ namespace GTAIVDowngrader.JsonObjects {
 
         // Mod Details
         public List<ModVersion> ForVersions;
+        public List<OptionalComponentInfo> OptionalComponents;
+
         public string Title;
         public string Description;
+        public string WarningMessage;
+        public string OfficialModWebPage;
         public string DownloadURL;
         #endregion
 

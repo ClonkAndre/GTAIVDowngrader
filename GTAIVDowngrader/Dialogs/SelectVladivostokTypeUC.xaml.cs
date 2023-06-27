@@ -1,8 +1,11 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class SelectVladivostokTypeUC : UserControl {
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class SelectVladivostokTypeUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -20,40 +23,40 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
+        #region Events
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            instance.PreviousStep();
+        }
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
+        {
+            instance.NextStep();
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+        }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, true, false, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, OldVladivostokCheckbox.IsChecked.Value || NewVladivostokCheckbox.IsChecked.Value);
         }
 
         private void OldVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            MainFunctions.downgradingInfo.SetVladivostokType(VladivostokTypes.Old);
-            NextButton.IsEnabled = true;
+            Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.Old);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NewVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            MainFunctions.downgradingInfo.SetVladivostokType(VladivostokTypes.New);
-            NextButton.IsEnabled = true;
-        }
-
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.ShowExitMsg();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.PreviousStep();
-        }
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.NextStep();
+            Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.New);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
 
     }

@@ -3,10 +3,13 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+
 using GTAIVDowngrader.Controls;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class CommandlineUC : UserControl {
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class CommandlineUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -27,9 +30,9 @@ namespace GTAIVDowngrader.Dialogs {
 
         private void AddCommandLineArgumentsToList()
         {
-            if (MainFunctions.CommandLineArguments.Count != 0) {
-                for (int i = 0; i < MainFunctions.CommandLineArguments.Count; i++) {
-                    CommandLineArgument cla = MainFunctions.CommandLineArguments[i];
+            if (Core.CommandLineArguments.Count != 0) {
+                for (int i = 0; i < Core.CommandLineArguments.Count; i++) {
+                    CommandLineArgument cla = Core.CommandLineArguments[i];
                     CommandlineItem item = new CommandlineItem();
                     item.Insert += Item_Insert;
                     item.Margin = new Thickness(0,5,0,0);
@@ -52,7 +55,7 @@ namespace GTAIVDowngrader.Dialogs {
         private void Item_Insert(string argName)
         {
             if (CustomCommandlineTextBox.Text.Contains(argName)) {
-                MainFunctions.Notification.ShowNotification(NotificationType.Info, 3000, "Argument already added", "This argument already exists in the custom commandline.", "ALREADY_ADDED");
+                Core.Notification.ShowNotification(NotificationType.Info, 3000, "Argument already added", "This argument already exists in the custom commandline.", "ALREADY_ADDED");
                 return;
             }
 
@@ -92,7 +95,7 @@ namespace GTAIVDowngrader.Dialogs {
 
         private void CreateCommandlineWithoutAvailableVidMem()
         {
-            string path = string.Format("{0}\\commandline.txt", MainFunctions.downgradingInfo.IVWorkingDirectoy);
+            string path = string.Format("{0}\\commandline.txt", Core.CDowngradingInfo.IVWorkingDirectoy);
             StringBuilder builder = new StringBuilder();
 
             try {
@@ -135,67 +138,125 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
+        #region Events
+        private void Instance_SkipButtonClicked(object sender, EventArgs e)
+        {
+            instance.NextStep();
+        }
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            instance.PreviousStep(2);
+        }
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                string path = string.Format("{0}\\commandline.txt", Core.CDowngradingInfo.IVWorkingDirectoy);
+
+                if (File.Exists(path))
+                {
+                    // Create commandline
+                    if (RecommendedCommandlineRadioButton.IsChecked.Value)
+                    {
+                        if (AlsoIncludeAvailableVidMemCheckbox.IsChecked.Value)
+                            return;
+                        else
+                            CreateCommandlineWithoutAvailableVidMem();
+                    }
+                    else if (CustomCommandlineRadioButton.IsChecked.Value)
+                    {
+                        switch (MessageBox.Show("There is already a commandline.txt in the GTA IV root directory. Override existing file?", "Override?", MessageBoxButton.YesNo, MessageBoxImage.Question))
+                        {
+                            case MessageBoxResult.Yes:
+                                File.WriteAllText(path, CustomCommandlineTextBox.Text);
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Create commandline
+                    if (RecommendedCommandlineRadioButton.IsChecked.Value)
+                    {
+                        if (AlsoIncludeAvailableVidMemCheckbox.IsChecked.Value)
+                            return;
+                        else
+                            CreateCommandlineWithoutAvailableVidMem();
+                    }
+                    else if (CustomCommandlineRadioButton.IsChecked.Value)
+                    {
+                        File.WriteAllText(path, CustomCommandlineTextBox.Text);
+                    }
+                }
+
+                instance.NextStep();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("Error while creating commandline. Details: {0}", ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        #endregion
+
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.SkipButtonClicked -= Instance_SkipButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.SkipButtonClicked += Instance_SkipButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, true, true, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, false);
 
             // 1040 only arguments
-            if (MainFunctions.downgradingInfo.DowngradeTo == GameVersion.v1040) {
+            if (Core.CDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            {
                 AlsoIncludeNoPreCacheCheckbox.Visibility = Visibility.Visible;
                 AlsoIncludeNoPreCacheCheckbox.IsChecked = true;
             }
 
-            if (CustomCommandlineRadioButton.IsChecked.Value) {
-                if (string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text)) {
-                    NextButton.IsEnabled = false;
-                }
-                else {
-                    NextButton.IsEnabled = true;
-                }
+            if (CustomCommandlineRadioButton.IsChecked.Value)
+            {
+                if (string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text))
+                    instance.ChangeActionButtonEnabledState(true, true, true, false);
+                else
+                    instance.ChangeActionButtonEnabledState(true, true, true, true);
             }
         }
 
         private void RecommendedCommandlineRadioButton_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            if (RecommendedCommandlineRadioButton.IsChecked.Value) NextButton.IsEnabled = true;
+            if (RecommendedCommandlineRadioButton.IsChecked.Value)
+                instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void CustomCommandlineRadioButton_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            if (CustomCommandlineRadioButton.IsChecked.Value) {
-                if (string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text)) {
-                    NextButton.IsEnabled = false;
-                }
-                else {
-                    NextButton.IsEnabled = true;
-                }
+            if (CustomCommandlineRadioButton.IsChecked.Value)
+            {
+                if (string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text))
+                    instance.ChangeActionButtonEnabledState(true, true, true, false);
+                else
+                    instance.ChangeActionButtonEnabledState(true, true, true, true);
+
                 CustomCommandlineStackPanel.Visibility = Visibility.Visible;
             }
-            else {
+            else
                 CustomCommandlineStackPanel.Visibility = Visibility.Hidden;
-            }
         }
 
         private void CustomCommandlineTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (CustomCommandlineRadioButton.IsChecked.Value) {
-                if (string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text)) {
-                    NextButton.IsEnabled = false;
-                }
-                else {
-                    NextButton.IsEnabled = true;
-                }
+            if (CustomCommandlineRadioButton.IsChecked.Value)
+            {
+                if (string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text))
+                    instance.ChangeActionButtonEnabledState(true, true, true, false);
+                else
+                    instance.ChangeActionButtonEnabledState(true, true, true, true);
             }
         }
 
@@ -210,12 +271,17 @@ namespace GTAIVDowngrader.Dialogs {
 
         private void SaveCurrentCommandlineButton_Click(object sender, RoutedEventArgs e)
         {
-            try {
+            try
+            {
                 string path = ".\\Data\\saved_commandline.txt";
-                if (!string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text)) {
-                    if (Directory.Exists(".\\Data")) {
-                        if (File.Exists(path)) {
-                            switch (MessageBox.Show("This will override the already saved commandline file. Do you want to override the saved commandline?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning)) {
+                if (!string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text))
+                {
+                    if (Directory.Exists(".\\Data"))
+                    {
+                        if (File.Exists(path))
+                        {
+                            switch (MessageBox.Show("This will override the already saved commandline file. Do you want to override the saved commandline?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+                            {
                                 case MessageBoxResult.Yes:
                                     break;
                                 case MessageBoxResult.No:
@@ -224,101 +290,51 @@ namespace GTAIVDowngrader.Dialogs {
                         }
 
                         File.WriteAllText(path, CustomCommandlineTextBox.Text);
-                        if (File.Exists(path)) {
+                        if (File.Exists(path))
                             MessageBox.Show("Commandline saved! You can now press on 'Load saved commandline' to load your saved commandline so that you don't have to write a new one everytime again.", "Commandline saved", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                        else {
+                        else
                             MessageBox.Show("Unknown error while saving.", "Unknown error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        }
                     }
                 }
-                else {
+                else
+                {
                     MessageBox.Show("Can't save empty commandline!", "Empty commandline", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 MessageBox.Show(string.Format("Error while creating commandline. Details: {0}", ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void LoadSavedCommandlineButton_Click(object sender, RoutedEventArgs e)
         {
-            try {
+            try
+            {
                 string path = ".\\Data\\saved_commandline.txt";
-                if (File.Exists(path)) {
-                    if (!string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text)) {
-                        switch (MessageBox.Show("This will override the current commandline. Are you sure that you want to load your saved commandline?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning)) {
+                if (File.Exists(path))
+                {
+                    if (!string.IsNullOrWhiteSpace(CustomCommandlineTextBox.Text))
+                    {
+                        switch (MessageBox.Show("This will override the current commandline. Are you sure that you want to load your saved commandline?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+                        {
                             case MessageBoxResult.Yes:
                                 CustomCommandlineTextBox.Text = File.ReadAllText(path);
                                 break;
                         }
                     }
-                    else {
+                    else
+                    {
                         CustomCommandlineTextBox.Text = File.ReadAllText(path);
                     }
                 }
-                else {
+                else
+                {
                     MessageBox.Show("There is currently no commandline saved. Press on 'Save current commandline' to save the current commandline.", "Nothing saved", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 MessageBox.Show(string.Format("Error while loading commandline. Details: {0}", ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.ShowExitMsg();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.PreviousStep(2);
-        }
-        private void SkipButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.NextStep();
-        }
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            try {
-                string path = string.Format("{0}\\commandline.txt", MainFunctions.downgradingInfo.IVWorkingDirectoy);
-
-                if (File.Exists(path)) {
-                    // Create commandline
-                    if (RecommendedCommandlineRadioButton.IsChecked.Value) {
-                        if (AlsoIncludeAvailableVidMemCheckbox.IsChecked.Value) {
-                            return;
-                        }
-                        else {
-                            CreateCommandlineWithoutAvailableVidMem();
-                        }
-                    }
-                    else if (CustomCommandlineRadioButton.IsChecked.Value) {
-                        switch (MessageBox.Show("There is already a commandline.txt in the GTA IV root directory. Override existing file?", "Override?", MessageBoxButton.YesNo, MessageBoxImage.Question)) {
-                            case MessageBoxResult.Yes:
-                                File.WriteAllText(path, CustomCommandlineTextBox.Text);
-                                break;
-                        }
-                    }
-                }
-                else {
-                    // Create commandline
-                    if (RecommendedCommandlineRadioButton.IsChecked.Value) {
-                        if (AlsoIncludeAvailableVidMemCheckbox.IsChecked.Value) {
-                            return;
-                        }
-                        else {
-                            CreateCommandlineWithoutAvailableVidMem();
-                        }
-                    }
-                    else if (CustomCommandlineRadioButton.IsChecked.Value) {
-                        File.WriteAllText(path, CustomCommandlineTextBox.Text);
-                    }
-                }
-
-                instance.NextStep();
-            }
-            catch (Exception ex) {
-                MessageBox.Show(string.Format("Error while creating commandline. Details: {0}", ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

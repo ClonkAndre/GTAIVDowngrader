@@ -1,9 +1,14 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class WelcomeUC : UserControl {
+using CCL;
+
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class WelcomeUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -21,49 +26,50 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            DowngraderVersionLabel.Text = string.Format("Version {0}", MainFunctions.updateChecker.currentVersion);
-
-            if (MainFunctions.isPrideMonth) {
-                DisableRainbowColoursCheckBox.Visibility = Visibility.Visible;
-
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
-        }
-
-        private void NextButton_Click(object sender, RoutedEventArgs e)
+        #region Events
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
             instance.NextStep();
         }
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            instance.ShowExitMsg();
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, false, false, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
+
+            DowngraderVersionLabel.Text = string.Format("Version {0}", Core.CUpdateChecker.CurrentVersion);
+            DisableRainbowColoursCheckBox.Visibility = Core.IsPrideMonth ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void CheckForUpdatesHyperLink_Click(object sender, RoutedEventArgs e)
         {
-            MainFunctions.updateChecker.CheckForUpdates(false);
+            Core.CUpdateChecker.CheckForUpdatesAsync(false);
         }
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
-            MainFunctions.AskUserToOpenURL(e.Uri);
+            Core.AskUserToOpenURL(e.Uri);
         }
 
         private void DisableRainbowColoursCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            MainFunctions.wantsToDisableRainbowColours = DisableRainbowColoursCheckBox.IsChecked.Value;
+            Core.WantsToDisableRainbowColours = DisableRainbowColoursCheckBox.IsChecked.Value;
 
-            if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                BottomGrid.Background = "#B3000000".ToBrush();
+            if (Core.WantsToDisableRainbowColours) // Revert to default Colour
+            {
+                instance.BottomActionBorder.Background = "#B3000000".ToBrush();
+                instance.UpdateOverallProgress();
             }
-            else { // Use Rainbow Colours
-                BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
+            else // Use Rainbow Colours
+            {
+                instance.BottomActionBorder.Background = Core.GetRainbowGradientBrush();
+                instance.UpdateOverallProgress();
             }
         }
 

@@ -6,40 +6,26 @@
              xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
              xmlns:Controls="clr-namespace:GTAIVDowngrader.Controls"
              mc:Ignorable="d"
-             Loaded="UserControl_Loaded"
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
              d:DesignHeight="634" d:DesignWidth="1050">
-    
+
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
-        </Grid.RowDefinitions>
 
         <!-- MainGrid -->
-        <Grid x:Name="MainGrid" Grid.Row="0">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
+        <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char2.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,15,20,-61"/>
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\char2.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,15,20,0"/>
 
             <!-- Content -->
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
-                <TextBlock Text="We're ready!" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0">
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
+                <TextBlock Text="We're ready!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
                     Before we downgrade your game, there are a few things that you've to check:
                     <LineBreak/><LineBreak/>
                     1. (Optional) Make sure that you've a backup of your <Run Text="freshly" FontWeight="Bold"/> installed game (<Run Text="No mods" FontWeight="Bold"/>).<LineBreak/>
                     2. Make sure that your game is not in a system folder like <Run Text="Program Files" FontWeight="Bold"/> or <Run Text="Program Files (x86)" FontWeight="Bold"/>.<LineBreak/>
-                    3. Make sure that your game or this downgrader is not on a <Run Text="A:\" FontWeight="Bold"/> or <Run Text="B:\" FontWeight="Bold"/> drive. Those drive letters are usally used by floppy disk drives, and can cause errors while downgrading.<LineBreak/>
-                    4. Make sure that when you've installed GTA IV via the <Run Text="Rockstar Games Launcher" FontWeight="Bold"/> you need to move your game files somewhere else so that the launcher doesn't redownload all the files.
+                    3. Make sure that your game or this downgrader is not on a <Run Text="A:\" FontWeight="Bold"/> or <Run Text="B:\" FontWeight="Bold"/> drive. Those drive letters are usually used by floppy disk drives, and can cause errors while downgrading.
                     <LineBreak/><LineBreak/>
                     Other than that, we're ready to downgrade your game! Are you?
                     <LineBreak/>
@@ -49,8 +35,8 @@
                 </TextBlock>
 
                 <!-- Backup -->
-                <CheckBox x:Name="MakeABackupForMeCheckbox" Checked="MakeABackupForMeCheckbox_CheckedChanged" Unchecked="MakeABackupForMeCheckbox_CheckedChanged" Content="Make a backup for me" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8.5,5,0,0"/>
-                <StackPanel x:Name="BackupStackPanel" Background="#59000000" Visibility="Collapsed" Margin="8.5,15,25,0">
+                <CheckBox x:Name="MakeABackupForMeCheckbox" Checked="MakeABackupForMeCheckbox_CheckedChanged" Unchecked="MakeABackupForMeCheckbox_CheckedChanged" Content="Make a backup for me" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,10,0,0"/>
+                <StackPanel x:Name="BackupStackPanel" Background="#59000000" Visibility="Collapsed" Margin="0,3,0,0">
                     <TextBlock Text="Please select a directory in which the backup of the game should be stored." TextWrapping="WrapWithOverflow" FontSize="12" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left" Margin="8,7,0,0"/>
                     <DockPanel Margin="10,5,10,0">
                         <Controls:CustomTextBox x:Name="BackupLocationTextbox" TextChanged="BackupLocationTextbox_TextChanged" KeyUp="BackupLocationTextbox_KeyUp" WatermarkText="Backup location" Width="320" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -65,16 +51,8 @@
             </StackPanel>
 
             <TextBlock x:Name="DownloadSizeInfoLabel" FontSize="12" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30,15"/>
-            <TextBlock Text="To downgrade, press the 'Downgrade' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
+            <TextBlock Text="To downgrade, press the 'Downgrade' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
         </Grid>
 
-        <!-- Bottom Grid -->
-        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
-        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <Button x:Name="NextButton" Click="NextButton_Click" Content="Downgrade" Background="#0050bf" Style="{StaticResource MetroButton}" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="125,0"/>
-            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
-        </Grid>
-        
     </Grid>
 </UserControl>

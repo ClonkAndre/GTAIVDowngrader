@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace GTAIVDowngrader.Dialogs {
@@ -20,70 +21,24 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        #region Events
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
-
-            // Reset
-            MainFunctions.downgradingInfo.SetRadioDowngrader(RadioDowngrader.None);
-            MainFunctions.downgradingInfo.SetVladivostokType(VladivostokTypes.None);
-            MainFunctions.downgradingInfo.SetInstallNoEFLCMusicInIVFix(false);
-            SneedsRadioDowngraderCheckbox.IsChecked = false;
-            LegacyRadioDowngraderCheckbox.IsChecked = false;
-            NoEFLCMusicInIVCheckbox.IsChecked = false;
-            NextButton.IsEnabled = false;
-        }
-
-        private void SneedsRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
-        {
-            MainFunctions.downgradingInfo.SetRadioDowngrader(RadioDowngrader.SneedsDowngrader);
-            NextButton.IsEnabled = true;
-        }
-        private void LegacyRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
-        {
-            MainFunctions.downgradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
-            NextButton.IsEnabled = true;
-        }
-        private void NoEFLCMusicInIVCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            MainFunctions.downgradingInfo.SetInstallNoEFLCMusicInIVFix(NoEFLCMusicInIVCheckbox.IsChecked.Value);
-        }
-
-        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
-        {
-            MainFunctions.AskUserToOpenURL(e.Uri);
-        }
-
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.ShowExitMsg();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (MainFunctions.downgradingInfo.DowngradeTo == GameVersion.v1040) {
+            if (Core.CDowngradingInfo.DowngradeTo == GameVersion.v1040)
                 instance.PreviousStep(1);
-            }
-            else {
+            else
                 instance.PreviousStep();
-            }
         }
-        private void SkipButton_Click(object sender, RoutedEventArgs e)
+        private void Instance_SkipButtonClicked(object sender, EventArgs e)
         {
-            MainFunctions.downgradingInfo.SetRadioDowngrader(RadioDowngrader.None);
-            MainFunctions.downgradingInfo.SetVladivostokType(VladivostokTypes.None);
+            Core.CDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);
+            Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
             instance.NextStep(1);
         }
-        private void NextButton_Click(object sender, RoutedEventArgs e)
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            switch (MainFunctions.downgradingInfo.SelectedRadioDowngrader) {
+            switch (Core.CDowngradingInfo.SelectedRadioDowngrader)
+            {
                 case RadioDowngrader.SneedsDowngrader:
                     instance.NextStep();
                     break;
@@ -91,6 +46,51 @@ namespace GTAIVDowngrader.Dialogs {
                     instance.NextStep(1);
                     break;
             }
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.SkipButtonClicked -= Instance_SkipButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.SkipButtonClicked += Instance_SkipButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, true, true, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, false);
+
+            // Reset
+            Core.CDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);
+            Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
+            Core.CDowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
+            SneedsRadioDowngraderCheckbox.IsChecked = false;
+            LegacyRadioDowngraderCheckbox.IsChecked = false;
+            NoEFLCMusicInIVCheckbox.IsChecked = false;
+        }
+
+        private void SneedsRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            Core.CDowngradingInfo.SetRadioDowngrader(RadioDowngrader.SneedsDowngrader);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
+        }
+        private void LegacyRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            Core.CDowngradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
+        }
+        private void NoEFLCMusicInIVCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            Core.CDowngradingInfo.SetInstallNoEFLCMusicInIVFix(NoEFLCMusicInIVCheckbox.IsChecked.Value);
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Core.AskUserToOpenURL(e.Uri);
         }
 
     }

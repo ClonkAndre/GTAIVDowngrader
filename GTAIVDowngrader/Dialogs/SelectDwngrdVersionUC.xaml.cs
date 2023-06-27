@@ -1,8 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class SelectDwngrdVersionUC : UserControl {
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class SelectDwngrdVersionUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -20,67 +22,61 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
+        #region Events
+        private void Instance_BackButtonClicked(object sender, System.EventArgs e)
+        {
+            instance.PreviousStep(3);
+        }
+        private void Instance_NextButtonClicked(object sender, System.EventArgs e)
+        {
+            if (Core.CDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            {
+                Core.CDowngradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
+                Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
+                Core.CDowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
+                Core.CDowngradingInfo.SetConfigureForGFWL(false);
+                instance.NextStep(3);
+            }
+            else
+            {
+                instance.NextStep();
+            }
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+        }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
 
-            if (MainFunctions.gotStartedWithValidCommandLineArgs) {
-                BackButton.IsEnabled = false;
-            }
-            else {
-                BackButton.IsEnabled = !MainFunctions.downgradingInfo.GTAIVInstallationGotMovedByDowngrader;
-            }
+            instance.ChangeActionButtonVisiblity(true, true, false, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, (IV1040Radiobtn.IsChecked.Value || IV1070Radiobtn.IsChecked.Value || IV1080Radiobtn.IsChecked.Value));
         }
 
         private void IV1080Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            MainFunctions.downgradingInfo.SetDowngradeVersion(GameVersion.v1080);
-            NextButton.IsEnabled = true;
+            Core.CDowngradingInfo.SetDowngradeVersion(GameVersion.v1080);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void IV1070Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            MainFunctions.downgradingInfo.SetDowngradeVersion(GameVersion.v1070);
-            NextButton.IsEnabled = true;
+            Core.CDowngradingInfo.SetDowngradeVersion(GameVersion.v1070);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void IV1040Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            MainFunctions.downgradingInfo.SetDowngradeVersion(GameVersion.v1040);
-            NextButton.IsEnabled = true;
+            Core.CDowngradingInfo.SetDowngradeVersion(GameVersion.v1040);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
-            MainFunctions.AskUserToOpenURL(e.Uri);
-        }
-
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.ShowExitMsg();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.PreviousStep(3);
-        }
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (MainFunctions.downgradingInfo.DowngradeTo == GameVersion.v1040) {
-                MainFunctions.downgradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
-                MainFunctions.downgradingInfo.SetVladivostokType(VladivostokTypes.None);
-                MainFunctions.downgradingInfo.SetInstallNoEFLCMusicInIVFix(false);
-                MainFunctions.downgradingInfo.SetConfigureForGFWL(false);
-                instance.NextStep(3);
-            }
-            else {
-                instance.NextStep();
-            }
+            Core.AskUserToOpenURL(e.Uri);
         }
 
     }

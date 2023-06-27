@@ -7,54 +7,31 @@
              mc:Ignorable="d" 
              Loaded="UserControl_Loaded"
              d:DesignHeight="634" d:DesignWidth="1050">
-    
+
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
-        </Grid.RowDefinitions>
 
         <!-- MainGrid -->
-        <Grid x:Name="MainGrid" Grid.Row="0">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
+        <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\sadNiko.png" Width="300" Opacity="0.08"/>
+            <Image Source="..\Resources\chars\sadNiko.png" Opacity="0.05" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
             <!-- Content -->
-            <TextBlock Grid.Row="0" Text="An error occured" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
-            <TextBlock Grid.Row="0" TextAlignment="Center" FontSize="16" FontWeight="Medium" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,55,0,0">
-                Sorry for the inconvenience. Make sure to first read what the error says before asking questions.
+            <TextBlock Text="An error occured" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0"/>
+            <TextBlock TextAlignment="Center" FontSize="16" FontWeight="Medium" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,65,0,0">
+                Sorry for the inconvenience.
                 <LineBreak/>
                 A log file has been created in the <Hyperlink Click="Hyperlink_Click">Logs</Hyperlink> folder. Please send it in the 
                 <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://discord.com/channels/528764831508070410/916920674457645077">#bug-reports</Hyperlink>
                 channel on Clonk's Discord Server.
             </TextBlock>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" Margin="0,110,0,40">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" Margin="0,130,0,40">
                 <TextBlock x:Name="DetailsLabel" Text="DETAILS" Grid.Row="0" TextAlignment="Center" TextWrapping="Wrap" FontSize="12" Foreground="White" Width="783"/>
             </ScrollViewer>
             <TextBlock FontSize="12" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,13">
-                If it crashed <Run Text="while it was downgrading" FontWeight="Bold"/>, then it could be the case that your GTA IV installation is now corrupted. Try to redowngrade.
+                If it crashed <Run Text="while it was downgrading" FontWeight="Bold"/>, then it could be the case that your GTA IV installation is now corrupted. <Run Text="Try to redowngrade" FontWeight="Bold"/>.
             </TextBlock>
         </Grid>
 
-        <!-- Bottom Grid -->
-        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
-        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <DockPanel DockPanel.Dock="Right">
-                <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-                <Button Visibility="Collapsed" x:Name="RestartAdminButton" Click="RestartAdminButton_Click" Content="Restart with admin rights" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <Button x:Name="CopyErrorButton" Click="CopyErrorButton_Click" Content="Copy Error" Background="#0050bf" Style="{StaticResource MetroButton}" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-            </DockPanel>
-        </Grid>
-        
     </Grid>
 </UserControl>

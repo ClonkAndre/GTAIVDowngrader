@@ -6,53 +6,38 @@
              xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
              xmlns:Controls="clr-namespace:GTAIVDowngrader.Controls"
              mc:Ignorable="d" 
-             Loaded="UserControl_Loaded"
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
              d:DesignHeight="634" d:DesignWidth="1050">
-    
+
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
-        </Grid.RowDefinitions>
 
         <!-- MainGrid -->
-        <Grid x:Name="MainGrid" Grid.Row="0">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
+        <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\luis.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,20,20,-60"/>
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\luis.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,20,20,0"/>
 
             <!-- Content -->
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
-                <TextBlock Text="Select downgrade directory" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-                <TextBlock Text="Please select a GTA IV Directory that you want to have downgraded." TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0"/>
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
+                <TextBlock Text="Select downgrade directory or file" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="0,0,250,0">
+                    Please select a GTA IV directory (Containing the GTAIV.exe) or the GTAIV.exe executable file itself that you want to have downgraded.
+                </TextBlock>
 
-                <WrapPanel Margin="0,80,0,0">
-                    <StackPanel Width="500">
-                        <Controls:CustomTextBox x:Name="PathTextBox" TextChanged="PathTextBox_TextChanged" WatermarkText="Select GTA IV Directory"/>
-                        <TextBlock x:Name="StatusTextBlock" Text="Please select a directory." TextWrapping="Wrap" FontSize="13" Foreground="#d6d6d6" Margin="0,5,0,0"/>
-                    </StackPanel>
-                    <Button x:Name="BrowseButton" Click="BrowseButton_Click" Content="Browse" FontSize="16" Padding="0,0,0,3" Background="Transparent" Style="{StaticResource MetroButton}" MinWidth="70" Margin="15,13,0,13"/>
+                <WrapPanel Margin="0,60,0,0">
+                    <Button x:Name="BrowseFolderButton" Click="BrowseFolderButton_Click" Content="Browse for GTA IV directory" FontSize="16" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <TextBlock Text="OR" FontSize="12" Foreground="White" VerticalAlignment="Center" Margin="10,0,10,0"/>
+                    <Button x:Name="BrowseFileButton" Click="BrowseFileButton_Click" Content="Browse for GTA IV executable file" FontSize="16" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Left" Margin="0,0,0,0"/>
                 </WrapPanel>
+
+                <StackPanel Width="660" HorizontalAlignment="Left" Margin="0,25,0,0">
+                    <Controls:CustomTextBox x:Name="PathTextBox" TextChanged="PathTextBox_TextChanged" WatermarkText="Path to GTA IV folder or executable file"/>
+                    <TextBlock x:Name="StatusTextBlock" Text="Please select a GTA IV directory, or the GTAIV.exe file." TextWrapping="Wrap" FontSize="13" Foreground="#d6d6d6" Margin="0,5,0,0"/>
+                </StackPanel>
+
             </StackPanel>
 
-            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
-        </Grid>
-
-        <!-- Bottom Grid -->
-        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
-        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" IsEnabled="False" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" IsEnabled="True" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
-            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
         </Grid>
 
     </Grid>

@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Navigation;
 
 namespace GTAIVDowngrader.Dialogs {
     public partial class MultiplayerUC : UserControl {
@@ -20,31 +22,35 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
-        }
-
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            MainFunctions.downgradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
-            instance.NextStep();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        #region Events
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
             instance.PreviousStep();
         }
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            instance.ShowExitMsg();
+            Core.CDowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
+            instance.NextStep();
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, true, false, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Core.AskUserToOpenURL(e.Uri);
         }
 
     }

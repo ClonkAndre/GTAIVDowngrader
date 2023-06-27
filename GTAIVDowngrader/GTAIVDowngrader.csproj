@@ -7,8 +7,8 @@
     <ProjectGuid>{109602E4-DB52-4FFE-9006-83A528021BA5}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>GTAIVDowngrader</RootNamespace>
-    <AssemblyName>GTAIVDowngrader</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <AssemblyName>IVDowngrader</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -40,6 +40,9 @@
     <ApplicationIcon>Resources\icoNew.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ClonksCodingLib">
+      <HintPath>..\..\..\ClonksCodingLib\ClonksCodingLib\ClonksCodingLib\bin\Release\ClonksCodingLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAPICodePack-Core.1.1.1\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -57,6 +60,7 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -83,6 +87,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Controls\TintImage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Dialogs\CommandlineUC.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -106,6 +114,10 @@
     <Page Include="Dialogs\MD5FilesCheckerUC.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\MessageDialogUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\MoveGameFilesQuestionUC.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -179,6 +191,9 @@
     <Compile Include="Controls\NotificationItem.xaml.cs">
       <DependentUpon>NotificationItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\TintImage.xaml.cs">
+      <DependentUpon>TintImage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\CommandlineUC.xaml.cs">
       <DependentUpon>CommandlineUC.xaml</DependentUpon>
     </Compile>
@@ -196,6 +211,9 @@
     </Compile>
     <Compile Include="Dialogs\MD5FilesCheckerUC.xaml.cs">
       <DependentUpon>MD5FilesCheckerUC.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\MessageDialogUC.xaml.cs">
+      <DependentUpon>MessageDialogUC.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\MoveGameFilesQuestionUC.xaml.cs">
       <DependentUpon>MoveGameFilesQuestionUC.xaml</DependentUpon>
@@ -236,11 +254,11 @@
     <Compile Include="Dialogs\WelcomeUC.xaml.cs">
       <DependentUpon>WelcomeUC.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Helper.cs" />
     <Compile Include="JsonObjects\DowngradeInformation.cs" />
     <Compile Include="JsonObjects\MD5Hash.cs" />
     <Compile Include="JsonObjects\ModInformation.cs" />
-    <Compile Include="MainFunctions.cs" />
+    <Compile Include="Core.cs" />
+    <Compile Include="JsonObjects\OptionalComponentInfo.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -284,7 +302,6 @@
     <Resource Include="Resources\chars\char1.png" />
     <Resource Include="Resources\chars\char2.png" />
     <Resource Include="Resources\chars\char3.png" />
-    <Resource Include="Resources\chars\roman.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\chars\luis.png" />
@@ -300,7 +317,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\chars\char5.png" />
-    <Resource Include="Resources\chars\char4.png" />
     <Resource Include="Resources\chars\johnny.png" />
   </ItemGroup>
   <ItemGroup>
@@ -324,6 +340,54 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\infoWhite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\commandlineIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\confirmIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\downgradeIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\finishIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\md5CheckIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\modsIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\moveGameFilesIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\multiplayerIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\questionIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\radioIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\saveGameIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\selectExeIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\selectVersionIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Steps\welcomeIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\webIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\RedWolfInteractive.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

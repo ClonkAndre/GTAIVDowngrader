@@ -8,8 +8,13 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class MD5FilesCheckerUC : UserControl {
+using Newtonsoft.Json;
+using CCL;
+
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class MD5FilesCheckerUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -42,19 +47,22 @@ namespace GTAIVDowngrader.Dialogs {
         private void SetNavigationButtonsEnabledState(bool enabled)
         {
             Dispatcher.Invoke(() => {
-                if (!MainFunctions.gotStartedWithValidCommandLineArgs) BackButton.IsEnabled = enabled;
-                NextButton.IsEnabled = enabled;
+
+                if (!Core.GotStartedWithValidCommandLineArgs)
+                    instance.BackButton.IsEnabled = enabled;
+
+                instance.NextButton.IsEnabled = enabled;
+
             });
         }
         private void NextStep()
         {
-            AResult result = CheckCurrentLocation(MainFunctions.downgradingInfo.IVWorkingDirectoy);
-            if ((bool)result.Result) {
+            AResult<bool> result = CheckCurrentLocation(Core.CDowngradingInfo.IVWorkingDirectoy);
+
+            if (result.Result)
                 instance.NextStep(2);
-            }
-            else {
+            else
                 instance.NextStep(0, new List<object> { result.Exception.Message });
-            }
         }
 
         /// <summary></summary>
@@ -67,7 +75,8 @@ namespace GTAIVDowngrader.Dialogs {
         private void SetStatusImage(int imgToSet)
         {
             Dispatcher.Invoke(() => {
-                switch (imgToSet) {
+                switch (imgToSet)
+                {
                     case 0: // Info Symbol
                         StatusImage.Source = new BitmapImage(new Uri(@"..\Resources\infoWhite.png", UriKind.RelativeOrAbsolute));
                         break;
@@ -94,9 +103,10 @@ namespace GTAIVDowngrader.Dialogs {
         private void SetProgressBarState(int state)
         {
             Dispatcher.Invoke(() => {
-                switch (state) {
+                switch (state)
+                {
                     case 0: // Working
-                        StatusProgressBar.Foreground = (Brush)MainFunctions.brushConverter.ConvertFrom("#0050BF");
+                        StatusProgressBar.Foreground = (Brush)Core.CBrushConverter.ConvertFrom("#0050BF");
                         StatusProgressBar.IsIndeterminate = true;
                         break;
                     case 1: // Finished
@@ -120,63 +130,100 @@ namespace GTAIVDowngrader.Dialogs {
         #endregion
 
         #region Functions
-        private AResult CheckCurrentLocation(string loc)
+        private AResult<bool> CheckCurrentLocation(string loc)
         {
             string root = Path.GetPathRoot(loc);
             string path = loc.ToLower();
 
             // Check if GTA IV is in a program files folder
-            if (path.Contains("program files") 
-                || path.Contains("program files (x86)")) {
-                return new AResult(new Exception("GTA IV is in one the Program Files folder which it shouldn't be!"), false); // Return check result
-            }
+            if (path.Contains("program files") || path.Contains("program files (x86)"))
+                return new AResult<bool>(new Exception("GTA IV is in one of the Program Files folder which it shouldn't be!"), false); // Return check result
 
             // Check if GTA IV is on drive A:\ or B:\
-            if (root == @"A:\" || root == @"B:\") return new AResult(new Exception(@"GTA IV is on drive A:\ or B:\ which it shouldn't be!"), false);  // Return check result
+            if (root == @"A:\" || root == @"B:\")
+                return new AResult<bool>(new Exception(@"GTA IV is on drive A:\ or B:\ which it shouldn't be!"), false);  // Return check result
 
             // Check permissions
             string testFolderLoc = string.Format("{0}\\DowngraderPermissionTestDir", path).ToLower();
             testLocations.Add(testFolderLoc);
 
             bool result = false;
-            try {
+            try
+            {
                 Directory.CreateDirectory(testFolderLoc);
                 File.WriteAllText(testFolderLoc + "\\test.txt", "This is a test.");
 
                 // Passed test
                 result = true;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 // Failed test
                 result = false;
             }
 
             // Remove test files
-            for (int i = 0; i < testLocations.Count; i++) {
+            for (int i = 0; i < testLocations.Count; i++)
+            {
                 string testLoc = testLocations[i];
                 if (Directory.Exists(testLoc)) Directory.Delete(testLoc, true);
                 testLocations.RemoveAt(i);
             }
 
-            return new AResult(new Exception("The current GTA IV directory has insufficient permissions!"), result); // Return check result
+            return new AResult<bool>(new Exception("The current GTA IV directory has insufficient permissions!"), result); // Return check result
         }
         #endregion
 
+        #region Events
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            instance.PreviousStep();
+        }
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
+        {
+            NextStep();
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+        }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
+            try
+            {
+                instance.NextButtonClicked += Instance_NextButtonClicked;
+                instance.BackButtonClicked += Instance_BackButtonClicked;
 
-            try {
-                if (MainFunctions.gotStartedWithValidCommandLineArgs) {
-                    BackButton.IsEnabled = false;
+                instance.ChangeActionButtonVisiblity(true, true, false, true);
+
+                // Log more application Information
+                Core.AddLogItem(LogType.Info, string.Format("In Offline Mode: {0}", Core.IsInOfflineMode));
+                if (Core.GotStartedWithValidCommandLineArgs)
+                    Core.AddLogItem(LogType.Info, string.Format("Downgrader got started with commandline argument to path: {0}", Core.CommandLineArgPath));
+
+                if (Core.GotStartedWithValidCommandLineArgs)
+                    instance.BackButton.IsEnabled = false;
+
+                // Check offline mode
+                if (Core.IsInOfflineMode)
+                {
+                    string md5HashesFilePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\md5Hashes.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                    if (!File.Exists(md5HashesFilePath))
+                    {
+                        Core.Notification.ShowNotification(NotificationType.Warning, 5000, "MD5 Hashes not available", "Skipping step.", "MD5_HASH_FILE_DOES_NOT_EXISTS");
+                        NextStep();
+                        return;
+                    }
+                    else
+                    {
+                        // Load already existing hashes
+                        Core.MD5Hashes = JsonConvert.DeserializeObject<List<JsonObjects.MD5Hash>>(File.ReadAllText(md5HashesFilePath));
+                        
+                        Core.Notification.ShowNotification(NotificationType.Warning, 9000, "Offline Mode Information", "Can't update Md5 Hashes because of offline mode. Using already existing ones. Hashes might be outdated and result in a wrong result.", "OUTDATED_HASHES_WARNING");
+                    }
                 }
 
                 SetNavigationButtonsEnabledState(false);
@@ -185,35 +232,42 @@ namespace GTAIVDowngrader.Dialogs {
                 SetProgressBarState(0);
 
                 // Get file version of the selected executable file and the related MD5 Hash
-                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(MainFunctions.downgradingInfo.IVExecutablePath);
+                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Core.CDowngradingInfo.IVExecutablePath);
                 string fileVersion = (fvi != null && fvi.FileVersion != null) ? fvi.FileVersion.Replace(",", ".").Replace(" ", "") : "";
-                List<string> relatedMD5Hashes = MainFunctions.GetMD5HashesFromVersion(fileVersion);
+                List<string> relatedMD5Hashes = Core.GetMD5HashesFromVersion(fileVersion);
 
                 Task.Run(() => {
-                    return Helper.GetMD5StringFromFolder(MainFunctions.downgradingInfo.IVWorkingDirectoy, new List<string>() { "installscript.vdf", "installscript_sdk.vdf" }); // Get MD5 from selected directory
+                    return FileHelper.GetMD5StringFromFolder(Core.CDowngradingInfo.IVWorkingDirectoy, new List<string>() { "installscript.vdf", "installscript_sdk.vdf" }); // Get MD5 from selected directory
                 }).ContinueWith((r) => {
-                    AResult result = r.Result;
+                    AResult<string> result = r.Result;
 
                     SetNavigationButtonsEnabledState(true);
 
-                    if (result.Exception == null) {
-                        if (result.Result != null) {
+                    if (result.Exception == null)
+                    {
+                        if (result.Result != null)
+                        {
 
-                            if (relatedMD5Hashes != null) {
-                                if (relatedMD5Hashes.Contains(result.Result.ToString())) { // Generated Hash is equal to one of the related Hashes. Version is NOT modified.
+                            if (relatedMD5Hashes != null)
+                            {
+                                // Generated Hash is equal to one of the related Hashes. Version is NOT modified.
+                                if (relatedMD5Hashes.Contains(result.Result))
+                                {
 
                                     SetStatusImage(1);
                                     SetProgressBarState(1);
                                     SetStatusText("No problems found while generating and comparing MD5 Hash. To continue, press the Next button.");
 
                                     // Set Hashes for log file
-                                    MainFunctions.downgradingInfo.SetReceivedMD5Hash(result.Result.ToString());
-                                    MainFunctions.downgradingInfo.SetRelatedMD5Hash(result.Result.ToString());
+                                    Core.CDowngradingInfo.SetReceivedMD5Hash(result.Result);
+                                    Core.CDowngradingInfo.SetRelatedMD5Hash(result.Result);
 
-                                    if (MainFunctions.gotStartedWithValidCommandLineArgs) NextStep();
+                                    if (Core.GotStartedWithValidCommandLineArgs)
+                                        NextStep();
 
                                 }
-                                else { // Generated Hash is NOT equal to any of the seemingly related Hashes! This means that the version is modified.
+                                else // Generated Hash is NOT equal to any of the seemingly related Hashes! This means that the version is modified.
+                                {
 
                                     SetStatusImage(2);
                                     SetProgressBarState(3);
@@ -226,40 +280,43 @@ namespace GTAIVDowngrader.Dialogs {
                                         "Please also consider sending the log file created by the downgrader at the end of the downgrading process in our Discord server to help improve the GTA IV Downgrader. Thanks!", Environment.NewLine, fileVersion));
 
                                     // Set Hashes for log file
-                                    MainFunctions.downgradingInfo.SetReceivedMD5Hash(result.Result.ToString());
-                                    MainFunctions.downgradingInfo.SetRelatedMD5Hash(string.Format("No related MD5 Hash found for this GTA IV {0} installation.", fileVersion));
+                                    Core.CDowngradingInfo.SetReceivedMD5Hash(result.Result);
+                                    Core.CDowngradingInfo.SetRelatedMD5Hash(string.Format("No related MD5 Hash found for this GTA IV {0} installation.", fileVersion));
 
                                 }
                             }
-                            else { // Unknown version
+                            else // Unknown version
+                            {
 
                                 SetStatusImage(2);
                                 SetProgressBarState(3);
-                                SetStatusText(string.Format("Could not compare MD5 for version {0} of GTA IV. This probably means that the selected GTAIV.exe is not 1.2.0.43. Please note that this downgrader is mainly used to downgrade from version 1.2.0.43 to 1.0.8.0, 1.0.7.0 or 1.0.4.0. However, this does not stop you from downgrading. To continue, press the Next button.", string.IsNullOrEmpty(fileVersion) ? "UNKNOWN" : fileVersion));
+                                SetStatusText(string.Format("Could not compare MD5 for version {0} of GTA IV. This probably means that the selected GTAIV.exe is not 1.2.0.43 (or higher). Please note that this downgrader is mainly used to downgrade from version 1.2.0.43 (or higher) to 1.0.8.0, 1.0.7.0 or 1.0.4.0. However, this does not stop you from downgrading. To continue, press the Next button.", string.IsNullOrEmpty(fileVersion) ? "UNKNOWN" : fileVersion));
 
                                 // Set Hashes for log file
-                                MainFunctions.downgradingInfo.SetReceivedMD5Hash(result.Result.ToString());
-                                MainFunctions.downgradingInfo.SetRelatedMD5Hash(string.Format("No MD5 Hash found for version {0} of GTA IV.", fileVersion));
+                                Core.CDowngradingInfo.SetReceivedMD5Hash(result.Result);
+                                Core.CDowngradingInfo.SetRelatedMD5Hash(string.Format("No MD5 Hash found for version {0} of GTA IV.", fileVersion));
 
                             }
 
                             return;
                         }
-                        else {
+                        else
+                        {
 
                             SetStatusText("An unknown error occured while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.");
 
                             // Log
-                            MainFunctions.AddLogItem(LogType.Error, "An unknown error occured while creating MD5 Hash from directory.");
+                            Core.AddLogItem(LogType.Error, "An unknown error occured while creating MD5 Hash from directory.");
 
                         }
                     }
-                    else {
+                    else
+                    {
 
                         SetStatusText(string.Format("An error occured while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.{0}Details: {1}", Environment.NewLine, result.Exception.Message));
 
                         // Log
-                        MainFunctions.AddLogItem(LogType.Error, string.Format("An error occured while creating MD5 Hash from directory. Details: {0}", result.Exception.Message));
+                        Core.AddLogItem(LogType.Error, string.Format("An error occured while creating MD5 Hash from directory. Details: {0}", result.Exception.Message));
 
                     }
 
@@ -267,29 +324,16 @@ namespace GTAIVDowngrader.Dialogs {
                     SetProgressBarState(2);
                 });
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 SetNavigationButtonsEnabledState(true);
-                SetStatusText(string.Format("Error while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.{0}Details: {1}", Environment.NewLine, ex.Message));
+                SetStatusText(string.Format("Error while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.{0}Details: {1}", Environment.NewLine, ex.StackTrace));
                 SetStatusImage(3);
                 SetProgressBarState(2);
 
                 // Log
-                MainFunctions.AddLogItem(LogType.Error, string.Format("Error while creating MD5 Hash from directory. Details: {0}", ex.Message));
-
+                Core.AddLogItem(LogType.Error, string.Format("Error while creating MD5 Hash from directory. Details: {0}", ex.StackTrace));
             }
-        }
-
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.ShowExitMsg();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.PreviousStep();
-        }
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            NextStep();
         }
 
     }

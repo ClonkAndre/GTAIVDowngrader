@@ -4,12 +4,78 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GTAIVDowngrader"
+        xmlns:Controls="clr-namespace:GTAIVDowngrader.Controls"
         mc:Ignorable="d"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded" Closing="Window_Closing"
-        Title="GTA IV Downgrader v1.9" MinHeight="650" Height="650" MinWidth="1050" Width="1050">
+        Title="GTA IV Downgrader v2.0" MinHeight="650" Height="650" MinWidth="1050" Width="1050">
     
+    <Window.Resources>
+        <SolidColorBrush x:Key="ProgressBar.Progress" Color="#FF06B025"/>
+        <SolidColorBrush x:Key="ProgressBar.Background" Color="#FFE6E6E6"/>
+        <SolidColorBrush x:Key="ProgressBar.Border" Color="#FFBCBCBC"/>
+        <Style x:Key="ProgressBarStyle1" TargetType="{x:Type ProgressBar}">
+            <Setter Property="Foreground" Value="{StaticResource ProgressBar.Progress}"/>
+            <Setter Property="Background" Value="{StaticResource ProgressBar.Background}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ProgressBar}">
+                        <Grid x:Name="TemplateRoot">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Determinate"/>
+                                    <VisualState x:Name="Indeterminate">
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Animation" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)">
+                                                <EasingDoubleKeyFrame KeyTime="0" Value="0.25"/>
+                                                <EasingDoubleKeyFrame KeyTime="0:0:1" Value="0.25"/>
+                                                <EasingDoubleKeyFrame KeyTime="0:0:2" Value="0.25"/>
+                                            </DoubleAnimationUsingKeyFrames>
+                                            <PointAnimationUsingKeyFrames Storyboard.TargetName="Animation" Storyboard.TargetProperty="(UIElement.RenderTransformOrigin)">
+                                                <EasingPointKeyFrame KeyTime="0" Value="-0.5,0.5"/>
+                                                <EasingPointKeyFrame KeyTime="0:0:1" Value="0.5,0.5"/>
+                                                <EasingPointKeyFrame KeyTime="0:0:2" Value="1.5,0.5"/>
+                                            </PointAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                            <Rectangle x:Name="PART_Track" RadiusX="8" RadiusY="8"/>
+                            <Grid x:Name="PART_Indicator" ClipToBounds="true" HorizontalAlignment="Left">
+                                <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}" RadiusX="8" RadiusY="8"/>
+                                <Rectangle x:Name="Animation" Fill="{TemplateBinding Foreground}" RenderTransformOrigin="0.5,0.5" RadiusX="8" RadiusY="8">
+                                    <Rectangle.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform/>
+                                        </TransformGroup>
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Grid>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Vertical">
+                                <Setter Property="LayoutTransform" TargetName="TemplateRoot">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="-90"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsIndeterminate" Value="true">
+                                <Setter Property="Visibility" TargetName="Indicator" Value="Collapsed"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo x:Name="taskbarItemInfo" ProgressState="None" ProgressValue="0"/>
     </Window.TaskbarItemInfo>
@@ -18,14 +84,96 @@
         
         <!-- Background -->
         <Grid.Background>
-            <ImageBrush ImageSource=".\Resources\libertyBgDarkOverlay.png" Stretch="UniformToFill"  RenderOptions.BitmapScalingMode="HighQuality"/>
+            <ImageBrush ImageSource=".\Resources\libertyBgDarkOverlay.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
         </Grid.Background>
         
-        <!-- Content -->
-        <Grid x:Name="ContentGrid"/>
+        <!-- Main View -->
+        <Grid>
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+
+                            <!-- Red Wolf Interactive Logo -->
+                            <DoubleAnimation From="1.0" To="0.0" Duration="0:0:1" Storyboard.TargetName="RedWolfLogo" Storyboard.TargetProperty="Opacity"/>
+                            <ThicknessAnimation From="0,0,-110,135" To="0,0,10,135" Duration="0:0:0.5" AccelerationRatio="0.2" DecelerationRatio="0.8" Storyboard.TargetName="RedWolfLogo" Storyboard.TargetProperty="Margin"/>
+                            
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+
+            <Image x:Name="RedWolfLogo" Source=".\Resources\RedWolfInteractive.png" RenderOptions.BitmapScalingMode="HighQuality" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="128" Margin="0,0,-110,135"/>
+
+            <!-- Main Content -->
+            <Border x:Name="ContentBorder" Background="#993b3b3b" BorderThickness="1" BorderBrush="#80737373" CornerRadius="8" Margin="10,10,10,135">
+                <Grid x:Name="ContentGrid"/>
+            </Border>
+
+            <!-- Bottom Content -->
+            <StackPanel VerticalAlignment="Bottom">
+                <Border Background="#993b3b3b" BorderThickness="1" BorderBrush="#993b3b3b" CornerRadius="8" Height="33" Margin="10,10,10,0">
+                    <Grid>
+
+                        <ProgressBar x:Name="MainProgressBar" Background="Transparent" Foreground="#B30050bf" Style="{DynamicResource ProgressBarStyle1}"/>
+                        <StackPanel x:Name="OverallProgressStackPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\welcomeIcon.png"
+                                                ToolTip="Welcome"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\selectExeIcon.png"
+                                                ToolTip="Select GTA IV Executable"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\md5CheckIcon.png"
+                                                ToolTip="MD5 Check"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\questionIcon.png"
+                                                ToolTip="Move Game Files Question"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\moveGameFilesIcon.png"
+                                                ToolTip="Moving Game Files"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\selectVersionIcon.png"
+                                                ToolTip="Select Downgrading Version"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\multiplayerIcon.png"
+                                                ToolTip="Multiplayer"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\radioIcon.png"
+                                                ToolTip="Select Radio Downgrader"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\radioIcon.png"
+                                                ToolTip="Select Vladivostok Type"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\modsIcon.png"
+                                                ToolTip="Mods"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\confirmIcon.png"
+                                                ToolTip="Ready To Downgrade?"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\downgradeIcon.png"
+                                                ToolTip="Downgrading"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\saveGameIcon.png"
+                                                ToolTip="Savefile Downgrading"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\saveGameIcon.png"
+                                                ToolTip="Savefile Downgrading 2"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\saveGameIcon.png"
+                                                ToolTip="Savefile Downgrading 3"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\commandlineIcon.png"
+                                                ToolTip="Commandline"/>
+                            <Controls:TintImage Width="26" Height="26" Margin="0,0,20,0" TintColor="#737373" TintAmount="0.5" Image=".\Resources\Steps\finishIcon.png"
+                                                ToolTip="Done!"/>
+                        </StackPanel>
+
+                    </Grid>
+                </Border>
+                <Border x:Name="BottomActionBorder" Background="#B3000000" BorderThickness="1" BorderBrush="#993b3b3b" CornerRadius="8" Height="50" Margin="10,10,10,10">
+                    <Grid>
+
+                        <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">
+                            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80" Margin="0,0,10,0"/>
+                            <Button x:Name="SkipButton" Click="SkipButton_Click" Content="Skip" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80" Margin="0,0,10,0"/>
+                            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80"/>
+                        </WrapPanel>
+
+                        <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+        </Grid>
 
         <!-- App Notifications -->
         <StackPanel x:Name="NotificationsStackPanel" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="100,0,100,15"/>
-        
+
     </Grid>
 </Window>

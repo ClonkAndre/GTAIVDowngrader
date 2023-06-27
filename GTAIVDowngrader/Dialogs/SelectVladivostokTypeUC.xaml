@@ -5,42 +5,29 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTAIVDowngrader.Dialogs"
              mc:Ignorable="d"
-             Loaded="UserControl_Loaded"
+             Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded"
              d:DesignHeight="634" d:DesignWidth="1050">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
-        </Grid.RowDefinitions>
 
         <!-- MainGrid -->
-        <Grid x:Name="MainGrid" Grid.Row="0">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded">
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation From="0.2" To="1.0" Duration="0:0:0.5" Storyboard.TargetName="MainGrid" Storyboard.TargetProperty="Opacity"/>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
+        <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\niko.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,20,-62"/>
+            <Image Grid.RowSpan="2" Source="..\Resources\chars\niko.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,20,0"/>
 
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
-                <TextBlock Text="Select between old and new Vladivostok" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="10,0,0,0">
-                In this step you have the choice to select between the old and new Vladivostok. If you're not sure what to pick, just pick the old Vladivostok.
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
+                <TextBlock Text="Select between old and new Vladivostok" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
+                    In this step you have the choice to select between the old and new Vladivostok. If you're not sure what to pick, just pick the old Vladivostok.
                 </TextBlock>
-                <RadioButton x:Name="OldVladivostokCheckbox" Checked="OldVladivostokCheckbox_Checked" Foreground="White" FontSize="16" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,25,0,0">
+                <RadioButton x:Name="OldVladivostokCheckbox" Checked="OldVladivostokCheckbox_Checked" Foreground="White" FontSize="16" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,25,0,0">
                     <TextBlock TextWrapping="Wrap">
-                    Old Vladivostok <Run Text="(Also known as ''without new vladivostok'')" FontSize="11"/>
+                        Old Vladivostok <Run Text="(Also known as ''without new vladivostok'')" FontSize="11"/>
                     <LineBreak/>
-                    <Run Text="Choose this if you only want pre-cut songs." FontSize="12"/>
+                        <Run Text="Choose this if you only want pre-cut songs." FontSize="12"/>
                     </TextBlock>
                 </RadioButton>
-                <RadioButton x:Name="NewVladivostokCheckbox" Checked="NewVladivostokCheckbox_Checked" Foreground="White" FontSize="16" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,20,0,0">
+                <RadioButton x:Name="NewVladivostokCheckbox" Checked="NewVladivostokCheckbox_Checked" Foreground="White" FontSize="16" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,20,0,0">
                     <TextBlock TextWrapping="Wrap">
                     New Vladivostok <Run Text="(Also known as ''with new vladivostok'')" FontSize="11"/>
                     <LineBreak/>
@@ -49,16 +36,8 @@
                 </RadioButton>
             </StackPanel>
 
-            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>
+            <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
         </Grid>
 
-        <!-- Bottom Grid -->
-        <Rectangle Grid.Row="0" Fill="#4Dffffff" Height="1" VerticalAlignment="Bottom"/>
-        <Grid x:Name="BottomGrid" Grid.Row="1" Background="#B3000000">
-            <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" IsEnabled="false" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="15,0"/>
-            <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="105,0"/>
-            <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
-        </Grid>
-        
     </Grid>
 </UserControl>

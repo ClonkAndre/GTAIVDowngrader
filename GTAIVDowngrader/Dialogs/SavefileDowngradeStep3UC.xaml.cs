@@ -4,8 +4,10 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class SavefileDowngradeStep3UC : UserControl {
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class SavefileDowngradeStep3UC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -23,20 +25,32 @@ namespace GTAIVDowngrader.Dialogs {
         }
         #endregion
 
+        #region Events
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            instance.PreviousStep(1);
+        }
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
+        {
+            instance.NextStep();
+        }
+        #endregion
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+        }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            // BottomGrid Colours
-            if (MainFunctions.isPrideMonth) {
-                if (MainFunctions.wantsToDisableRainbowColours) { // Revert to default Colour
-                    BottomGrid.Background = "#B3000000".ToBrush();
-                }
-                else { // Use Rainbow Colours
-                    BottomGrid.Background = MainFunctions.GetRainbowGradientBrush();
-                }
-            }
+            instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
+
+            instance.ChangeActionButtonVisiblity(true, true, false, true);
+            instance.ChangeActionButtonEnabledState(true, true, true, true);
 
             // Change location text based on downgrading options
-            if (MainFunctions.downgradingInfo.ConfigureForGFWL) {
+            if (Core.CDowngradingInfo.ConfigureForGFWL) {
                 gfwlLocationTextBlock.Visibility = Visibility.Visible;
                 xliveLocationTextBlock.Visibility = Visibility.Collapsed;
             }
@@ -46,65 +60,60 @@ namespace GTAIVDowngrader.Dialogs {
             }
         }
 
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.ShowExitMsg();
-        }
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.PreviousStep(1);
-        }
-        private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            instance.NextStep();
-        }
-
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
             Uri uri = e.Uri;
             switch (uri.Host) {
                 case "gotologsfolder":
                     string logsFolder = ".\\Data\\Logs";
-                    if (Directory.Exists(logsFolder)) {
+                    if (Directory.Exists(logsFolder))
+                    {
                         Process.Start(logsFolder);
                     }
-                    else {
+                    else
+                    {
                         Directory.CreateDirectory(logsFolder);
                         Process.Start(logsFolder);
                     }
                     break;
                 case "gotosavegamesoutputfolder":
                     string savegamesFolder = ".\\Data\\Savegames";
-                    if (Directory.Exists(savegamesFolder)) {
+                    if (Directory.Exists(savegamesFolder))
+                    {
                         Process.Start(savegamesFolder);
                     }
-                    else {
+                    else
+                    {
                         Directory.CreateDirectory(savegamesFolder);
                         Process.Start(savegamesFolder);
                     }
                     break;
                 case "gotolocalappdataxlivefolder":
                     string localAppDataXliveFolder = string.Format("{0}\\Rockstar Games\\GTA IV\\savegames\\user_ee000000deadc0de", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                    if (Directory.Exists(localAppDataXliveFolder)) {
+                    if (Directory.Exists(localAppDataXliveFolder))
+                    {
                         Process.Start(localAppDataXliveFolder);
                     }
-                    else {
+                    else
+                    {
                         Directory.CreateDirectory(localAppDataXliveFolder);
                         Process.Start(localAppDataXliveFolder);
                     }
                     break;
                 case "gotolocalappdatafolder":
                     string localAppDataFolder = string.Format("{0}\\Rockstar Games\\GTA IV\\savegames", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                    if (Directory.Exists(localAppDataFolder)) {
+                    if (Directory.Exists(localAppDataFolder))
+                    {
                         Process.Start(localAppDataFolder);
                     }
-                    else {
+                    else
+                    {
                         Directory.CreateDirectory(localAppDataFolder);
                         Process.Start(localAppDataFolder);
                     }
                     break;
                 default:
-                    MainFunctions.AskUserToOpenURL(e.Uri);
+                    Core.AskUserToOpenURL(e.Uri);
                     break;
             }
         }
