@@ -838,7 +838,7 @@ namespace GTAIVDowngrader
             InitializeComponent();
 
             // Init Core
-            Core mainFunctions = new Core(this, "2.1");
+            Core mainFunctions = new Core(this, "2.0.1");
             Core.CUpdateChecker.UpdateCheckCompleted += UpdateChecker_UpdateCheckCompleted;
             Core.CUpdateChecker.UpdateCheckFailed += UpdateChecker_UpdateCheckFailed;
 
