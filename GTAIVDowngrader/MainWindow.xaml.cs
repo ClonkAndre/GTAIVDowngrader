@@ -627,17 +627,21 @@ namespace GTAIVDowngrader
                                     if (Core.IsPrideMonth)
                                         Dispatcher.Invoke(() => BottomActionBorder.Background = Core.GetRainbowGradientBrush());
 
-                                    // Get correct download link
+                                    // Get correct download link and begin downloading other important information
                                     string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.0_and_up/downgradingFiles.json";
                                     if (Core.UseAlternativeDownloadLinks)
                                     {
                                         dLink = "ftp://195.201.179.80/IVDowngraderFiles/downgradingFiles.json";
                                         Core.AddLogItem(LogType.Warning, "Using alternative download link for downgradingFiles.json! Files might be outdated!");
+
+                                        string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\downgradingFiles.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                                        downloadWebClient.DownloadFileAsync(new Uri(dLink), filePath, "DOWNGRADING_FILES");
                                     }
-
-                                    // Begin downloading other important information
-                                    downloadWebClient.DownloadStringAsync(new Uri(dLink), "DOWNGRADING_FILES");
-
+                                    else
+                                    {
+                                        downloadWebClient.DownloadStringAsync(new Uri(dLink), "DOWNGRADING_FILES");
+                                    }
+                                    
                                     break;
                                 }
                             #endregion
@@ -659,15 +663,7 @@ namespace GTAIVDowngrader
                                     Console.WriteLine("");
 #endif
 
-                                    // Get correct download link
-                                    string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.0_and_up/md5Hashes.json";
-                                    if (Core.UseAlternativeDownloadLinks)
-                                    {
-                                        dLink = "ftp://195.201.179.80/IVDowngraderFiles/md5Hashes.json";
-                                        Core.AddLogItem(LogType.Warning, "Using alternative download link for md5Hashes.json! Hashes might be outdated!");
-                                    }
-
-                                    downloadWebClient.DownloadStringAsync(new Uri(dLink), "MD5_HASHES");
+                                    downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.0_and_up/md5Hashes.json"), "MD5_HASHES");
                                     finishedDownloadingFileInfo = true;
 
                                     break;
@@ -712,12 +708,97 @@ namespace GTAIVDowngrader
                 }
                 else
                 {
-                    ShowErrorScreen(new Exception(string.Format("(1) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, e.Error.ToString())));
+                    ShowErrorScreen(new Exception(string.Format("[STRING] (1) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, e.Error.ToString()), e.Error));
                 }
             }
             catch (Exception ex)
             {
-                ShowErrorScreen(new Exception(string.Format("(2) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, ex.ToString())));
+                ShowErrorScreen(new Exception(string.Format("[STRING] (2) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, ex.ToString())));
+            }
+        }
+        private void DownloadWebClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            try
+            {
+                if (e.Cancelled)
+                    return;
+
+                if (e.Error == null)
+                {
+                    switch (e.UserState.ToString())
+                    {
+
+                        #region DOWNGRADING_FILES
+                        case "DOWNGRADING_FILES":
+                            {
+
+                                // Read file
+                                string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\downgradingFiles.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                                
+                                // show failed message when file does not exists
+                                
+                                Core.DowngradeFiles = JsonConvert.DeserializeObject<List<JsonObjects.DowngradeInformation>>(File.ReadAllText(filePath));
+
+                                // Debug
+#if DEBUG
+                                Console.WriteLine("- - - Downgrading Files - - -");
+
+                                if (Core.DowngradeFiles.Count != 0)
+                                    Core.DowngradeFiles.ForEach(d => Console.WriteLine(d.ToString())); // Print to console
+
+                                Console.WriteLine("");
+#endif
+
+                                Core.AddLogItem(LogType.Warning, "Using alternative download link for md5Hashes.json! Hashes might be outdated!");
+
+                                string md5HashesFilePathWrite = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\md5Hashes.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+
+                                downloadWebClient.DownloadFileAsync(new Uri("ftp://195.201.179.80/IVDowngraderFiles/md5Hashes.json"), md5HashesFilePathWrite, "MD5_HASHES");
+                                finishedDownloadingFileInfo = true;
+
+                                break;
+                            }
+                        #endregion
+
+                        #region MD5_HASHES
+                        case "MD5_HASHES":
+
+                            // Read file
+                            string md5HashesFilePathRead = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\md5Hashes.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+
+                            // show failed message when file does not exists
+
+                            Core.MD5Hashes = JsonConvert.DeserializeObject<List<JsonObjects.MD5Hash>>(File.ReadAllText(md5HashesFilePathRead));
+
+                            // Debug
+#if DEBUG
+                            Console.WriteLine("- - - MD5 Hashes - - -");
+
+                            if (Core.MD5Hashes.Count != 0)
+                                Core.MD5Hashes.ForEach(hash => Console.WriteLine(hash.ToString())); // Print to console
+#endif
+
+                            finishedDownloadingMD5Hashes = true;
+
+                            // Destroy WebClient
+                            downloadWebClient.DownloadStringCompleted -= DownloadWebClient_DownloadStringCompleted;
+                            downloadWebClient.CancelAsync();
+                            downloadWebClient.Dispose();
+                            downloadWebClient = null;
+
+                            break;
+                            #endregion
+
+                    }
+                }
+                else
+                {
+                    ShowErrorScreen(new Exception(string.Format("[FILE] (1) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, e.Error.ToString()), e.Error));
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorScreen(new Exception(string.Format("[FILE] (2) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, ex.ToString())));
             }
         }
 
@@ -757,7 +838,7 @@ namespace GTAIVDowngrader
             InitializeComponent();
 
             // Init Core
-            Core mainFunctions = new Core(this, "2.0");
+            Core mainFunctions = new Core(this, "2.1");
             Core.CUpdateChecker.UpdateCheckCompleted += UpdateChecker_UpdateCheckCompleted;
             Core.CUpdateChecker.UpdateCheckFailed += UpdateChecker_UpdateCheckFailed;
 
@@ -783,7 +864,12 @@ namespace GTAIVDowngrader
 
             // Init WebClient
             downloadWebClient = new WebClient();
+
+            if (Core.UseAlternativeDownloadLinks)
+                downloadWebClient.Credentials = new NetworkCredential("ivdowngr", "7MY4qi2a8g");
+
             downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
+            downloadWebClient.DownloadFileCompleted += DownloadWebClient_DownloadFileCompleted;
 
             // Dialogs
             welcomeUC = new WelcomeUC(this);

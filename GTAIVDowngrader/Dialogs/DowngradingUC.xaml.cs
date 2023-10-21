@@ -72,8 +72,8 @@ namespace GTAIVDowngrader.Dialogs
         }
         #endregion
 
-        #region Structs
-        private struct FileDownload
+        #region Classes
+        private class FileDownload
         {
             #region Properties
             public string FileName { get; private set; }
@@ -827,10 +827,16 @@ namespace GTAIVDowngrader.Dialogs
                     for (int i = 0; i < items.Length; i++)
                     {
                         FileDownload item = items[i];
+
+#if DEBUG
+                        AddLogItem(LogType.Info, string.Format("Populated download queue list with: {0}, URL: {1}", item.FileName, item.DownloadURL), true, true);
+#else
                         AddLogItem(LogType.Info, string.Format("Populated download queue list with: {0}, URL: {1}", item.FileName, item.DownloadURL), true, false);
+#endif
+
                     }
 
-                    AddLogItem(LogType.Info, "Finished populating download queue list.");
+                    AddLogItem(LogType.Info, string.Format("Finished populating download queue list with {0} items.", downloadQueue.Count));
                 }
                 else
                     AddLogItem(LogType.Info, "Nothing selected to populate download queue list.");

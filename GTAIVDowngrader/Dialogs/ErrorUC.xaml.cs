@@ -44,7 +44,9 @@ namespace GTAIVDowngrader.Dialogs
                 DetailsLabel.Text += string.Format("{0}{0}- - - Possible Solutions - - -{0}" +
                     "● Make sure you have a stable internet connection.{0}" +
                     "● If you have a VPN try to disable/enable it and try again.{0}" +
-                    "● If you're running on a proxy, try to disable it and try again.", Environment.NewLine);
+                    "● If you're running on a proxy, try to disable it and try again.{0}{0}" +
+                    "- - - Other Information - - -{0}" +
+                    "● If the error occured while trying to download your selected mods and you life in india, there's no way for the downgrader to succeed.{0}Try to select no mods, and install the mods after the downgrade succeeded!", Environment.NewLine);
             }
         }
         #endregion
@@ -66,8 +68,8 @@ namespace GTAIVDowngrader.Dialogs
 
                 // Log error
                 Core.LogItems.Add("Type: " + exception.GetType().Name);
-                Core.LogItems.Add("Source: " + exception.Source);
-                Core.LogItems.Add("TargetSite.Name: " + exception.TargetSite.Name);
+                Core.LogItems.Add("Source: " + (string.IsNullOrEmpty(exception.Source) ? "NULL" : exception.Source));
+                Core.LogItems.Add("TargetSite.Name: " + (exception.TargetSite == null ? "NULL" : exception.TargetSite.Name));
                 Core.LogItems.Add("Message: " + exception.Message);
                 Core.LogItems.Add("");
                 Core.LogItems.Add(exception.ToString());
@@ -83,8 +85,8 @@ namespace GTAIVDowngrader.Dialogs
 
                 // Log error
                 Core.LogItems.Add("Type: " + exception.GetType().Name);
-                Core.LogItems.Add("Source: " + exception.Source);
-                Core.LogItems.Add("TargetSite.Name: " + exception.TargetSite.Name);
+                Core.LogItems.Add("Source: " + (string.IsNullOrEmpty(exception.Source) ? "NULL" : exception.Source));
+                Core.LogItems.Add("TargetSite.Name: " + (exception.TargetSite == null ? "NULL" : exception.TargetSite.Name));
                 Core.LogItems.Add("Message: " + exception.Message);
                 Core.LogItems.Add("");
                 Core.LogItems.Add(exception.ToString());

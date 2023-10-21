@@ -9,7 +9,7 @@
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded" Closing="Window_Closing"
-        Title="GTA IV Downgrader v2.0" MinHeight="650" Height="650" MinWidth="1050" Width="1050">
+        Title="GTA IV Downgrader v2.0.1" MinHeight="650" Height="650" MinWidth="1050" Width="1050">
     
     <Window.Resources>
         <SolidColorBrush x:Key="ProgressBar.Progress" Color="#FF06B025"/>
