@@ -2,8 +2,6 @@
 {
     public class OptionalComponentInfo
     {
-
-        #region Variables
         // Other
         public bool CheckedByDefault;
 
@@ -14,7 +12,5 @@
         public string Title;
         public string Description;
         public string DownloadURL;
-        #endregion
-
     }
 }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
+using GTAIVDowngrader.Classes;
 using GTAIVDowngrader.Controls;
 
 namespace GTAIVDowngrader.Dialogs
@@ -20,25 +21,27 @@ namespace GTAIVDowngrader.Dialogs
         #region Methods
         private void AppendText(string str, bool doLineBreak = true)
         {
-            if (doLineBreak) {
+            if (doLineBreak)
                 CustomCommandlineTextBox.AppendText(str + Environment.NewLine);
-            }
-            else {
+            else
                 CustomCommandlineTextBox.AppendText(str);
-            }
         }
 
         private void AddCommandLineArgumentsToList()
         {
-            if (Core.CommandLineArguments.Count != 0) {
-                for (int i = 0; i < Core.CommandLineArguments.Count; i++) {
+            if (Core.CommandLineArguments.Count != 0)
+            {
+                for (int i = 0; i < Core.CommandLineArguments.Count; i++)
+                {
                     CommandLineArgument cla = Core.CommandLineArguments[i];
                     CommandlineItem item = new CommandlineItem();
                     item.Insert += Item_Insert;
                     item.Margin = new Thickness(0,5,0,0);
                     item.Title = cla.ArgumentName;
                     item.Description = cla.ArgumentDescription;
-                    switch (cla.Category) {
+
+                    switch (cla.Category)
+                    {
                         case 0:
                             GraphicsArgsStackPanel.Children.Add(item);
                             break;
@@ -54,12 +57,14 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Item_Insert(string argName)
         {
-            if (CustomCommandlineTextBox.Text.Contains(argName)) {
+            if (CustomCommandlineTextBox.Text.Contains(argName))
+            {
                 Core.Notification.ShowNotification(NotificationType.Info, 3000, "Argument already added", "This argument already exists in the custom commandline.", "ALREADY_ADDED");
                 return;
             }
 
-            switch (argName) {
+            switch (argName)
+            {
                 case "-renderquality":
                     AppendText(string.Format("{0} 0", argName));
                     break;
@@ -95,30 +100,35 @@ namespace GTAIVDowngrader.Dialogs
 
         private void CreateCommandlineWithoutAvailableVidMem()
         {
-            string path = string.Format("{0}\\commandline.txt", Core.CDowngradingInfo.IVWorkingDirectoy);
+            string path = string.Format("{0}\\commandline.txt", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
             StringBuilder builder = new StringBuilder();
 
-            try {
-                if (File.Exists(path)) {
-                    switch (MessageBox.Show("There is already a commandline.txt in the GTA IV root directory. Override existing file?", "Override?", MessageBoxButton.YesNo, MessageBoxImage.Question)) {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    switch (MessageBox.Show("There is already a commandline.txt in the GTA IV root directory. Override existing file?", "Override?", MessageBoxButton.YesNo, MessageBoxImage.Question))
+                    {
                         case MessageBoxResult.Yes:
                             builder.AppendLine("-nomemrestrict");
                             builder.AppendLine("-norestrictions");
-                            if (AlsoIncludeWindowedCheckbox.IsChecked.Value) builder.AppendLine("-windowed");
-                            if (AlsoIncludeNoPreCacheCheckbox.IsChecked.Value) builder.AppendLine("-noprecache");
+                            if (AlsoIncludeWindowedCheckbox.IsChecked.Value)    builder.AppendLine("-windowed");
+                            if (AlsoIncludeNoPreCacheCheckbox.IsChecked.Value)  builder.AppendLine("-noprecache");
                             File.WriteAllText(path, builder.ToString());
                             break;
                     }
                 }
-                else {
+                else
+                {
                     builder.AppendLine("-nomemrestrict");
                     builder.AppendLine("-norestrictions");
-                    if (AlsoIncludeWindowedCheckbox.IsChecked.Value) builder.AppendLine("-windowed");
-                    if (AlsoIncludeNoPreCacheCheckbox.IsChecked.Value) builder.AppendLine("-noprecache");
+                    if (AlsoIncludeWindowedCheckbox.IsChecked.Value)    builder.AppendLine("-windowed");
+                    if (AlsoIncludeNoPreCacheCheckbox.IsChecked.Value)  builder.AppendLine("-noprecache");
                     File.WriteAllText(path, builder.ToString());
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 MessageBox.Show(string.Format("Error while creating commandline. Details: {0}", ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -151,7 +161,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                string path = string.Format("{0}\\commandline.txt", Core.CDowngradingInfo.IVWorkingDirectoy);
+                string path = string.Format("{0}\\commandline.txt", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
 
                 if (File.Exists(path))
                 {
@@ -214,7 +224,7 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonEnabledState(true, true, true, false);
 
             // 1040 only arguments
-            if (Core.CDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
             {
                 AlsoIncludeNoPreCacheCheckbox.Visibility = Visibility.Visible;
                 AlsoIncludeNoPreCacheCheckbox.IsChecked = true;

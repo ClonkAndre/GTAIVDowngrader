@@ -37,14 +37,14 @@ namespace GTAIVDowngrader.Dialogs {
         }
         private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
-            string fileLoc = string.Format("{0}\\PlayGTAIV.exe", Core.CDowngradingInfo.IVWorkingDirectoy);
+            string fileLoc = string.Format("{0}\\PlayGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
             try
             {
                 if (File.Exists(fileLoc))
                 {
                     Process process = new Process();
                     process.StartInfo.FileName = fileLoc;
-                    process.StartInfo.WorkingDirectory = Core.CDowngradingInfo.IVWorkingDirectoy;
+                    process.StartInfo.WorkingDirectory = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
                     process.Start();
                 }
                 else

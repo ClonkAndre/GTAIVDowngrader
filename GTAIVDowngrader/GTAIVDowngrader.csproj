@@ -179,6 +179,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Classes\CommandLineArgument.cs" />
+    <Compile Include="Classes\DowngradingInfo.cs" />
+    <Compile Include="Classes\FileDownload.cs" />
     <Compile Include="Controls\CommandlineItem.xaml.cs">
       <DependentUpon>CommandlineItem.xaml</DependentUpon>
     </Compile>
@@ -254,6 +257,7 @@
     <Compile Include="Dialogs\WelcomeUC.xaml.cs">
       <DependentUpon>WelcomeUC.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Classes\Enums.cs" />
     <Compile Include="JsonObjects\DowngradeInformation.cs" />
     <Compile Include="JsonObjects\MD5Hash.cs" />
     <Compile Include="JsonObjects\ModInformation.cs" />

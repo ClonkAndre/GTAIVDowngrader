@@ -8,134 +8,12 @@ using System.Windows.Media;
 
 using CCL;
 
+using GTAIVDowngrader.Classes;
 using GTAIVDowngrader.Controls;
 using GTAIVDowngrader.JsonObjects;
 
 namespace GTAIVDowngrader
 {
-
-    #region Public Classes
-    public class DowngradingInfo
-    {
-
-        #region Properties
-        public string IVExecutablePath { get; private set; }
-        public string IVWorkingDirectoy { get; private set; }
-        public string IVTargetBackupDirectory { get; private set; }
-        public string ReceivedMD5Hash { get; private set; }
-        public string RelatedMD5Hash { get; private set; }
-        public string NewGTAIVTargetLocation { get; private set; }
-
-        public GameVersion DowngradeTo { get; private set; }
-        public RadioDowngrader SelectedRadioDowngrader { get; private set; }
-        public VladivostokTypes SelectedVladivostokType { get; private set; }
-
-        public bool ConfigureForGFWL { get; private set; }
-        public bool InstallNoEFLCMusicInIVFix { get; private set; }
-        public bool InstallPrerequisites { get; private set; }
-        public bool WantsToCreateBackup { get; private set; }
-        public bool CreateBackupInZipFile { get; private set; }
-        public bool GTAIVInstallationGotMovedByDowngrader { get; private set; }
-
-        public List<ModInformation> SelectedMods;
-        public List<OptionalComponentInfo> SelectedOptionalComponents;
-        #endregion
-
-        #region Constructor
-        public DowngradingInfo()
-        {
-            SelectedMods = new List<ModInformation>();
-            SelectedOptionalComponents = new List<OptionalComponentInfo>();
-        }
-        #endregion
-
-        #region Methods
-        public void SetPath(string executablePath)
-        {
-            IVExecutablePath = executablePath;
-            IVWorkingDirectoy = Path.GetDirectoryName(executablePath);
-        }
-        public void SetTargetBackupPath(string backupPath)
-        {
-            IVTargetBackupDirectory = backupPath;
-        }
-        public void SetReceivedMD5Hash(string hash)
-        {
-            ReceivedMD5Hash = hash;
-        }
-        public void SetRelatedMD5Hash(string hash)
-        {
-            RelatedMD5Hash = hash;
-        }
-        public void SetNewGTAIVTargetLocation(string location)
-        {
-            NewGTAIVTargetLocation = location;
-        }
-
-        public void SetDowngradeVersion(GameVersion version)
-        {
-            DowngradeTo = version;
-        }
-        public void SetRadioDowngrader(RadioDowngrader radioDowngrader)
-        {
-            SelectedRadioDowngrader = radioDowngrader;
-        }
-        public void SetVladivostokType(VladivostokTypes type)
-        {
-            SelectedVladivostokType = type;
-        }
-
-        public void SetConfigureForGFWL(bool value)
-        {
-            ConfigureForGFWL = value;
-        }
-        public void SetInstallNoEFLCMusicInIVFix(bool value)
-        {
-            InstallNoEFLCMusicInIVFix = value;
-        }
-        public void SetInstallPrerequisites(bool value)
-        {
-            InstallPrerequisites = value;
-        }
-        public void SetWantsToCreateBackup(bool value)
-        {
-            WantsToCreateBackup = value;
-        }
-        public void SetCreateBackupInZipFile(bool value)
-        {
-            CreateBackupInZipFile = value;
-        }
-        public void SetGTAIVInstallationGotMovedByDowngrader(bool value)
-        {
-            GTAIVInstallationGotMovedByDowngrader = value;
-        }
-        #endregion
-
-    }
-    #endregion
-
-    #region Public Structs
-    public struct CommandLineArgument
-    {
-
-        #region Properties
-        public int Category { get; private set; }
-        public string ArgumentName { get; private set; }
-        public string ArgumentDescription { get; private set; }
-        #endregion
-
-        #region Constructor
-        public CommandLineArgument(int category, string aName, string aDesc)
-        {
-            Category = category;
-            ArgumentName = aName;
-            ArgumentDescription = aDesc;
-        }
-        #endregion
-
-    }
-    #endregion
-
     internal class Core
     {
 
@@ -145,8 +23,8 @@ namespace GTAIVDowngrader
         // Lists
         public static List<string> LogItems;
         public static List<CommandLineArgument> CommandLineArguments;
-        public static List<JsonObjects.DowngradeInformation> DowngradeFiles;
-        public static List<JsonObjects.MD5Hash> MD5Hashes;
+        public static List<DowngradeInformation> DowngradeFiles;
+        public static List<MD5Hash> MD5Hashes;
 
         // Other
         public static bool IsInOfflineMode;
@@ -154,9 +32,8 @@ namespace GTAIVDowngrader
         public static bool IsPrideMonth, WantsToDisableRainbowColours;
         public static bool UseAlternativeDownloadLinks;
         public static string CommandLineArgPath;
-        public static BrushConverter CBrushConverter;
-        public static UpdateChecker CUpdateChecker;
-        public static DowngradingInfo CDowngradingInfo;
+        public static UpdateChecker TheUpdateChecker;
+        public static DowngradingInfo CurrentDowngradingInfo;
         #endregion
 
         #region Classes
@@ -173,7 +50,8 @@ namespace GTAIVDowngrader
                 NotificationItem senderItem = (NotificationItem)sender;
                 MainApplicationWindow.NotificationsStackPanel.Children.Remove(senderItem);
 
-                for (int i = 0; i < queuedNotifications.Count; i++) {
+                for (int i = 0; i < queuedNotifications.Count; i++)
+                {
                     NotificationItem item = queuedNotifications[i];
                     MainApplicationWindow.NotificationsStackPanel.Children.Add(item);
                     item.ShowNotifiction();
@@ -187,16 +65,22 @@ namespace GTAIVDowngrader
             public static NotificationItem GetNotifyItemFromAdditionalInfo(string additionalInfo)
             {
                 NotificationItem foundItem = null;
-                MainApplicationWindow.Dispatcher.Invoke(() => {
-                    for (int i = 0; i < MainApplicationWindow.NotificationsStackPanel.Children.Count; i++) {
+                MainApplicationWindow.Dispatcher.Invoke(() =>
+                {
+                    for (int i = 0; i < MainApplicationWindow.NotificationsStackPanel.Children.Count; i++)
+                    {
                         NotificationItem item = (NotificationItem)MainApplicationWindow.NotificationsStackPanel.Children[i];
-                        if (item.AdditionnalInformations == additionalInfo) foundItem = item;
+                        if (item.AdditionnalInformations == additionalInfo)
+                            foundItem = item;
                     }
                 });
-                if (queuedNotifications != null) {
-                    for (int i = 0; i < queuedNotifications.Count; i++) {
+                if (queuedNotifications != null)
+                {
+                    for (int i = 0; i < queuedNotifications.Count; i++)
+                    {
                         NotificationItem item = queuedNotifications[i];
-                        if (item.AdditionnalInformations == additionalInfo) return item;
+                        if (item.AdditionnalInformations == additionalInfo)
+                            return item;
                     }
                 }
                 return foundItem;
@@ -204,16 +88,22 @@ namespace GTAIVDowngrader
             public static bool DoesNotifyItemExistsWithAdditionalInfo(string additionalInfo)
             {
                 bool foundItem = false;
-                MainApplicationWindow.Dispatcher.Invoke(() => {
-                    for (int i = 0; i < MainApplicationWindow.NotificationsStackPanel.Children.Count; i++) {
+                MainApplicationWindow.Dispatcher.Invoke(() =>
+                {
+                    for (int i = 0; i < MainApplicationWindow.NotificationsStackPanel.Children.Count; i++)
+                    {
                         NotificationItem item = (NotificationItem)MainApplicationWindow.NotificationsStackPanel.Children[i];
-                        if (item.AdditionnalInformations == additionalInfo) foundItem = true;
+                        if (item.AdditionnalInformations == additionalInfo)
+                            foundItem = true;
                     }
                 });
-                if (queuedNotifications != null) {
-                    for (int i = 0; i < queuedNotifications.Count; i++) {
+                if (queuedNotifications != null)
+                {
+                    for (int i = 0; i < queuedNotifications.Count; i++)
+                    {
                         NotificationItem item = queuedNotifications[i];
-                        if (item.AdditionnalInformations == additionalInfo) return true;
+                        if (item.AdditionnalInformations == additionalInfo)
+                            return true;
                     }
                 }
                 return foundItem;
@@ -222,12 +112,14 @@ namespace GTAIVDowngrader
 
             public static void ShowNotification(NotificationType type, int showTime, string title, string description, string additionalInfo = "")
             {
-                if (!string.IsNullOrWhiteSpace(additionalInfo)) {
+                if (!string.IsNullOrWhiteSpace(additionalInfo))
+                {
                     if (DoesNotifyItemExistsWithAdditionalInfo(additionalInfo))
                         return;
                 }
 
-                MainApplicationWindow.Dispatcher.Invoke(() => {
+                MainApplicationWindow.Dispatcher.Invoke(() =>
+                {
                     if (queuedNotifications == null)
                         queuedNotifications = new List<NotificationItem>();
 
@@ -239,33 +131,36 @@ namespace GTAIVDowngrader
 
                     SolidColorBrush color;
 
-                    switch (type) {
+                    switch (type)
+                    {
                         case NotificationType.Info:
-                            color = (SolidColorBrush)CBrushConverter.ConvertFrom("#137CBD");
+                            color = "#137CBD".ToBrush();
                             item.NotificationColor = color;
-                            item.NotificationBorderEffectColor = System.Windows.Media.Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
+                            item.NotificationBorderEffectColor = Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
                             break;
                         case NotificationType.Warning:
-                            color = (SolidColorBrush)CBrushConverter.ConvertFrom("#b36b24");
+                            color = "#b36b24".ToBrush();
                             item.NotificationColor = color;
-                            item.NotificationBorderEffectColor = System.Windows.Media.Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
+                            item.NotificationBorderEffectColor = Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
                             break;
                         case NotificationType.Error:
-                            color = (SolidColorBrush)CBrushConverter.ConvertFrom("#DE350C");
+                            color = "#DE350C".ToBrush();
                             item.NotificationColor = color;
-                            item.NotificationBorderEffectColor = System.Windows.Media.Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
+                            item.NotificationBorderEffectColor = Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
                             break;
                         case NotificationType.Success:
-                            color = (SolidColorBrush)CBrushConverter.ConvertFrom("#0F9960");
+                            color = "#0F9960".ToBrush();
                             item.NotificationColor = color;
-                            item.NotificationBorderEffectColor = System.Windows.Media.Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
+                            item.NotificationBorderEffectColor = Color.FromArgb(color.Color.A, color.Color.R, color.Color.G, color.Color.B);
                             break;
                     }
 
-                    if (MainApplicationWindow.NotificationsStackPanel.Children.Count >= 2) {
+                    if (MainApplicationWindow.NotificationsStackPanel.Children.Count >= 2)
+                    {
                         queuedNotifications.Add(item);
                     }
-                    else {
+                    else
+                    {
                         MainApplicationWindow.NotificationsStackPanel.Children.Add(item);
                         item.ShowNotifiction();
                     }
@@ -279,7 +174,7 @@ namespace GTAIVDowngrader
         public Core(MainWindow mainApplicationWindow, string currentVersion)
         {
             MainApplicationWindow = mainApplicationWindow;
-
+            
             // LocalAppData
             CreateAppFoldersInLocalAppData();
 
@@ -287,15 +182,14 @@ namespace GTAIVDowngrader
             LogItems = new List<string>();
             CommandLineArguments = new List<CommandLineArgument>();
             AddCommandLineArguments(); // Populate "CommandLineArguments" list
-            DowngradeFiles = new List<JsonObjects.DowngradeInformation>();
-            MD5Hashes = new List<JsonObjects.MD5Hash>();
+            DowngradeFiles = new List<DowngradeInformation>();
+            MD5Hashes = new List<MD5Hash>();
 
             // Other
-            CBrushConverter = new BrushConverter();
-            CUpdateChecker = new UpdateChecker(currentVersion,
+            TheUpdateChecker = new UpdateChecker(currentVersion,
                 "https://www.dropbox.com/s/ug2oijo32hqw9dk/version.json?dl=1",
                 "https://www.dropbox.com/s/yc71hjq7w8a8es8/debug_version.json?dl=1");
-            CDowngradingInfo = new DowngradingInfo();
+            CurrentDowngradingInfo = new DowngradingInfo();
         }
         #endregion
 
@@ -378,7 +272,7 @@ namespace GTAIVDowngrader
         #endregion
 
         #region Functions
-        public static JsonObjects.DowngradeInformation GetDowngradeFileByFileName(string fileName)
+        public static DowngradeInformation GetDowngradeFileByFileName(string fileName)
         {
             for (int i = 0; i < DowngradeFiles.Count; i++)
             {

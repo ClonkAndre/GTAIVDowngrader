@@ -44,13 +44,17 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonVisiblity(true, false, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
 
-            DowngraderVersionLabel.Text = string.Format("Version {0}", Core.CUpdateChecker.CurrentVersion);
+            DowngraderVersionLabel.Text = string.Format("Version {0}", Core.TheUpdateChecker.CurrentVersion);
             DisableRainbowColoursCheckBox.Visibility = Core.IsPrideMonth ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void CheckForUpdatesHyperLink_Click(object sender, RoutedEventArgs e)
         {
-            Core.CUpdateChecker.CheckForUpdatesAsync(false);
+#if DEBUG
+            Core.TheUpdateChecker.CheckForUpdatesAsync(false, true);
+#else
+            Core.TheUpdateChecker.CheckForUpdatesAsync(false);
+#endif
         }
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {

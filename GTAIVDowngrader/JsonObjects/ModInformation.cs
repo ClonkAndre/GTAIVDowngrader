@@ -4,7 +4,6 @@ namespace GTAIVDowngrader.JsonObjects
 {
     public class ModInformation
     {
-
         #region Variables
         // Type
         public bool IsASILoader;
@@ -52,6 +51,5 @@ namespace GTAIVDowngrader.JsonObjects
             return string.Format("Title: {0}, Desc: {1}, FileName: {2}, CheckedByDefault: {3}, DownloadURL: {4}", Title, Description, FileName, CheckedByDefault.ToString(), DownloadURL);
         }
         #endregion
-
     }
 }

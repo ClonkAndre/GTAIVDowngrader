@@ -95,7 +95,7 @@ namespace GTAIVDowngrader.Dialogs
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
             // Set IVExecutablePath and IVWorkingDirectory
-            Core.CDowngradingInfo.SetPath(gtaivExecutablePath);
+            Core.CurrentDowngradingInfo.SetPath(gtaivExecutablePath);
 
             // Go to next step
             instance.NextStep();

@@ -13,6 +13,7 @@ using System.Windows.Shell;
 
 using CCL;
 
+using GTAIVDowngrader.Classes;
 using GTAIVDowngrader.JsonObjects;
 
 namespace GTAIVDowngrader.Dialogs
@@ -72,42 +73,6 @@ namespace GTAIVDowngrader.Dialogs
         }
         #endregion
 
-        #region Classes
-        private class FileDownload
-        {
-            #region Properties
-            public string FileName { get; private set; }
-            public string DownloadURL { get; private set; }
-            public long FileSize { get; private set; }
-            public bool NeedsToBeDecompressed { get; private set; }
-            #endregion
-
-            #region Constructor
-            public FileDownload(DowngradeInformation info)
-            {
-                FileName = info.FileName;
-                FileSize = info.FileSize;
-                DownloadURL = info.DownloadURL;
-                NeedsToBeDecompressed = info.NeedsToBeDecompressed;
-            }
-            public FileDownload(OptionalComponentInfo info)
-            {
-                FileName = info.FileName;
-                FileSize = info.FileSize;
-                DownloadURL = info.DownloadURL;
-                NeedsToBeDecompressed = false;
-            }
-            public FileDownload(ModInformation info)
-            {
-                FileName = info.FileName;
-                FileSize = info.FileSize;
-                DownloadURL = info.DownloadURL;
-                NeedsToBeDecompressed = false;
-            }
-            #endregion
-        }
-        #endregion
-
         #region Constructor
         public DowngradingUC()
         {
@@ -126,7 +91,8 @@ namespace GTAIVDowngrader.Dialogs
 
         private void AddLogItem(LogType type, string str, bool includeTimeStamp = true, bool printInListBox = true)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 string logTime = string.Format("{0}", DateTime.Now.ToString("HH:mm:ss"));
 
                 string logText = "";
@@ -174,19 +140,22 @@ namespace GTAIVDowngrader.Dialogs
 
         private void ChangeProgressBarIndeterminateState(bool isIndeterminate)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 DowngradeProgressBar.IsIndeterminate = isIndeterminate;
             });
         }
         private void UpdateStatusText(string txt)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusLabel.Text = txt;
             });
         }
         private void UpdateExtractionProgressBar(string currentFile, int progress, int totalFiles)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusLabel.Text = string.Format("Extracting file {0}, Progress: {1}/{2}", currentFile, progress, totalFiles);
                 DowngradeProgressBar.Maximum = totalFiles;
                 DowngradeProgressBar.Value = progress;
@@ -194,8 +163,10 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void RefreshCurrentStepLabel()
         {
-            Dispatcher.Invoke(() => {
-                switch (currentInstallState) {
+            Dispatcher.Invoke(() =>
+            {
+                switch (currentInstallState)
+                {
                     case InstallState.Download:
                         CurrentStepLabel.Text = "Current Step: Downloading files";
                         break;
@@ -231,7 +202,8 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Finish()
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 instance.taskbarItemInfo.ProgressValue = 100;
                 instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
                 instance.GetMainProgressBar().IsIndeterminate = false;
@@ -248,7 +220,7 @@ namespace GTAIVDowngrader.Dialogs
                 CreateLaunchGTAIVExecutable();
 
                 // Perfom last steps
-                if (Core.CDowngradingInfo.DowngradeTo == GameVersion.v1040)
+                if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
                     DeleteDLCsFor1040();
 
                 AddLogItem(LogType.Info, "Finshed!");
@@ -261,7 +233,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                string pluginsFolder = string.Format("{0}\\plugins", Core.CDowngradingInfo.IVWorkingDirectoy);
+                string pluginsFolder = string.Format("{0}\\plugins", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
                 if (Directory.Exists(pluginsFolder))
                 {
                     Directory.Delete(pluginsFolder, true);
@@ -273,7 +245,7 @@ namespace GTAIVDowngrader.Dialogs
                         AddLogItem(LogType.Warning, "plugins folder was not deleted! Please delete manually.");
                 }
 
-                string scriptsFolder = string.Format("{0}\\scripts", Core.CDowngradingInfo.IVWorkingDirectoy);
+                string scriptsFolder = string.Format("{0}\\scripts", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
                 if (Directory.Exists(scriptsFolder))
                 {
                     Directory.Delete(scriptsFolder, true);
@@ -315,10 +287,10 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void CreateXLivelessAddonFolders()
         {
-            if (Core.CDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
             {
-                string savesDir = Core.CDowngradingInfo.IVWorkingDirectoy + "\\saves";
-                string settingsDir = Core.CDowngradingInfo.IVWorkingDirectoy + "\\settings";
+                string savesDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\saves";
+                string settingsDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\settings";
 
                 // Create saves folder
                 Directory.CreateDirectory(savesDir);
@@ -397,9 +369,9 @@ namespace GTAIVDowngrader.Dialogs
         #region Backup
         private void StartCreatingBackup()
         {
-            string sourcePath = Core.CDowngradingInfo.IVWorkingDirectoy;
-            string targetPath = Core.CDowngradingInfo.IVTargetBackupDirectory;
-            bool createZIP = Core.CDowngradingInfo.CreateBackupInZipFile;
+            string sourcePath = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
+            string targetPath = Core.CurrentDowngradingInfo.IVTargetBackupDirectory;
+            bool createZIP = Core.CurrentDowngradingInfo.CreateBackupInZipFile;
 
             currentInstallState = InstallState.Backup;
             RefreshCurrentStepLabel();
@@ -463,15 +435,15 @@ namespace GTAIVDowngrader.Dialogs
                         StartDownloads();
                     }
                     else { // Continue with something else
-                        if (Core.CDowngradingInfo.InstallPrerequisites) { // Install Prerequisites
+                        if (Core.CurrentDowngradingInfo.InstallPrerequisites) { // Install Prerequisites
                             StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                         }
                         else {
-                            if (Core.CDowngradingInfo.ConfigureForGFWL) { // Install GFWL Prerequisites
+                            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) { // Install GFWL Prerequisites
                                 StartInstallPrerequisites(Prerequisites.GFWL);
                             }
                             else { // Continue with Radio/Game downgrade
-                                if (Core.CDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None) {
+                                if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None) {
                                     BeginExtractionProcess(InstallState.RadioDowngrade);
                                 }
                                 else {
@@ -495,7 +467,7 @@ namespace GTAIVDowngrader.Dialogs
                 string filePath;
 
                 // Game stuff
-                switch (Core.CDowngradingInfo.DowngradeTo)
+                switch (Core.CurrentDowngradingInfo.DowngradeTo)
                 {
                     case GameVersion.v1080:
                         {
@@ -584,7 +556,7 @@ namespace GTAIVDowngrader.Dialogs
                 }
 
                 // Radio stuff
-                switch (Core.CDowngradingInfo.SelectedRadioDowngrader)
+                switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
                 {
                     case RadioDowngrader.SneedsDowngrader:
                         {
@@ -643,7 +615,7 @@ namespace GTAIVDowngrader.Dialogs
                         }
                         break;
                 }
-                switch (Core.CDowngradingInfo.SelectedVladivostokType)
+                switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
                 {
                     case VladivostokTypes.New:
                         {
@@ -703,7 +675,7 @@ namespace GTAIVDowngrader.Dialogs
                         break;
                 }
 
-                if (Core.CDowngradingInfo.InstallNoEFLCMusicInIVFix)
+                if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
                 {
                     filePath = GetFileLocationInTempFolder("EpisodeOnlyMusicCE.zip");
                     if (!File.Exists(filePath))
@@ -734,15 +706,15 @@ namespace GTAIVDowngrader.Dialogs
                 // Add mods and optional mod components if offline mode is not activated
                 if (!Core.IsInOfflineMode)
                 {
-                    for (int i = 0; i < Core.CDowngradingInfo.SelectedMods.Count; i++)
-                        downloadQueue.Enqueue(new FileDownload(Core.CDowngradingInfo.SelectedMods[i]));
+                    for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
+                        downloadQueue.Enqueue(new FileDownload(Core.CurrentDowngradingInfo.SelectedMods[i]));
 
-                    for (int i = 0; i < Core.CDowngradingInfo.SelectedOptionalComponents.Count; i++)
-                        downloadQueue.Enqueue(new FileDownload(Core.CDowngradingInfo.SelectedOptionalComponents[i]));
+                    for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count; i++)
+                        downloadQueue.Enqueue(new FileDownload(Core.CurrentDowngradingInfo.SelectedOptionalComponents[i]));
                 }
 
                 // Prerequisites
-                if (Core.CDowngradingInfo.InstallPrerequisites)
+                if (Core.CurrentDowngradingInfo.InstallPrerequisites)
                 {
                     filePath = GetFileLocationInTempFolder("directx_Jun2010_redist.exe");
                     if (!File.Exists(filePath))
@@ -766,7 +738,7 @@ namespace GTAIVDowngrader.Dialogs
                     else
                         AddLogItem(LogType.Info, "vcredist_x86.exe is already downloaded. Skipping.");
                 }
-                if (Core.CDowngradingInfo.ConfigureForGFWL)
+                if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
                 {
                     filePath = GetFileLocationInTempFolder("gfwlivesetup.exe");
                     if (!File.Exists(filePath))
@@ -878,19 +850,19 @@ namespace GTAIVDowngrader.Dialogs
             {
                 AddLogItem(LogType.Error, string.Format("Error while trying to start downloading stuff from the download queue! Continuing without mods. Details: {0}", ex.Message));
 
-                if (Core.CDowngradingInfo.InstallPrerequisites) // Install Prerequisites
+                if (Core.CurrentDowngradingInfo.InstallPrerequisites) // Install Prerequisites
                 {
                     StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                 }
                 else
                 {
-                    if (Core.CDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
+                    if (Core.CurrentDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
                     {
                         StartInstallPrerequisites(Prerequisites.GFWL);
                     }
                     else // Continue with Radio/Game downgrade
                     {
-                        if (Core.CDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
+                        if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
                             BeginExtractionProcess(InstallState.RadioDowngrade);
                         else
                             BeginExtractionProcess(InstallState.GameDowngrade);
@@ -909,75 +881,117 @@ namespace GTAIVDowngrader.Dialogs
             currentPrerequisite = state;
             RefreshCurrentStepLabel();
 
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 DowngradeProgressBar.IsIndeterminate = true;
                 StatusLabel.Text = "Installing Prerequisites. This process could take a few minutes...";
             });
 
-            Task.Run(() => {
+            Task.Run(() =>
+            {
 
+                // Create temp folders
                 string tempDirDirectXLoc = ".\\Data\\Temp\\DirectX";
-                if (!Directory.Exists(tempDirDirectXLoc)) Directory.CreateDirectory(tempDirDirectXLoc);
+                if (!Directory.Exists(tempDirDirectXLoc))
+                    Directory.CreateDirectory(tempDirDirectXLoc);
 
-                using (Process p = new Process()) {
+                // Get and set file name for selected prerequisite
+                string fileName = string.Empty;
 
+                switch (currentPrerequisite)
+                {
+                    case Prerequisites.VisualCPlusPlus:
+                        fileName = ".\\Data\\Temp\\vcredist_x86.exe";
+                        break;
+                    case Prerequisites.DirectXExtract:
+                        fileName = ".\\Data\\Temp\\directx_Jun2010_redist.exe";
+                        break;
+                    case Prerequisites.DirectX:
+
+                        string setupFile = string.Format("{0}\\DXSETUP.exe", tempDirDirectXLoc);
+
+                        if (File.Exists(setupFile))
+                            fileName = setupFile;
+
+                        break;
+                    case Prerequisites.GFWL:
+                        fileName = ".\\Data\\Temp\\gfwlivesetup.exe";
+                        break;
+                }
+
+                // Check if file exists
+                if (!File.Exists(fileName))
+                {
+                    AddLogItem(LogType.Warning, string.Format("Could not find installation file for prerequisite {0}! Skipping.", currentPrerequisite));
+                    return;
+                }
+
+                // Create and start installer process
+                using (Process p = new Process())
+                {
                     p.EnableRaisingEvents = true;
+                    p.StartInfo.FileName = fileName;
 
-                    switch (currentPrerequisite) {
+                    switch (currentPrerequisite)
+                    {
                         case Prerequisites.VisualCPlusPlus:
                             AddLogItem(LogType.Info, "Installing Visual C++...");
-                            p.StartInfo.FileName = ".\\Data\\Temp\\vcredist_x86.exe";
                             p.StartInfo.Arguments = "/Q";
                             break;
                         case Prerequisites.DirectXExtract:
                             AddLogItem(LogType.Info, "Extracting DirectX setup files...");
-                            p.StartInfo.FileName = ".\\Data\\Temp\\directx_Jun2010_redist.exe";
                             p.StartInfo.Arguments = string.Format("/Q /C /T:\"{0}\"", Path.GetFullPath(tempDirDirectXLoc));
                             break;
                         case Prerequisites.DirectX:
                             AddLogItem(LogType.Info, "Installing DirectX...");
-                            if (Directory.Exists(tempDirDirectXLoc)) {
+                            if (Directory.Exists(tempDirDirectXLoc))
+                            {
                                 string setupFile = string.Format("{0}\\DXSETUP.exe", tempDirDirectXLoc);
-                                if (File.Exists(setupFile)) {
-                                    p.StartInfo.FileName = setupFile;
+                                if (File.Exists(setupFile))
                                     p.StartInfo.Arguments = "/silent";
-                                }
                             }
                             break;
                         case Prerequisites.GFWL:
                             AddLogItem(LogType.Info, "Installing Games for Windows Live...");
-                            p.StartInfo.FileName = ".\\Data\\Temp\\gfwlivesetup.exe";
                             break;
                     }
 
-                    try {
+                    try
+                    {
                         p.Start();
                         p.WaitForExit();
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         AddLogItem(LogType.Error, string.Format("An error occured while installing prerequisite '{0}'. Details: {1}", currentPrerequisite.ToString(), ex.Message));
                         prerequisiteErrored = true;
                     }
-
                 }
-            }).ContinueWith(result => {
-
-                switch (currentPrerequisite) {
+            }).ContinueWith(result =>
+            {
+                switch (currentPrerequisite)
+                {
                     case Prerequisites.VisualCPlusPlus:
-                        if (!prerequisiteErrored) AddLogItem(LogType.Info,"Visual C++ installed!");
+                        if (!prerequisiteErrored)
+                            AddLogItem(LogType.Info,"Visual C++ installed!");
+
                         StartInstallPrerequisites(Prerequisites.DirectXExtract);
                         break;
 
                     case Prerequisites.DirectXExtract:
-                        if (!prerequisiteErrored) AddLogItem(LogType.Info, "DirectX setup files extracted");
+                        if (!prerequisiteErrored)
+                            AddLogItem(LogType.Info, "DirectX setup files extracted");
+
                         StartInstallPrerequisites(Prerequisites.DirectX);
                         break;
                     case Prerequisites.DirectX:
-                        if (!prerequisiteErrored) AddLogItem(LogType.Info, "DirectX installed!");
+                        if (!prerequisiteErrored)
+                            AddLogItem(LogType.Info, "DirectX installed!");
+
                         Dispatcher.Invoke(() => { DowngradeProgressBar.IsIndeterminate = false; });
 
                         // Install GFWL if selected or continue with Radio Downgrade
-                        if (Core.CDowngradingInfo.ConfigureForGFWL)
+                        if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
                             StartInstallPrerequisites(Prerequisites.GFWL);
                         else
                             BeginExtractionProcess(InstallState.RadioDowngrade);
@@ -985,12 +999,13 @@ namespace GTAIVDowngrader.Dialogs
                         break;
 
                     case Prerequisites.GFWL:
-                        if (!prerequisiteErrored) AddLogItem(LogType.Info, "Games for Windows Live installed!");
+                        if (!prerequisiteErrored)
+                            AddLogItem(LogType.Info, "Games for Windows Live installed!");
+
                         Dispatcher.Invoke(() => { DowngradeProgressBar.IsIndeterminate = false; });
                         BeginExtractionProcess(InstallState.RadioDowngrade);
                         break;
                 }
-
             });
         }
         #endregion
@@ -998,7 +1013,7 @@ namespace GTAIVDowngrader.Dialogs
         #region Radio
         private void StartRadioDowngrade()
         {
-            string radioDowngradeInstallFile = string.Format("{0}\\install.bat", Core.CDowngradingInfo.IVWorkingDirectoy);
+            string radioDowngradeInstallFile = string.Format("{0}\\install.bat", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
             if (File.Exists(radioDowngradeInstallFile))
             {
                 try
@@ -1028,8 +1043,8 @@ namespace GTAIVDowngrader.Dialogs
                                 string arg2 = commands[2];
                                 string arg3 = commands[3];
 
-                                string argFullPath1 = string.Format("{0}\\{1}", Core.CDowngradingInfo.IVWorkingDirectoy, commands[1]);
-                                string argFullPath2 = string.Format("{0}\\{1}", Core.CDowngradingInfo.IVWorkingDirectoy, commands[2]);
+                                string argFullPath1 = string.Format("{0}\\{1}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, commands[1]);
+                                string argFullPath2 = string.Format("{0}\\{1}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, commands[2]);
 
                                 // Check if files exist
                                 if (!File.Exists(argFullPath1))
@@ -1060,8 +1075,8 @@ namespace GTAIVDowngrader.Dialogs
                                 string oldFileName = Path.GetFileName(commands[1].Replace('"', ' ').Replace(" ", ""));
                                 string newFileName = commands[2].Replace('"', ' ').Replace(" ", "");
 
-                                string oldPath = string.Format("{0}\\{1}\\{2}", Core.CDowngradingInfo.IVWorkingDirectoy, directoryName, oldFileName);
-                                string newPath = string.Format("{0}\\{1}\\{2}", Core.CDowngradingInfo.IVWorkingDirectoy, directoryName, newFileName);
+                                string oldPath = string.Format("{0}\\{1}\\{2}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, directoryName, oldFileName);
+                                string newPath = string.Format("{0}\\{1}\\{2}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, directoryName, newFileName);
 
                                 // Check if file exist
                                 if (!File.Exists(oldPath))
@@ -1083,7 +1098,7 @@ namespace GTAIVDowngrader.Dialogs
 
                                 string fileName = commands[1].Replace('"', ' ').Replace(" ", "");
                                 string justFileName = Path.GetFileName(fileName);
-                                string fileToDelete = string.Format("{0}\\{1}", Core.CDowngradingInfo.IVWorkingDirectoy, fileName);
+                                string fileToDelete = string.Format("{0}\\{1}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, fileName);
 
                                 // Check if file exist
                                 if (!File.Exists(fileToDelete))
@@ -1124,12 +1139,12 @@ namespace GTAIVDowngrader.Dialogs
             try
             {
                 // Get jptch.exe file location
-                string jptchExecutable = string.Format("{0}\\jptch.exe", Core.CDowngradingInfo.IVWorkingDirectoy);
+                string jptchExecutable = string.Format("{0}\\jptch.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
 
                 // Start jptch
                 ProcessStartInfo info = new ProcessStartInfo();
                 info.FileName = jptchExecutable;
-                info.WorkingDirectory = Core.CDowngradingInfo.IVWorkingDirectoy;
+                info.WorkingDirectory = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
                 info.Arguments = string.Format("{0} {1} {2}", arg1, arg2, arg3);
                 info.CreateNoWindow = true;
                 info.UseShellExecute = false;
@@ -1153,9 +1168,9 @@ namespace GTAIVDowngrader.Dialogs
             ChangeProgressBarIndeterminateState(false);
 
             Dispatcher.Invoke(() => {
-                if (Core.CDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader)
+                if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader)
                 {
-                    switch (Core.CDowngradingInfo.SelectedVladivostokType)
+                    switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
                     {
                         case VladivostokTypes.Old:
                             BeginExtractionProcess(InstallState.RadioOldVladivostok);
@@ -1167,7 +1182,7 @@ namespace GTAIVDowngrader.Dialogs
                 }
                 else
                 {
-                    if (Core.CDowngradingInfo.InstallNoEFLCMusicInIVFix)
+                    if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
                         BeginExtractionProcess(InstallState.RadioNoEFLCMusicInIVFix);
                     else
                         BeginExtractionProcess(InstallState.GameDowngrade);
@@ -1217,7 +1232,7 @@ namespace GTAIVDowngrader.Dialogs
                     // Radio Downgrade
                     case InstallState.RadioDowngrade:
 
-                        switch (Core.CDowngradingInfo.SelectedRadioDowngrader)
+                        switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
                         {
                             case RadioDowngrader.SneedsDowngrader:
                                 fileLoc = ".\\Data\\Temp\\SneedsRadioDowngrader.zip";
@@ -1256,7 +1271,7 @@ namespace GTAIVDowngrader.Dialogs
                         // Game Downgrade
                     case InstallState.GameDowngrade:
 
-                        switch (Core.CDowngradingInfo.DowngradeTo)
+                        switch (Core.CurrentDowngradingInfo.DowngradeTo)
                         {
                             case GameVersion.v1080:
                                 fileLoc = ".\\Data\\Temp\\1080.zip";
@@ -1300,7 +1315,7 @@ namespace GTAIVDowngrader.Dialogs
                 {
                     using (ZipArchive archive = ZipFile.OpenRead(fileLoc))
                     {
-                        ExtractToDirectory(archive, Core.CDowngradingInfo.IVWorkingDirectoy, true);
+                        ExtractToDirectory(archive, Core.CurrentDowngradingInfo.IVWorkingDirectoy, true);
                     }
                 }
                 catch (Exception ex)
@@ -1320,7 +1335,7 @@ namespace GTAIVDowngrader.Dialogs
                     case InstallState.RadioDowngrade:
 
                         AddLogItem(LogType.Info, "Radio downgrade files extracted!");
-                        AddLogItem(LogType.Info, string.Format("Starting {0} radio downgrade.", Core.CDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader ? "sneeds" : "legacy"));
+                        AddLogItem(LogType.Info, string.Format("Starting {0} radio downgrade.", Core.CurrentDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader ? "sneeds" : "legacy"));
 
                         UpdateStatusText("Radio is currently getting downgraded...");
 
@@ -1331,7 +1346,7 @@ namespace GTAIVDowngrader.Dialogs
 
                         AddLogItem(LogType.Info, "Old Vladivostok files extracted and installed!");
 
-                        if (Core.CDowngradingInfo.InstallNoEFLCMusicInIVFix)
+                        if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
                             BeginExtractionProcess(InstallState.RadioNoEFLCMusicInIVFix);
                         else
                             BeginExtractionProcess(InstallState.GameDowngrade);
@@ -1341,7 +1356,7 @@ namespace GTAIVDowngrader.Dialogs
 
                         AddLogItem(LogType.Info, "New Vladivostok files extracted and installed!");
 
-                        if (Core.CDowngradingInfo.InstallNoEFLCMusicInIVFix)
+                        if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
                             BeginExtractionProcess(InstallState.RadioNoEFLCMusicInIVFix);
                         else
                             BeginExtractionProcess(InstallState.GameDowngrade);
@@ -1354,7 +1369,7 @@ namespace GTAIVDowngrader.Dialogs
                     case InstallState.GameDowngrade:
                         AddLogItem(LogType.Info, "Game downgrade files extracted and installed!");
 
-                        if (Core.CDowngradingInfo.SelectedMods.Count != 0)
+                        if (Core.CurrentDowngradingInfo.SelectedMods.Count != 0)
                         {
                             AddLogItem(LogType.Info, "Extracting and installing selected mods and optional components...");
                             StartInstallingMods();
@@ -1365,11 +1380,11 @@ namespace GTAIVDowngrader.Dialogs
                         break;
                     case InstallState.ModInstall:
 
-                        if (Core.CDowngradingInfo.SelectedMods.Count != 0)
+                        if (Core.CurrentDowngradingInfo.SelectedMods.Count != 0)
                             StartInstallingMods();
                         else
                         {
-                            if (Core.CDowngradingInfo.SelectedOptionalComponents.Count != 0)
+                            if (Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count != 0)
                                 StartInstallingOptionalModComponents();
                             else
                                 Finish();
@@ -1389,13 +1404,13 @@ namespace GTAIVDowngrader.Dialogs
         #region Mods
         private void StartInstallingMods()
         {
-            if (Core.CDowngradingInfo.SelectedMods.Count != 0)
+            if (Core.CurrentDowngradingInfo.SelectedMods.Count != 0)
             {
-                for (int i = 0; i < Core.CDowngradingInfo.SelectedMods.Count; i++)
+                for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
                 {
-                    ModInformation item = Core.CDowngradingInfo.SelectedMods[i];
+                    ModInformation item = Core.CurrentDowngradingInfo.SelectedMods[i];
                     modToInstall = item.FileName;
-                    Core.CDowngradingInfo.SelectedMods.RemoveAt(i);
+                    Core.CurrentDowngradingInfo.SelectedMods.RemoveAt(i);
                     break;
                 }
 
@@ -1406,13 +1421,13 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void StartInstallingOptionalModComponents()
         {
-            if (Core.CDowngradingInfo.SelectedOptionalComponents.Count != 0)
+            if (Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count != 0)
             {
-                for (int i = 0; i < Core.CDowngradingInfo.SelectedOptionalComponents.Count; i++)
+                for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count; i++)
                 {
-                    OptionalComponentInfo item = Core.CDowngradingInfo.SelectedOptionalComponents[i];
+                    OptionalComponentInfo item = Core.CurrentDowngradingInfo.SelectedOptionalComponents[i];
                     modToInstall = item.FileName;
-                    Core.CDowngradingInfo.SelectedOptionalComponents.RemoveAt(i);
+                    Core.CurrentDowngradingInfo.SelectedOptionalComponents.RemoveAt(i);
                     break;
                 }
 
@@ -1428,8 +1443,8 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                string tbogtDir = Core.CDowngradingInfo.IVWorkingDirectoy + "\\TBoGT";
-                string tladDir = Core.CDowngradingInfo.IVWorkingDirectoy + "\\TLAD";
+                string tbogtDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\TBoGT";
+                string tladDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\TLAD";
                 if (Directory.Exists(tbogtDir))
                 {
                     Directory.Delete(tbogtDir, true);
@@ -1457,7 +1472,7 @@ namespace GTAIVDowngrader.Dialogs
             else
                 AddLogItem(LogType.Info, "Removing any read-only attributes inside the GTA IV directory...");
 
-            ClearReadOnly(new DirectoryInfo(Core.CDowngradingInfo.IVWorkingDirectoy));
+            ClearReadOnly(new DirectoryInfo(Core.CurrentDowngradingInfo.IVWorkingDirectoy));
 
             AddLogItem(LogType.Info, "Removed attributes.");
             ChangeProgressBarIndeterminateState(false);
@@ -1468,8 +1483,8 @@ namespace GTAIVDowngrader.Dialogs
             {
                 AddLogItem(LogType.Info, "Creating a copy of PlayGTAIV.exe which is renamed to LaunchGTAIV.exe incase of PlayGTAIV.exe not working.");
 
-                string playGTAIV = string.Format("{0}\\PlayGTAIV.exe", Core.CDowngradingInfo.IVWorkingDirectoy);
-                string launchGTAIV = string.Format("{0}\\LaunchGTAIV.exe", Core.CDowngradingInfo.IVWorkingDirectoy);
+                string playGTAIV = string.Format("{0}\\PlayGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+                string launchGTAIV = string.Format("{0}\\LaunchGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
 
                 if (File.Exists(launchGTAIV))
                 {
@@ -1539,7 +1554,8 @@ namespace GTAIVDowngrader.Dialogs
                     AddLogItem(LogType.Error, string.Format("An error occured while downloading item {0}. Details: {1}", downloadItem.FileName, e.Error.Message));
 
                 // Download
-                Task.Run(() => {
+                Task.Run(() =>
+                {
 
                     // Decompress file if necessary
                     if (downloadItem.NeedsToBeDecompressed)
@@ -1594,22 +1610,23 @@ namespace GTAIVDowngrader.Dialogs
                     }
                     else // Continue with downgrading
                     {
-                        Dispatcher.Invoke(() => {
+                        Dispatcher.Invoke(() =>
+                        {
                             AddLogItem(LogType.Info, "Download of files completed!");
 
-                            if (Core.CDowngradingInfo.InstallPrerequisites) // Install Prerequisites
+                            if (Core.CurrentDowngradingInfo.InstallPrerequisites) // Install Prerequisites
                             {
                                 StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                             }
                             else
                             {
-                                if (Core.CDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
+                                if (Core.CurrentDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
                                 {
                                     StartInstallPrerequisites(Prerequisites.GFWL);
                                 }
                                 else // Continue with Radio/Game downgrade
                                 {
-                                    if (Core.CDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
+                                    if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
                                         BeginExtractionProcess(InstallState.RadioDowngrade);
                                     else
                                         BeginExtractionProcess(InstallState.GameDowngrade);
@@ -1687,30 +1704,31 @@ namespace GTAIVDowngrader.Dialogs
             // Start things
             try
             {
-                if (Core.CDowngradingInfo.WantsToCreateBackup) // Create Backup
+                if (Core.CurrentDowngradingInfo.WantsToCreateBackup) // Create Backup
                 {
                     StartCreatingBackup();
                 }
-                else {
+                else
+                {
                     if (canDownloadFiles) // Download Files
                     {
                         StartDownloads();
                     }
                     else // Continue without downloading files
                     {
-                        if (Core.CDowngradingInfo.InstallPrerequisites) // Install Prerequisites
+                        if (Core.CurrentDowngradingInfo.InstallPrerequisites) // Install Prerequisites
                         {
                             StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                         }
                         else
                         {
-                            if (Core.CDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
+                            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
                             {
                                 StartInstallPrerequisites(Prerequisites.GFWL);
                             }
                             else // Continue with Radio/Game downgrade
                             {
-                                if (Core.CDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
+                                if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
                                     BeginExtractionProcess(InstallState.RadioDowngrade);
                                 else
                                     BeginExtractionProcess(InstallState.GameDowngrade);

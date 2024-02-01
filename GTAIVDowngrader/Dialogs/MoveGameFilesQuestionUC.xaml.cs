@@ -100,7 +100,7 @@ namespace GTAIVDowngrader.Dialogs {
         #region Events
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CDowngradingInfo.SetNewGTAIVTargetLocation(MoveLocationTextbox.Text);
+            Core.CurrentDowngradingInfo.SetNewGTAIVTargetLocation(MoveLocationTextbox.Text);
             instance.NextStep();
         }
         private void Instance_SkipButtonClicked(object sender, EventArgs e)

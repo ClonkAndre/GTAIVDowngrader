@@ -38,7 +38,7 @@
                     <Run Text="Some final notes" FontSize="20" FontWeight="Medium"/>
                     
                     <LineBreak/>
-                    - Make sure to always run GTA IV through <Run Text="PlayGTAIV.exe" FontWeight="Bold"/>. You can also launch GTA IV through steam, the problem with that is that if Rockstar should update GTA IV, your downgraded copy will be destroyed. You can see the latest news like updates about GTA IV in the News tab of the 
+                    - Make sure to always run GTA IV through <Run Text="PlayGTAIV.exe" FontWeight="Bold"/>. You can also launch GTA IV through Steam, the problem with that is that if Rockstar should update GTA IV, your downgraded copy will be destroyed. You can see the latest news like updates about GTA IV in the News tab of the 
                     <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/978788-gta-iv-launcher" FontWeight="Bold">GTA IV Launcher</Hyperlink>.
                     
                     <LineBreak/><LineBreak/>
@@ -54,10 +54,9 @@
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,30,65">
                 <TextBlock TextWrapping="Wrap" FontSize="17" Foreground="White">
                     If you want to support me or this project, you can do that via
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.patreon.com/itsclonkandre?fan_landing=true" FontWeight="SemiBold">Patreon</Hyperlink>,
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://ko-fi.com/itsclonkandre" FontWeight="SemiBold">Ko-fi</Hyperlink>
+                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.patreon.com/itsclonkandre?fan_landing=true" FontWeight="SemiBold">Patreon</Hyperlink>
                     or
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://paypal.me/ItsClonkAndre" FontWeight="SemiBold">PayPal</Hyperlink>.
+                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://ko-fi.com/itsclonkandre" FontWeight="SemiBold">Ko-fi</Hyperlink>.
                     <LineBreak/>
                     Any support would be greatly appreciated!
                     <LineBreak/><LineBreak/>

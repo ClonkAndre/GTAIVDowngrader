@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 using CCL;
-using MS.WindowsAPICodePack.Internal;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -35,41 +33,46 @@ namespace GTAIVDowngrader.Dialogs
         #region Methods
         private void AddLogItem(string str)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusListbox.Items.Add(str);
             });
         }
 
         private void SetProgressMaximum(int max)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusProgressBar.Maximum = max;
             });
         }
         private void SetProgressValue(int value)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusProgressBar.Value = value;
             });
         }
         private void IncrementProgressValue()
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusProgressBar.Value += 1;
             });
         }
 
         private void SetProgressBarState(int state)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 switch (state)
                 {
                     case 0: // Working
-                        StatusProgressBar.Foreground = (Brush)Core.CBrushConverter.ConvertFrom("#0050BF");
+                        StatusProgressBar.Foreground = "#0050BF".ToBrush();
                         StatusProgressBar.IsIndeterminate = false;
                         break;
                     case 1: // Working 2
-                        StatusProgressBar.Foreground = (Brush)Core.CBrushConverter.ConvertFrom("#0050BF");
+                        StatusProgressBar.Foreground = "#0050BF".ToBrush();
                         StatusProgressBar.IsIndeterminate = true;
                         break;
                     case 2: // Finished
@@ -89,15 +92,17 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void SetNextButtonEnabledState(bool enabled)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 instance.ChangeActionButtonEnabledState(true, true, true, enabled);
             });
         }
         private void SetNewGTAIVPath(string path)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 string exePath = string.Format("{0}\\GTAIV.exe", path);
-                Core.CDowngradingInfo.SetPath(exePath);
+                Core.CurrentDowngradingInfo.SetPath(exePath);
             });
         }
 
@@ -133,7 +138,7 @@ namespace GTAIVDowngrader.Dialogs
         #region Events
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CDowngradingInfo.SetGTAIVInstallationGotMovedByDowngrader(true);
+            Core.CurrentDowngradingInfo.SetGTAIVInstallationGotMovedByDowngrader(true);
             instance.NextStep();
         }
         #endregion
@@ -150,12 +155,13 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonEnabledState(true, true, true, false);
 
             StatusListbox.Items.Clear();
-            string oldGTAIVPath = Core.CDowngradingInfo.IVWorkingDirectoy;
-            string newGTAIVPath = Core.CDowngradingInfo.NewGTAIVTargetLocation;
+            string oldGTAIVPath = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
+            string newGTAIVPath = Core.CurrentDowngradingInfo.NewGTAIVTargetLocation;
             string folderName = Path.GetFileName(oldGTAIVPath);
             MovingLocationText.Text = string.Format(@"{0}\{1}", newGTAIVPath, folderName);
 
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 AResult<bool> result;
 
                 try

@@ -30,7 +30,19 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            instance.NextStep();
+            // Show message and skip select components tab if in offline mode
+            if (Core.IsInOfflineMode)
+            {
+                instance.ShowMessageDialogScreen("Offline Mode Information",
+                    string.Format("The downgrader is currently in offline mode and therefore, it cannot download any modifications.{0}" +
+                    "After the downgrade, you gonna have to download and install each mod that you want manually!", Environment.NewLine),
+                    Steps.S9_Confirm);
+
+                // Force this to be true
+                Core.CurrentDowngradingInfo.SetInstallPrerequisites(true);
+            }
+            else
+                instance.NextStep();
         }
         #endregion
 
@@ -50,12 +62,12 @@ namespace GTAIVDowngrader.Dialogs
 
         private void OldVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.Old);
+            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.Old);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NewVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CDowngradingInfo.SetVladivostokType(VladivostokTypes.New);
+            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.New);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
 

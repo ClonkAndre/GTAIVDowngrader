@@ -1,6 +1,7 @@
-﻿namespace GTAIVDowngrader.JsonObjects {
-    public class DowngradeInformation {
-
+﻿namespace GTAIVDowngrader.JsonObjects
+{
+    public class DowngradeInformation
+    {
         #region Variables
         // File Details
         public string FileName;
@@ -25,6 +26,5 @@
             return string.Format("Type: {0}, FileName: {1}, FileSize: {2}, URL: {3}", Type, FileName, FileSize.ToString(), DownloadURL);
         }
         #endregion
-
     }
 }

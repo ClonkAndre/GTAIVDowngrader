@@ -1,6 +1,7 @@
-﻿namespace GTAIVDowngrader.JsonObjects {
-    public class MD5Hash {
-
+﻿namespace GTAIVDowngrader.JsonObjects
+{
+    public class MD5Hash
+    {
         #region Variables
         public string Version;
         public string Hash;
@@ -19,6 +20,5 @@
             return string.Format("Version: {0}, Hash: {1}", Version, Hash);
         }
         #endregion
-
     }
 }

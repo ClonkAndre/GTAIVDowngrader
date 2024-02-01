@@ -50,7 +50,7 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonEnabledState(true, true, true, true);
 
             // Change location text based on downgrading options
-            if (Core.CDowngradingInfo.ConfigureForGFWL) {
+            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) {
                 gfwlLocationTextBlock.Visibility = Visibility.Visible;
                 xliveLocationTextBlock.Visibility = Visibility.Collapsed;
             }

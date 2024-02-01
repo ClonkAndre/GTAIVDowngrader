@@ -18,11 +18,13 @@
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
-                <TextBlock Text="Games for Windows Live Multiplayer" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock Text="Games for Windows Live (GFWL) Multiplayer" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="0,0,280,0">
                     Games for Windows Live is the original way to play multiplayer in GTA IV.
                     <LineBreak/>
                     If you aim to play GTA IV Multiplayer after the downgrade, you have to check the checkbox below, so this downgrade will be configured for GFWL.
+                    
+                    If <Run Text="NOT" FontWeight="Bold"/> then it is not recommended to configure this downgrade for GFWL!
                     
                     <LineBreak/><LineBreak/>
                     <Run Text="Warning:" FontWeight="Bold"/> In order to play GTA IV Multiplayer via GFWL, you will need a <Run Text="product key" FontWeight="Bold"/>!

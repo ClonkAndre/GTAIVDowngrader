@@ -23,9 +23,9 @@ namespace GTAIVDowngrader.Dialogs
         {
             // MD5 Check
             Core.AddLogItem(LogType.Info, "- - - MD5 Check - - -");
-            Core.AddLogItem(LogType.Info, string.Format("MD5 Hash Created: {0}", Core.CDowngradingInfo.ReceivedMD5Hash));
+            Core.AddLogItem(LogType.Info, string.Format("MD5 Hash Created: {0}", Core.CurrentDowngradingInfo.ReceivedMD5Hash));
 
-            string md5HashFound = Core.CDowngradingInfo.RelatedMD5Hash;
+            string md5HashFound = Core.CurrentDowngradingInfo.RelatedMD5Hash;
             Core.AddLogItem(LogType.Info, string.Format("MD5 Hash   Found: {0}", string.IsNullOrEmpty(md5HashFound) ? 
                 "Couldn't find any MD5 Hash that relates to the created MD5 Hash. This might mean that the selected GTAIV.exe is not version 1.2.0.43." : md5HashFound));
 
@@ -33,12 +33,12 @@ namespace GTAIVDowngrader.Dialogs
 
             // Downgrading Informations
             Core.AddLogItem(LogType.Info, "- - - Downgrading Informations - - -");
-            Core.AddLogItem(LogType.Info, string.Format("Selected downgrading version:     {0}", Core.CDowngradingInfo.DowngradeTo.ToString()));
-            Core.AddLogItem(LogType.Info, string.Format("Configure for GFWL:               {0}", Core.CDowngradingInfo.ConfigureForGFWL.ToString()));
-            Core.AddLogItem(LogType.Info, string.Format("Selected radio downgrader:        {0}", Core.CDowngradingInfo.SelectedRadioDowngrader.ToString()));
-            Core.AddLogItem(LogType.Info, string.Format("Selected vladivostok type:        {0}", Core.CDowngradingInfo.SelectedVladivostokType.ToString()));
-            Core.AddLogItem(LogType.Info, string.Format("Install No EFLC Music in IV Fix:  {0}", Core.CDowngradingInfo.InstallNoEFLCMusicInIVFix.ToString()));
-            Core.AddLogItem(LogType.Info, string.Format("Install Prerequisites:            {0}", Core.CDowngradingInfo.InstallPrerequisites.ToString()));
+            Core.AddLogItem(LogType.Info, string.Format("Selected downgrading version:     {0}", Core.CurrentDowngradingInfo.DowngradeTo.ToString()));
+            Core.AddLogItem(LogType.Info, string.Format("Configure for GFWL:               {0}", Core.CurrentDowngradingInfo.ConfigureForGFWL.ToString()));
+            Core.AddLogItem(LogType.Info, string.Format("Selected radio downgrader:        {0}", Core.CurrentDowngradingInfo.SelectedRadioDowngrader.ToString()));
+            Core.AddLogItem(LogType.Info, string.Format("Selected vladivostok type:        {0}", Core.CurrentDowngradingInfo.SelectedVladivostokType.ToString()));
+            Core.AddLogItem(LogType.Info, string.Format("Install No EFLC Music in IV Fix:  {0}", Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix.ToString()));
+            Core.AddLogItem(LogType.Info, string.Format("Install Prerequisites:            {0}", Core.CurrentDowngradingInfo.InstallPrerequisites.ToString()));
             Core.AddLogItem(LogType.Info, string.Format("Create Backup:                    {0}", MakeABackupForMeCheckbox.IsChecked.Value.ToString()));
             Core.AddLogItem(LogType.Info, string.Format("Create Backup in zip file:        {0}", CreateBackupInZIPFileCheckBox.IsChecked.Value.ToString()));
             Core.AddLogItem(LogType.Info, "- - - Starting Downgrading Process - - -");
@@ -94,11 +94,11 @@ namespace GTAIVDowngrader.Dialogs
         {
             bool pluginsFolderExists = false, scriptsFolderExists = false;
 
-            string pluginsFolder = string.Format("{0}\\plugins", Core.CDowngradingInfo.IVWorkingDirectoy);
+            string pluginsFolder = string.Format("{0}\\plugins", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
             if (Directory.Exists(pluginsFolder))
                 pluginsFolderExists = true;
 
-            string scriptsFolder = string.Format("{0}\\scripts", Core.CDowngradingInfo.IVWorkingDirectoy);
+            string scriptsFolder = string.Format("{0}\\scripts", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
             if (Directory.Exists(scriptsFolder))
                 scriptsFolderExists = true;
 
@@ -121,7 +121,10 @@ namespace GTAIVDowngrader.Dialogs
         #region Events
         private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
-            instance.PreviousStep();
+            if (Core.IsInOfflineMode)
+                instance.PreviousStep(Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040 ? 4 : 2);
+            else
+                instance.PreviousStep();
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
@@ -140,8 +143,8 @@ namespace GTAIVDowngrader.Dialogs
             {
                 if (CheckBackupDirectory(BackupLocationTextbox.Text))
                 {
-                    Core.CDowngradingInfo.SetTargetBackupPath(BackupLocationTextbox.Text);
-                    Core.CDowngradingInfo.SetCreateBackupInZipFile(CreateBackupInZIPFileCheckBox.IsChecked.Value);
+                    Core.CurrentDowngradingInfo.SetTargetBackupPath(BackupLocationTextbox.Text);
+                    Core.CurrentDowngradingInfo.SetCreateBackupInZipFile(CreateBackupInZIPFileCheckBox.IsChecked.Value);
                     LogDowngradingInfos();
                     instance.NextStep();
                 }
@@ -184,7 +187,7 @@ namespace GTAIVDowngrader.Dialogs
             long size = 0;
 
             // Game stuff
-            switch (Core.CDowngradingInfo.DowngradeTo)
+            switch (Core.CurrentDowngradingInfo.DowngradeTo)
             {
                 case GameVersion.v1080:
                     size += Core.GetDowngradeFileSizeByFileName("1080.zip");
@@ -198,7 +201,7 @@ namespace GTAIVDowngrader.Dialogs
             }
 
             // Radio stuff
-            switch (Core.CDowngradingInfo.SelectedRadioDowngrader)
+            switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
             {
                 case RadioDowngrader.SneedsDowngrader:
                     size += Core.GetDowngradeFileSizeByFileName("SneedsRadioDowngrader.zip");
@@ -207,7 +210,7 @@ namespace GTAIVDowngrader.Dialogs
                     size += Core.GetDowngradeFileSizeByFileName("LegacyRadioDowngrader.zip");
                     break;
             }
-            switch (Core.CDowngradingInfo.SelectedVladivostokType)
+            switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
             {
                 case VladivostokTypes.New:
                     size += Core.GetDowngradeFileSizeByFileName("WithNewVladivostok.zip");
@@ -216,30 +219,30 @@ namespace GTAIVDowngrader.Dialogs
                     size += Core.GetDowngradeFileSizeByFileName("WithoutNewVladivostok.zip");
                     break;
             }
-            if (Core.CDowngradingInfo.InstallNoEFLCMusicInIVFix)
+            if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
             {
                 size += Core.GetDowngradeFileSizeByFileName("EpisodeOnlyMusicCE.zip");
             }
 
             // Mods
-            for (int i = 0; i < Core.CDowngradingInfo.SelectedMods.Count; i++)
+            for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
             {
-                size += Core.CDowngradingInfo.SelectedMods[i].FileSize;
+                size += Core.CurrentDowngradingInfo.SelectedMods[i].FileSize;
             }
 
             // Optional Mod Stuff
-            for (int i = 0; i < Core.CDowngradingInfo.SelectedOptionalComponents.Count; i++)
+            for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count; i++)
             {
-                size += Core.CDowngradingInfo.SelectedOptionalComponents[i].FileSize;
+                size += Core.CurrentDowngradingInfo.SelectedOptionalComponents[i].FileSize;
             }
 
             // Prerequisites
-            if (Core.CDowngradingInfo.InstallPrerequisites)
+            if (Core.CurrentDowngradingInfo.InstallPrerequisites)
             {
                 size += Core.GetDowngradeFileSizeByFileName("directx_Jun2010_redist.exe");
                 size += Core.GetDowngradeFileSizeByFileName("vcredist_x86.exe");
             }
-            if (Core.CDowngradingInfo.ConfigureForGFWL)
+            if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
             {
                 size += Core.GetDowngradeFileSizeByFileName("gfwlivesetup.exe");
                 size += Core.GetDowngradeFileSizeByFileName("xliveredist.msi");
@@ -255,7 +258,7 @@ namespace GTAIVDowngrader.Dialogs
 
         private void MakeABackupForMeCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            Core.CDowngradingInfo.SetWantsToCreateBackup(MakeABackupForMeCheckbox.IsChecked.Value);
+            Core.CurrentDowngradingInfo.SetWantsToCreateBackup(MakeABackupForMeCheckbox.IsChecked.Value);
             if (MakeABackupForMeCheckbox.IsChecked.Value)
             {
                 instance.ChangeActionButtonEnabledState(true, true, true, false);

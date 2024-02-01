@@ -39,14 +39,16 @@ namespace GTAIVDowngrader.Dialogs
         #region Methods
         private void SetStatusText(string str)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 StatusLabel.Text = str;
             });
         }
 
         private void SetNavigationButtonsEnabledState(bool enabled)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
 
                 if (!Core.GotStartedWithValidCommandLineArgs)
                     instance.BackButton.IsEnabled = enabled;
@@ -57,7 +59,7 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void NextStep()
         {
-            AResult<bool> result = CheckCurrentLocation(Core.CDowngradingInfo.IVWorkingDirectoy);
+            AResult<bool> result = CheckCurrentLocation(Core.CurrentDowngradingInfo.IVWorkingDirectoy);
 
             if (result.Result)
                 instance.NextStep(2);
@@ -74,7 +76,8 @@ namespace GTAIVDowngrader.Dialogs
         /// </param>
         private void SetStatusImage(int imgToSet)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 switch (imgToSet)
                 {
                     case 0: // Info Symbol
@@ -102,11 +105,12 @@ namespace GTAIVDowngrader.Dialogs
         /// </param>
         private void SetProgressBarState(int state)
         {
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 switch (state)
                 {
                     case 0: // Working
-                        StatusProgressBar.Foreground = (Brush)Core.CBrushConverter.ConvertFrom("#0050BF");
+                        StatusProgressBar.Foreground = "#0050BF".ToBrush();
                         StatusProgressBar.IsIndeterminate = true;
                         break;
                     case 1: // Finished
@@ -232,13 +236,15 @@ namespace GTAIVDowngrader.Dialogs
                 SetProgressBarState(0);
 
                 // Get file version of the selected executable file and the related MD5 Hash
-                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Core.CDowngradingInfo.IVExecutablePath);
+                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Core.CurrentDowngradingInfo.IVExecutablePath);
                 string fileVersion = (fvi != null && fvi.FileVersion != null) ? fvi.FileVersion.Replace(",", ".").Replace(" ", "") : "";
                 List<string> relatedMD5Hashes = Core.GetMD5HashesFromVersion(fileVersion);
 
-                Task.Run(() => {
-                    return FileHelper.GetMD5StringFromFolder(Core.CDowngradingInfo.IVWorkingDirectoy, new List<string>() { "installscript.vdf", "installscript_sdk.vdf" }); // Get MD5 from selected directory
-                }).ContinueWith((r) => {
+                Task.Run(() =>
+                {
+                    return FileHelper.GetMD5StringFromFolder(Core.CurrentDowngradingInfo.IVWorkingDirectoy, new List<string>() { "installscript.vdf", "installscript_sdk.vdf" }); // Get MD5 from selected directory
+                }).ContinueWith((r) =>
+                {
                     AResult<string> result = r.Result;
 
                     SetNavigationButtonsEnabledState(true);
@@ -259,8 +265,8 @@ namespace GTAIVDowngrader.Dialogs
                                     SetStatusText("No problems found while generating and comparing MD5 Hash. To continue, press the Next button.");
 
                                     // Set Hashes for log file
-                                    Core.CDowngradingInfo.SetReceivedMD5Hash(result.Result);
-                                    Core.CDowngradingInfo.SetRelatedMD5Hash(result.Result);
+                                    Core.CurrentDowngradingInfo.SetReceivedMD5Hash(result.Result);
+                                    Core.CurrentDowngradingInfo.SetRelatedMD5Hash(result.Result);
 
                                     if (Core.GotStartedWithValidCommandLineArgs)
                                         NextStep();
@@ -280,8 +286,8 @@ namespace GTAIVDowngrader.Dialogs
                                         "Please also consider sending the log file created by the downgrader at the end of the downgrading process in our Discord server to help improve the GTA IV Downgrader. Thanks!", Environment.NewLine, fileVersion));
 
                                     // Set Hashes for log file
-                                    Core.CDowngradingInfo.SetReceivedMD5Hash(result.Result);
-                                    Core.CDowngradingInfo.SetRelatedMD5Hash(string.Format("No related MD5 Hash found for this GTA IV {0} installation.", fileVersion));
+                                    Core.CurrentDowngradingInfo.SetReceivedMD5Hash(result.Result);
+                                    Core.CurrentDowngradingInfo.SetRelatedMD5Hash(string.Format("No related MD5 Hash found for this GTA IV {0} installation.", fileVersion));
 
                                 }
                             }
@@ -293,8 +299,8 @@ namespace GTAIVDowngrader.Dialogs
                                 SetStatusText(string.Format("Could not compare MD5 for version {0} of GTA IV. This probably means that the selected GTAIV.exe is not 1.2.0.43 (or higher). Please note that this downgrader is mainly used to downgrade from version 1.2.0.43 (or higher) to 1.0.8.0, 1.0.7.0 or 1.0.4.0. However, this does not stop you from downgrading. To continue, press the Next button.", string.IsNullOrEmpty(fileVersion) ? "UNKNOWN" : fileVersion));
 
                                 // Set Hashes for log file
-                                Core.CDowngradingInfo.SetReceivedMD5Hash(result.Result);
-                                Core.CDowngradingInfo.SetRelatedMD5Hash(string.Format("No MD5 Hash found for version {0} of GTA IV.", fileVersion));
+                                Core.CurrentDowngradingInfo.SetReceivedMD5Hash(result.Result);
+                                Core.CurrentDowngradingInfo.SetRelatedMD5Hash(string.Format("No MD5 Hash found for version {0} of GTA IV.", fileVersion));
 
                             }
 

@@ -3,8 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 
-namespace GTAIVDowngrader.Dialogs {
-    public partial class MultiplayerUC : UserControl {
+namespace GTAIVDowngrader.Dialogs
+{
+    public partial class MultiplayerUC : UserControl
+    {
 
         #region Variables
         private MainWindow instance;
@@ -29,8 +31,23 @@ namespace GTAIVDowngrader.Dialogs {
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CDowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
-            instance.NextStep();
+            Core.CurrentDowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
+
+            if (ConfigureForGFWLCheckBox.IsChecked.Value)
+            {
+                instance.ShowMessageDialogScreen("Product Key Information",
+                    string.Format("In order to play Games for Windows Live (GFWL) Multiplayer, you will need a Product Key!{0}" +
+                    "If you need help with GFWL, it is recommended to join the Grand Theft RevIVal Discord server.{0}" +
+                    "In this server, you can find Product Keys for GFWL and they also host regular multiplayer events.", Environment.NewLine),
+                    Steps.S7_SelectRadioDwngrd,
+                    null,
+                    "Back",
+                    () => instance.ChangeStep(Steps.S6_Multiplayer),
+                    "Join Grand Theft RevIVal Discord",
+                    () => CCL.Web.AskUserToGoToURL(new Uri("https://discord.gg/gtrf")));
+            }
+            else
+                instance.NextStep();
         }
         #endregion
 
