@@ -14,7 +14,7 @@ using System.Windows.Shell;
 using CCL;
 
 using GTAIVDowngrader.Classes;
-using GTAIVDowngrader.JsonObjects;
+using GTAIVDowngrader.Classes.Json;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -48,6 +48,7 @@ namespace GTAIVDowngrader.Dialogs
         private string modToInstall;
         private bool errored, backupErrored, prerequisiteErrored;
         private bool canDownloadFiles;
+        private bool alreadyFinished;
         private int progress;
 
         // Enums
@@ -119,22 +120,19 @@ namespace GTAIVDowngrader.Dialogs
 
         private void ClearReadOnly(DirectoryInfo parentDirectory)
         {
-            if (parentDirectory != null)
-            {
-#if DEBUG
-                if (!UAC.IsAppRunningWithAdminPrivileges())
-                    return;
-#endif
+            if (parentDirectory == null)
+                return;
+            if (!parentDirectory.Exists)
+                return;
 
-                parentDirectory.Attributes = FileAttributes.Normal;
-                foreach (FileInfo fi in parentDirectory.GetFiles())
-                {
-                    fi.Attributes = FileAttributes.Normal;
-                }
-                foreach (DirectoryInfo di in parentDirectory.GetDirectories())
-                {
-                    ClearReadOnly(di);
-                }
+            parentDirectory.Attributes = FileAttributes.Normal;
+            foreach (FileInfo fi in parentDirectory.GetFiles())
+            {
+                fi.Attributes = FileAttributes.Normal;
+            }
+            foreach (DirectoryInfo di in parentDirectory.GetDirectories())
+            {
+                ClearReadOnly(di);
             }
         }
 
@@ -202,17 +200,14 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Finish()
         {
+            if (alreadyFinished)
+            {
+                Debugger.Log(0, "Downgrading Process", "Was trying to call Finish() twice.\n");
+                return;
+            }
+
             Dispatcher.Invoke(() =>
             {
-                instance.taskbarItemInfo.ProgressValue = 100;
-                instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
-                instance.GetMainProgressBar().IsIndeterminate = false;
-                instance.GetMainProgressBar().Value = 100;
-                instance.GetMainProgressBar().Foreground = Brushes.DarkGreen;
-                DowngradeProgressBar.Foreground = Brushes.Green;
-                CurrentStepLabel.Text = "Current Step: Finished";
-                StatusLabel.Text = "Finshed! Click on 'Next' to continue.";
-
                 // Remove read-only attributes
                 RemoveReadOnlyAttribute(true);
 
@@ -223,9 +218,34 @@ namespace GTAIVDowngrader.Dialogs
                 if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
                     DeleteDLCsFor1040();
 
+                if (Core.IsInSimpleMode)
+                {
+                    instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+                    instance.GetMainProgressBar().IsIndeterminate = false;
+                    instance.GetMainProgressBar().Value = 0;
+
+                    instance.NextStep(4);
+
+                    return;
+                }
+                else
+                {
+                    instance.taskbarItemInfo.ProgressValue = 100;
+                    instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
+                    instance.GetMainProgressBar().IsIndeterminate = false;
+                    instance.GetMainProgressBar().Value = 100;
+                    instance.GetMainProgressBar().Foreground = Brushes.DarkGreen;
+                    DowngradeProgressBar.Foreground = Brushes.Green;
+                }
+
                 AddLogItem(LogType.Info, "Finshed!");
+                CurrentStepLabel.Text = "Current Step: Finished";
+                StatusLabel.Text = "Finshed! Click on 'Next' to continue.";
+
                 instance.ChangeActionButtonEnabledState(true, true, true, true);
             });
+
+            alreadyFinished = true;
         }
 
         #region PreChecks
@@ -273,7 +293,7 @@ namespace GTAIVDowngrader.Dialogs
                 {
                     File.Delete(settingsFilePath);
 
-                    // Check if deletion was successfull
+                    // Check if deletion was successful
                     if (!File.Exists(settingsFilePath))
                         AddLogItem(LogType.Info, "Deleted settings.cfg file from LocalAppData.");
                     else
@@ -307,11 +327,11 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                Process gtaEncoderProcess = Process.GetProcessesByName("gtaEncoder").FirstOrDefault();
-                Process gta4BrowserProcess = Process.GetProcessesByName("gta4Browser").FirstOrDefault();
-                Process gtaivProcess = Process.GetProcessesByName("GTAIV").FirstOrDefault();
-
-                // No process is running
+                Process gtaivProcess =          Process.GetProcessesByName("GTAIV").FirstOrDefault();
+                Process gtaEncoderProcess =     Process.GetProcessesByName("gtaEncoder").FirstOrDefault();
+                Process gta4BrowserProcess =    Process.GetProcessesByName("gta4Browser").FirstOrDefault();
+                
+                // Check if no process is running
                 if (gtaEncoderProcess == null
                     && gta4BrowserProcess == null
                     && gtaivProcess == null)
@@ -319,12 +339,26 @@ namespace GTAIVDowngrader.Dialogs
                     return false;
                 }
 
-                // Some process is still running
+                AddLogItem(LogType.Info, "Found some GTA IV processes which are still running. Trying to kill them...");
+
+                // Some processes are still running
+                if (gtaivProcess != null)
+                {
+                    gtaivProcess.Kill();
+
+                    if (gtaivProcess.WaitForExit(3000))
+                    {
+                        AddLogItem(LogType.Info, "Killed GTAIV Process.");
+
+                        gtaivProcess.Dispose();
+                        gtaivProcess = null;
+                    }
+                }
                 if (gtaEncoderProcess != null)
                 {
                     gtaEncoderProcess.Kill();
 
-                    if (gtaEncoderProcess.WaitForExit(100))
+                    if (gtaEncoderProcess.WaitForExit(3000))
                     {
                         AddLogItem(LogType.Info, "Killed gtaEncoder Process.");
 
@@ -336,7 +370,7 @@ namespace GTAIVDowngrader.Dialogs
                 {
                     gta4BrowserProcess.Kill();
 
-                    if (gta4BrowserProcess.WaitForExit(100))
+                    if (gta4BrowserProcess.WaitForExit(3000))
                     {
                         AddLogItem(LogType.Info, "Killed gta4Browser Process.");
 
@@ -344,18 +378,7 @@ namespace GTAIVDowngrader.Dialogs
                         gta4BrowserProcess = null;
                     }
                 }
-                if (gtaivProcess != null)
-                {
-                    gtaivProcess.Kill();
 
-                    if (gtaivProcess.WaitForExit(100))
-                    {
-                        AddLogItem(LogType.Info, "Killed GTAIV Process.");
-
-                        gtaivProcess.Dispose();
-                        gtaivProcess = null;
-                    }
-                }
 
                 return true;
             }
@@ -716,6 +739,8 @@ namespace GTAIVDowngrader.Dialogs
                 // Prerequisites
                 if (Core.CurrentDowngradingInfo.InstallPrerequisites)
                 {
+
+                    // DirectX
                     filePath = GetFileLocationInTempFolder("directx_Jun2010_redist.exe");
                     if (!File.Exists(filePath))
                     {
@@ -725,18 +750,23 @@ namespace GTAIVDowngrader.Dialogs
                             return ShowMissingFileWarning("directx_Jun2010_redist.exe", out returnOutOfLoadedMethod);
                     }
                     else
+                    {
                         AddLogItem(LogType.Info, "directx_Jun2010_redist.exe is already downloaded. Skipping.");
+                    }
 
-                    filePath = GetFileLocationInTempFolder("vcredist_x86.exe");
+                    // Visual C++
+                    filePath = GetFileLocationInTempFolder("VisualCppRedist_AIO_x86_x64.exe");
                     if (!File.Exists(filePath))
                     {
                         if (!Core.IsInOfflineMode)
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("vcredist_x86.exe")));
+                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("VisualCppRedist_AIO_x86_x64.exe")));
                         else
-                            return ShowMissingFileWarning("vcredist_x86.exe", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning("VisualCppRedist_AIO_x86_x64.exe", out returnOutOfLoadedMethod);
                     }
                     else
-                        AddLogItem(LogType.Info, "vcredist_x86.exe is already downloaded. Skipping.");
+                    {
+                        AddLogItem(LogType.Info, "VisualCppRedist_AIO_x86_x64.exe is already downloaded. Skipping.");
+                    }
                 }
                 if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
                 {
@@ -749,7 +779,9 @@ namespace GTAIVDowngrader.Dialogs
                             return ShowMissingFileWarning("gfwlivesetup.exe", out returnOutOfLoadedMethod);
                     }
                     else
+                    {
                         AddLogItem(LogType.Info, "gfwlivesetup.exe is already downloaded. Skipping.");
+                    }
 
                     filePath = GetFileLocationInTempFolder("xliveredist.msi");
                     if (!File.Exists(filePath))
@@ -760,7 +792,9 @@ namespace GTAIVDowngrader.Dialogs
                             return ShowMissingFileWarning("xliveredist.msi", out returnOutOfLoadedMethod);
                     }
                     else
+                    {
                         AddLogItem(LogType.Info, "xliveredist.msi is already downloaded. Skipping.");
+                    }
 
                     if (Environment.Is64BitOperatingSystem)
                     {
@@ -773,7 +807,9 @@ namespace GTAIVDowngrader.Dialogs
                                 return ShowMissingFileWarning("wllogin_64.msi", out returnOutOfLoadedMethod);
                         }
                         else
+                        {
                             AddLogItem(LogType.Info, "wllogin_64.msi is already downloaded. Skipping.");
+                        }
                     }
                     else
                     {
@@ -786,7 +822,9 @@ namespace GTAIVDowngrader.Dialogs
                                 return ShowMissingFileWarning("wllogin_32.msi", out returnOutOfLoadedMethod);
                         }
                         else
+                        {
                             AddLogItem(LogType.Info, "wllogin_32.msi is already downloaded. Skipping.");
+                        }
                     }
                 }
 
@@ -811,7 +849,9 @@ namespace GTAIVDowngrader.Dialogs
                     AddLogItem(LogType.Info, string.Format("Finished populating download queue list with {0} items.", downloadQueue.Count));
                 }
                 else
+                {
                     AddLogItem(LogType.Info, "Nothing selected to populate download queue list.");
+                }
 
                 returnOutOfLoadedMethod = false;
                 return downloadQueue.Count > 0;
@@ -873,12 +913,12 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Prerequisites
-        private void StartInstallPrerequisites(Prerequisites state)
+        private void StartInstallPrerequisites(Prerequisites current)
         {
             prerequisiteErrored = false;
 
             currentInstallState = InstallState.Prerequisites;
-            currentPrerequisite = state;
+            currentPrerequisite = current;
             RefreshCurrentStepLabel();
 
             Dispatcher.Invoke(() =>
@@ -901,7 +941,7 @@ namespace GTAIVDowngrader.Dialogs
                 switch (currentPrerequisite)
                 {
                     case Prerequisites.VisualCPlusPlus:
-                        fileName = ".\\Data\\Temp\\vcredist_x86.exe";
+                        fileName = ".\\Data\\Temp\\VisualCppRedist_AIO_x86_x64.exe";
                         break;
                     case Prerequisites.DirectXExtract:
                         fileName = ".\\Data\\Temp\\directx_Jun2010_redist.exe";
@@ -935,8 +975,8 @@ namespace GTAIVDowngrader.Dialogs
                     switch (currentPrerequisite)
                     {
                         case Prerequisites.VisualCPlusPlus:
-                            AddLogItem(LogType.Info, "Installing Visual C++...");
-                            p.StartInfo.Arguments = "/Q";
+                            AddLogItem(LogType.Info, "Installing Visual C++ Redistributables...");
+                            p.StartInfo.Arguments = "/ai /gm2";
                             break;
                         case Prerequisites.DirectXExtract:
                             AddLogItem(LogType.Info, "Extracting DirectX setup files...");
@@ -973,7 +1013,7 @@ namespace GTAIVDowngrader.Dialogs
                 {
                     case Prerequisites.VisualCPlusPlus:
                         if (!prerequisiteErrored)
-                            AddLogItem(LogType.Info,"Visual C++ installed!");
+                            AddLogItem(LogType.Info, "Visual C++ Redistributables installed!");
 
                         StartInstallPrerequisites(Prerequisites.DirectXExtract);
                         break;
@@ -1167,7 +1207,8 @@ namespace GTAIVDowngrader.Dialogs
 
             ChangeProgressBarIndeterminateState(false);
 
-            Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() =>
+            {
                 if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader)
                 {
                     switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
@@ -1222,7 +1263,8 @@ namespace GTAIVDowngrader.Dialogs
             currentInstallState = state;
             RefreshCurrentStepLabel();
 
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 string fileLoc = string.Empty;
 
                 // Set file location from InstallState
@@ -1326,7 +1368,8 @@ namespace GTAIVDowngrader.Dialogs
                     instance.ChangeStep(Steps.Error, new List<object>() { ex, string.Format("Crashed at step: {0}", currentInstallState.ToString()) });
                 }
 
-            }).ContinueWith(result => {
+            }).ContinueWith(result =>
+            {
                 if (errored)
                     return;
 
@@ -1408,7 +1451,7 @@ namespace GTAIVDowngrader.Dialogs
             {
                 for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
                 {
-                    ModInformation item = Core.CurrentDowngradingInfo.SelectedMods[i];
+                    ModDetails item = Core.CurrentDowngradingInfo.SelectedMods[i];
                     modToInstall = item.FileName;
                     Core.CurrentDowngradingInfo.SelectedMods.RemoveAt(i);
                     break;
@@ -1417,7 +1460,9 @@ namespace GTAIVDowngrader.Dialogs
                 BeginExtractionProcess(InstallState.ModInstall);
             }
             else
+            {
                 Finish();
+            }
         }
         private void StartInstallingOptionalModComponents()
         {
@@ -1465,12 +1510,15 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void RemoveReadOnlyAttribute(bool again)
         {
+            if (!Core.IsAppRunningWithAdminPrivileges)
+                return;
+
             ChangeProgressBarIndeterminateState(true);
 
             if (again)
-                AddLogItem(LogType.Info, "Removing any read-only attributes inside the GTA IV directory again...");
+                AddLogItem(LogType.Info, "Trying to remove any read-only attributes inside the GTA IV directory again...");
             else
-                AddLogItem(LogType.Info, "Removing any read-only attributes inside the GTA IV directory...");
+                AddLogItem(LogType.Info, "Trying to remove any read-only attributes inside the GTA IV directory...");
 
             ClearReadOnly(new DirectoryInfo(Core.CurrentDowngradingInfo.IVWorkingDirectoy));
 
@@ -1481,7 +1529,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                AddLogItem(LogType.Info, "Creating a copy of PlayGTAIV.exe which is renamed to LaunchGTAIV.exe incase of PlayGTAIV.exe not working.");
+                AddLogItem(LogType.Info, "Trying to create a copy of PlayGTAIV.exe which is renamed to LaunchGTAIV.exe incase of PlayGTAIV.exe not working.");
 
                 string playGTAIV = string.Format("{0}\\PlayGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
                 string launchGTAIV = string.Format("{0}\\LaunchGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
@@ -1493,7 +1541,7 @@ namespace GTAIVDowngrader.Dialogs
                 }
 
                 File.Copy(playGTAIV, launchGTAIV);
-                AddLogItem(LogType.Info, "Created copy of PlayGTAIV.exe which got renamed to LaunchGTAIV.exe.");
+                AddLogItem(LogType.Info, "Created copy of PlayGTAIV.exe.");
             }
             catch (Exception ex)
             {
@@ -1511,11 +1559,13 @@ namespace GTAIVDowngrader.Dialogs
         }
         private bool IsZipFileCorrupted(string filePath)
         {
-            try {
+            try
+            {
                 using (ZipArchive arch = ZipFile.OpenRead(filePath))
                     return false;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 return true;
             }
         }
@@ -1680,6 +1730,8 @@ namespace GTAIVDowngrader.Dialogs
             downloadWebClient.Credentials = new NetworkCredential("ivdowngr", "7MY4qi2a8g");
             downloadWebClient.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
             downloadWebClient.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
+
+            AddLogItem(LogType.Info, "- - - Starting Downgrading Process - - -");
 
             // Populate download queue
             canDownloadFiles = PopulateDownloadQueueList(out bool returnOutOfLoadedMethod);

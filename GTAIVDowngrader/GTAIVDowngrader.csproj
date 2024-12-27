@@ -257,12 +257,8 @@
     <Compile Include="Dialogs\WelcomeUC.xaml.cs">
       <DependentUpon>WelcomeUC.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Classes\Enums.cs" />
-    <Compile Include="JsonObjects\DowngradeInformation.cs" />
-    <Compile Include="JsonObjects\MD5Hash.cs" />
-    <Compile Include="JsonObjects\ModInformation.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="Core.cs" />
-    <Compile Include="JsonObjects\OptionalComponentInfo.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -391,7 +387,20 @@
     <Resource Include="Resources\webIcon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\RedWolfInteractive.png" />
+    <Resource Include="Resources\Misc\cbsLeaf.png" />
+    <Resource Include="Resources\Misc\clonk.png" />
+    <Resource Include="Resources\Misc\pride.png" />
+    <Resource Include="Resources\Misc\RedWolfInteractive.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Misc\ivsdknet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Misc\ivLauncherLogo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\ivDowngraderLogo.png" />
+  </ItemGroup>
+  <Import Project="..\SharedStuff\SharedStuff.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

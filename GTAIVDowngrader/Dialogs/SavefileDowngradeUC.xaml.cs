@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 
 namespace GTAIVDowngrader.Dialogs
@@ -49,9 +50,14 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, false, true, true);
 
-            // Change progressbar states
+            // Reset progressbar stuff
             instance.taskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
             instance.GetMainProgressBar().Value = 0;
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             if (Core.IsInOfflineMode)
             {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-using GTAIVDowngrader.JsonObjects;
+using GTAIVDowngrader.Classes.Json.Modification;
 
 namespace GTAIVDowngrader.Classes
 {
@@ -12,8 +12,7 @@ namespace GTAIVDowngrader.Classes
         public string IVExecutablePath { get; private set; }
         public string IVWorkingDirectoy { get; private set; }
         public string IVTargetBackupDirectory { get; private set; }
-        public string ReceivedMD5Hash { get; private set; }
-        public string RelatedMD5Hash { get; private set; }
+        public string GeneratedMD5Hash { get; private set; }
         public string NewGTAIVTargetLocation { get; private set; }
 
         public GameVersion DowngradeTo { get; private set; }
@@ -27,14 +26,14 @@ namespace GTAIVDowngrader.Classes
         public bool CreateBackupInZipFile { get; private set; }
         public bool GTAIVInstallationGotMovedByDowngrader { get; private set; }
 
-        public List<ModInformation> SelectedMods;
+        public List<ModDetails> SelectedMods;
         public List<OptionalComponentInfo> SelectedOptionalComponents;
         #endregion
 
         #region Constructor
         public DowngradingInfo()
         {
-            SelectedMods = new List<ModInformation>();
+            SelectedMods = new List<ModDetails>();
             SelectedOptionalComponents = new List<OptionalComponentInfo>();
         }
         #endregion
@@ -49,13 +48,9 @@ namespace GTAIVDowngrader.Classes
         {
             IVTargetBackupDirectory = backupPath;
         }
-        public void SetReceivedMD5Hash(string hash)
+        public void SetGeneratedMD5Hash(string hash)
         {
-            ReceivedMD5Hash = hash;
-        }
-        public void SetRelatedMD5Hash(string hash)
-        {
-            RelatedMD5Hash = hash;
+            GeneratedMD5Hash = hash;
         }
         public void SetNewGTAIVTargetLocation(string location)
         {

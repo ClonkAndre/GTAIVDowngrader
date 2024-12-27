@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 using CCL;
 
-using GTAIVDowngrader.JsonObjects;
+using GTAIVDowngrader.Classes.Json;
 
 namespace GTAIVDowngrader.Controls
 {
@@ -15,7 +15,7 @@ namespace GTAIVDowngrader.Controls
 
         #region Variables and Properties
         // Variables
-        public ModInformation ModInfo;
+        public ModDetails ModInfo;
 
         // Properties
         public string Title
@@ -41,7 +41,7 @@ namespace GTAIVDowngrader.Controls
         #endregion
 
         #region Constructor
-        public ModItem(ModInformation modInfo)
+        public ModItem(ModDetails modInfo)
         {
             InitializeComponent();
 

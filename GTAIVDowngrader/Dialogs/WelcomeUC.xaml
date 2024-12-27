@@ -25,37 +25,42 @@
                 </EventTrigger>
             </Grid.Triggers>
 
-            <Image x:Name="RedWolfLogo" Source="..\Resources\RedWolfInteractive.png" RenderOptions.BitmapScalingMode="HighQuality" ToolTip="Made by the Red Wolf Interactive Team" Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,20,60"/>
+            <Image x:Name="RedWolfLogo" Source="..\Resources\Misc\RedWolfInteractive.png" RenderOptions.BitmapScalingMode="HighQuality" ToolTip="Made by the Red Wolf Interactive Team" Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,20,60"/>
 
             <!-- Content -->
-            <StackPanel MaxHeight="300" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
                 <TextBlock Text="Welcome to the GTA IV Downgrader!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextTrimming="WordEllipsis" TextWrapping="Wrap" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    This downgrader allows you to downgrade the <Run FontWeight="Bold" Text="Steam/RGL Complete Edition (1.2.0.30 and up)"/> of GTA IV to either <Run FontWeight="Bold" Text="1.0.4.0"/>, <Run FontWeight="Bold" Text="1.0.7.0"/> or <Run FontWeight="Bold" Text="1.0.8.0"/>.
+                    This downgrader allows you to effortlessly downgrade the <Run FontWeight="Bold" Text="latest"/> versions of GTA IV to either version <Run FontWeight="Bold" Text="1.0.8.0"/>, <Run FontWeight="Bold" Text="1.0.7.0"/> or <Run FontWeight="Bold" Text="1.0.4.0"/>.
                     
                     <LineBreak/><LineBreak/><LineBreak/>
                     <Run Text="Why should I downgrade and what are the advantages of it?" FontSize="18" FontWeight="Medium"/>
                     
                     <!-- Reason 1 -->
                     <LineBreak/>
-                    The top and most obvious reason is for <Run Text="modding capability" FontWeight="Bold"/>. Tons of mods (especially those made <Run Text="before" FontWeight="Bold"/> 2020) only work on 1.0.8.0 or lower.
+                    The top and most obvious reason is for <Run Text="modding capability" FontWeight="Bold"/>. Tons of mods (especially those made <Run Text="before 2020" FontWeight="Bold"/>) only work on <Run FontWeight="Bold" Text="1.0.8.0"/> or lower.
                     <LineBreak/>
-                    For example, one of the most important mods made for the game, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/955449-iv-zolikapatch/" FontWeight="Bold">Zolika Patch</Hyperlink>, <Run Text="only" FontWeight="Bold"/> works on 1.0.8.0 or lower.
+                    For example, one of the most important mods made for the game, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/955449-iv-zolikapatch/" FontWeight="Bold">Zolika Patch</Hyperlink>, <Run Text="only" FontWeight="Bold"/> works on <Run FontWeight="Bold" Text="1.0.8.0"/> or lower.
                     <LineBreak/>
-                    Or one of the most famous mods made ever, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.lcpdfr.com/lcpdfr" FontWeight="Bold">LCPDFR</Hyperlink>, works best on <Run Text="1.0.7.0" FontWeight="Bold"/>!
+                    Or one of the most famous mods ever made, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.lcpdfr.com/lcpdfr" FontWeight="Bold">LCPDFR</Hyperlink>, works best on <Run Text="1.0.7.0" FontWeight="Bold"/>!
                     
                     <!-- Reason 2 -->
                     <LineBreak/><LineBreak/>
-                    The second reason is for <Run Text="stability &amp; performance" FontWeight="Bold"/>. There's utilities/mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/doitsujin/dxvk" FontWeight="Bold">DXVK</Hyperlink>, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/elishacloud/dxwrapper" FontWeight="Bold">DxWrapper</Hyperlink>, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/ThirteenAG/IV.EFLC.ColAccel" FontWeight="Bold">ColAccel</Hyperlink>, etc... which all work BEST on <Run Text="downgraded copies" FontWeight="Bold"/>, specifically 1.0.7.0 (Especially for DXVK)
+                    The second reason is for <Run Text="stability &amp; performance" FontWeight="Bold"/>. There's utilities/mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/doitsujin/dxvk" FontWeight="Bold">DXVK</Hyperlink>, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/elishacloud/dxwrapper" FontWeight="Bold">DxWrapper</Hyperlink>, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/ThirteenAG/IV.EFLC.ColAccel" FontWeight="Bold">ColAccel</Hyperlink>, etc... which all work BEST on <Run Text="downgraded copies" FontWeight="Bold"/>.
                     
                     <!-- Reason 3 -->
                     <LineBreak/><LineBreak/>
                     The third reason is for <Run Text="multiplayer" FontWeight="Bold"/>. GFWL is available on downgraded copies, and multiplayer mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaconnected.com/" FontWeight="Bold">GTA Connected</Hyperlink>, <Run Text="require" FontWeight="Bold"/> a downgraded game.
+                    
+                    <!-- Additional Resources -->
+                    <LineBreak/><LineBreak/><LineBreak/>
+                    <Run Text="Additional Resources" FontSize="18" FontWeight="Medium"/>
+                    <LineBreak/>
+                    Check out the <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gillian-guide.github.io/" FontWeight="Bold">Modding Guide</Hyperlink> made by Gillian for more information on how to downgrade, what to look out for, optimization tips, and more!
+                    
                 </TextBlock>
             </StackPanel>
 
-            <CheckBox x:Name="DisableRainbowColoursCheckBox" Visibility="Collapsed" Checked="DisableRainbowColoursCheckBox_CheckedChanged" Unchecked="DisableRainbowColoursCheckBox_CheckedChanged" Content="Disable Rainbow Colours" Foreground="White" FontSize="16" 
-                  HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Margin="20,50,30,40"/>
             <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
             <TextBlock x:Name="DowngraderVersionLabel" Text="Version 1.0" FontSize="12" Foreground="#adadad" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30,32"/>
             <TextBlock FontSize="12" Foreground="#adadad" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30,15">

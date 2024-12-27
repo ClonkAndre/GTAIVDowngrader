@@ -1,6 +1,6 @@
 ﻿namespace GTAIVDowngrader.Classes
 {
-    internal struct CommandLineArgument
+    internal class CommandLineArgument
     {
         #region Properties
         public int Category { get; private set; }

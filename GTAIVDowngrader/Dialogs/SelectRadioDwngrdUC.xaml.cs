@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -30,8 +31,11 @@ namespace GTAIVDowngrader.Dialogs
             if (Core.IsInOfflineMode)
             {
                 instance.ShowMessageDialogScreen("Offline Mode Information",
-                    string.Format("The downgrader is currently in offline mode and therefore, it cannot download any modifications.{0}" +
-                    "After the downgrade, you gonna have to download and install each mod that you want manually!", Environment.NewLine),
+                    string.Format("The downgrader is currently in offline mode and therefore it cannot download any modifications.{0}" +
+                    "After the downgrade, you gonna have to download and install each mod that you want manually!{0}{0}" +
+                    "Highly Recommended Mods{0}" +
+                    "- Ultimate ASI Loader{0}" +
+                    "- ZolikaPatch", Environment.NewLine),
                     Steps.S9_Confirm);
 
                 // Force this to be true
@@ -84,6 +88,11 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, true, true, true);
             instance.ChangeActionButtonEnabledState(true, true, true, false);
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             // Reset
             Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);

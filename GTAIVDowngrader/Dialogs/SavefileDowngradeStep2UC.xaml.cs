@@ -6,7 +6,6 @@ using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -143,8 +142,8 @@ namespace GTAIVDowngrader.Dialogs
 
             ChangeProgressBarIndeterminateState(false);
 
-            long bytesReceived = FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).Size;
-            long totalBytesToReceived = FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).Size;
+            string bytesReceived =          FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).ToString();
+            string totalBytesToReceived =   FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).ToString();
 
             UpdateStatusText(string.Format("Uploading {0} | {1} of {2} uploaded", e.UserState.ToString(), bytesReceived, totalBytesToReceived));
         }
@@ -294,8 +293,8 @@ namespace GTAIVDowngrader.Dialogs
 
             ChangeProgressBarIndeterminateState(false);
 
-            long bytesReceived = FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).Size;
-            long totalBytesToReceived = FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).Size;
+            string bytesReceived =          FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).ToString();
+            string totalBytesToReceived =   FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).ToString();
 
             UpdateStatusText(string.Format("Downloading {0} | {1} of {2} downloaded", e.UserState.ToString(), bytesReceived, totalBytesToReceived));
         }
@@ -333,7 +332,7 @@ namespace GTAIVDowngrader.Dialogs
                     UpdateStatusProgressBar(100);
                     ChangeButtonEnabledStates(true);
 
-                    UpdateStatusText("Coverting and downloading saves completed! You can now continue.");
+                    UpdateStatusText("Converting and downloading saves completed! You can now continue.");
 
                     // Log
                     Core.AddLogItem(LogType.Info, "(1) - Coverting and downloading saves completed!");
@@ -343,27 +342,30 @@ namespace GTAIVDowngrader.Dialogs
             }
 
             // Download next save file
-            if (saveFilesDownloadQueue.Count != 0) {
+            if (saveFilesDownloadQueue.Count != 0)
+            {
                 SaveFileDownload nextSaveFileToBeDownloaded = saveFilesDownloadQueue.Dequeue();
                 string downloadUrl = string.Format("https://gtasnp.com/download/file/{0}?downgrade_version=1&slot={1}", nextSaveFileToBeDownloaded.ID, nextSaveFileToBeDownloaded.Slot.ToString());
 
                 string dir = ".\\Data\\Savegames";
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
 
                 webClient.DownloadFileAsync(new Uri(downloadUrl), string.Format("{0}\\{1}", dir, nextSaveFileToBeDownloaded.FileName), nextSaveFileToBeDownloaded.FileName);
 
                 // Log
                 Core.AddLogItem(LogType.Info, string.Format("(2) - Downloading next file {0}", nextSaveFileToBeDownloaded.FileName));
             }
-            else {
+            else
+            {
                 selectedSaveFiles = null;
                 ChangeSelectedFilesTextVisibility(false);
                 UpdateStatusProgressBar(100);
                 ChangeButtonEnabledStates(true);
-                UpdateStatusText("Coverting and downloading saves completed! You can now continue.");
+                UpdateStatusText("Converting and downloading saves completed! You can now continue.");
 
                 // Log
-                Core.AddLogItem(LogType.Info, "(2) - Coverting and downloading saves completed!");
+                Core.AddLogItem(LogType.Info, "(2) - Converting and downloading saves completed!");
             }
         }
         #endregion
@@ -381,8 +383,8 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
 
-            if (Core.IsPrideMonth)
-                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char5.png", UriKind.Relative));
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
         }
 
         private void SelectFilesButton_Click(object sender, RoutedEventArgs e)

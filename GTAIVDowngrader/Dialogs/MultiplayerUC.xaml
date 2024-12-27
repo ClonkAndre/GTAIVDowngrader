@@ -14,7 +14,7 @@
         <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char3.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,35,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\char3.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,35,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
@@ -27,12 +27,12 @@
                     If <Run Text="NOT" FontWeight="Bold"/> then it is not recommended to configure this downgrade for GFWL!
                     
                     <LineBreak/><LineBreak/>
-                    <Run Text="Warning:" FontWeight="Bold"/> In order to play GTA IV Multiplayer via GFWL, you will need a <Run Text="product key" FontWeight="Bold"/>!
+                    <Run Text="Warning:" FontWeight="Bold"/> In order to play GTA IV Multiplayer with GFWL, you will need a <Run Text="product key" FontWeight="Bold"/>!
                     
                     <LineBreak/><LineBreak/>
                     If you need help with GFWL, it is recommended to join the <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://discord.gg/gtrf" FontWeight="Bold">Grand Theft RevIVal</Hyperlink> Discord server.
                     <LineBreak/>
-                    In this server, you can find keys for GFWL and they also host regular multiplayer events.
+                    In this server, you can find keys for GFWL and they also host regular multiplayer events. #keepgtaivalive!
                     
                     <LineBreak/><LineBreak/>
                 </TextBlock>

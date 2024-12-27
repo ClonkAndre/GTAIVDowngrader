@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTAIVDowngrader", "GTAIVDow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaunchInOfflineMode", "LaunchInOfflineMode\LaunchInOfflineMode.csproj", "{D62D2976-F35B-43D1-8E4F-1A72EEFC6CCD}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedStuff", "SharedStuff\SharedStuff.shproj", "{6D68B068-2DC0-4E41-8B62-70162C1A50E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileEditor", "FileEditor\FileEditor.csproj", "{338A1C49-85C4-48D6-81F3-5A648E7A4CBA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,11 +25,20 @@ Global
 		{D62D2976-F35B-43D1-8E4F-1A72EEFC6CCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D62D2976-F35B-43D1-8E4F-1A72EEFC6CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D62D2976-F35B-43D1-8E4F-1A72EEFC6CCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{338A1C49-85C4-48D6-81F3-5A648E7A4CBA}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{338A1C49-85C4-48D6-81F3-5A648E7A4CBA}.Debug|Any CPU.Build.0 = Debug|x86
+		{338A1C49-85C4-48D6-81F3-5A648E7A4CBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{338A1C49-85C4-48D6-81F3-5A648E7A4CBA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {15394D93-DBF7-4FB4-9907-EC356AF33D58}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedStuff\SharedStuff.projitems*{109602e4-db52-4ffe-9006-83a528021ba5}*SharedItemsImports = 4
+		SharedStuff\SharedStuff.projitems*{338a1c49-85c4-48d6-81f3-5a648e7a4cba}*SharedItemsImports = 4
+		SharedStuff\SharedStuff.projitems*{6d68b068-2dc0-4e41-8b62-70162c1a50e7}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

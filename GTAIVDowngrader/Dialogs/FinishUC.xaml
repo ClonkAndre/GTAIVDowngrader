@@ -20,6 +20,9 @@
                             <!-- Background Char -->
                             <DoubleAnimation From="0.0" To="1.0" Duration="0:0:0.8" Storyboard.TargetName="bgChar" Storyboard.TargetProperty="Opacity"/>
                             <ThicknessAnimation From="0,100,15,-100" To="0,10,15,0" Duration="0:0:0.5" AccelerationRatio="0.2" DecelerationRatio="0.8" Storyboard.TargetName="bgChar" Storyboard.TargetProperty="Margin"/>
+                            
+                            <!-- Supporters -->
+                            <DoubleAnimation From="0.0" To="1.0" BeginTime="0:0:2.0" Duration="0:0:3.0" Storyboard.TargetName="SupportersGrid" Storyboard.TargetProperty="Opacity"/>
 
                         </Storyboard>
                     </BeginStoryboard>
@@ -29,34 +32,59 @@
             <!-- Background Char -->
             <Image x:Name="bgChar" Visibility="Visible" Grid.RowSpan="2" Source="..\Resources\chars\char5.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="1" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,10,15,0"/>
 
+            <!-- Supporters -->
+            <Border x:Name="SupportersGrid" d:Opacity="1" d:Visibility="Visible" Visibility="Hidden" Opacity="0" Background="#99000000" BorderBrush="#991a1a1a" BorderThickness="2" CornerRadius="10" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="295" Margin="0,0,10,0">
+                <StackPanel>
+                    
+                    <TextBlock Text="Much thanks to all my supporters!" Foreground="White" FontSize="16" FontWeight="Medium" HorizontalAlignment="Center" Margin="15,10,15,5"/>
+                    
+                    <!-- Tier 3 -->
+                    <TextBlock Text="- Tier 3 -" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <StackPanel HorizontalAlignment="Center" Margin="3,0,3,3">
+                        <TextBlock x:Name="Tier3SupportersTextBlock" Foreground="White" Text="-" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Tier 2 -->
+                    <TextBlock Text="- Tier 2 -" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <StackPanel HorizontalAlignment="Center" Margin="3,0,3,3">
+                        <TextBlock x:Name="Tier2SupportersTextBlock" Foreground="White" Text="-" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Tier 1 -->
+                    <TextBlock Text="- Tier 1 -" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <StackPanel HorizontalAlignment="Center" Margin="3,0,3,10">
+                        <TextBlock x:Name="Tier1SupportersTextBlock" Foreground="White" Text="-" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+            
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20,370,35">
-                    <TextBlock Text="Congratulations!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-                    <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    Your GTA IV installation should be downgraded to your desired version!
+                <TextBlock Text="Congratulations!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
+                    Your GTA IV installation was downgraded to the desired version!
+                        
+                    <!-- Final notes -->
                     <LineBreak/><LineBreak/>
                     <Run Text="Some final notes" FontSize="20" FontWeight="Medium"/>
                     
                     <LineBreak/>
-                    - Make sure to always run GTA IV through <Run Text="PlayGTAIV.exe" FontWeight="Bold"/>. You can also launch GTA IV through Steam, the problem with that is that if Rockstar should update GTA IV, your downgraded copy will be destroyed. You can see the latest news like updates about GTA IV in the News tab of the 
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/978788-gta-iv-launcher" FontWeight="Bold">GTA IV Launcher</Hyperlink>.
+                    - Always make sure to run GTA IV through <Run FontStyle="Italic">PlayGTAIV.exe</Run>. While you can launch GTA IV through Steam, doing so risks your downgraded copy being overwritten if Rockstar releases an update.
+                    Not all updates destroy your downgraded copy tho. Check out the Community Tab within the
+                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/978788-gta-iv-launcher/" FontWeight="Bold">IV Launcher</Hyperlink>
+                    to be informed when GTA IV receives an update, and if it is going to destroy your downgraded copy.
                     
                     <LineBreak/><LineBreak/>
-                    - Some mods like 
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/955449-iv-zolikapatch/" FontWeight="Bold">ZolikaPatch</Hyperlink> or
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/896795-1000-1080-zolika1351s-trainermod-menu-rewritten/" FontWeight="Bold">Zolika Menu</Hyperlink>
-                    receive frequent updates, so they might be outdated.
-                    <LineBreak/>
-                    You can visit the download page of those two mods simply by clicking on the blue link.
+                    - Mods installed by this downgrader might be outdated. It's a good idea to check the official mod page for updates, which you can easily do by googling the mod's name.
                 </TextBlock>
             </StackPanel>
 
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,30,65">
                 <TextBlock TextWrapping="Wrap" FontSize="17" Foreground="White">
-                    If you want to support me or this project, you can do that via
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.patreon.com/itsclonkandre?fan_landing=true" FontWeight="SemiBold">Patreon</Hyperlink>
-                    or
-                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://ko-fi.com/itsclonkandre" FontWeight="SemiBold">Ko-fi</Hyperlink>.
+                    If you want to support me or this project, feel free to become a supporter over on
+                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.patreon.com/itsclonkandre?fan_landing=true" FontWeight="SemiBold">Patreon</Hyperlink>!
                     <LineBreak/>
                     Any support would be greatly appreciated!
                     <LineBreak/><LineBreak/>

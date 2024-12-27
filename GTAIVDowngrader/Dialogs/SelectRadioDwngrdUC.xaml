@@ -14,7 +14,7 @@
         <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\johnny.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,20,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\johnny.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,20,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
@@ -27,7 +27,7 @@
                         Radio downgrader by <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/936600-iii-iv-various-gta-downgraders/">Sneed</Hyperlink>
                     <LineBreak/>
                     <Run FontSize="12">
-                        If you choose this downgrader you will be able to choose between the old Vladivostok and the new Vladivostok. More informations about that on the next step if you choose this downgrader.
+                        If you choose this downgrader you will be able to choose between the old Vladivostok and the new Vladivostok. More about that on the next step.
                     </Run>
                     </TextBlock>
                 </RadioButton>

@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 using GTAIVDowngrader.Classes;
 using GTAIVDowngrader.Controls;
@@ -222,6 +223,11 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, true, true, true);
             instance.ChangeActionButtonEnabledState(true, true, true, false);
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             // 1040 only arguments
             if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)

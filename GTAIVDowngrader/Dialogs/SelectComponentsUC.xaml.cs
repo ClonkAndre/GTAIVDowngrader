@@ -7,9 +7,10 @@ using System.Windows;
 using System.Windows.Controls;
 
 using Newtonsoft.Json;
-
-using GTAIVDowngrader.Controls;
 using CCL;
+
+using GTAIVDowngrader.Classes.Json;
+using GTAIVDowngrader.Controls;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -20,7 +21,7 @@ namespace GTAIVDowngrader.Dialogs
         private MainWindow instance;
 
         private WebClient downloadWebClient;
-        private List<JsonObjects.ModInformation> allMods;
+        private List<ModDetails> allMods;
 
         private ModCheck modCheck;
         private StringBuilder errorText;
@@ -118,7 +119,7 @@ namespace GTAIVDowngrader.Dialogs
             }
         }
 
-        public void Clear()
+        private void Clear()
         {
             ModListStackPanel.Children.Clear();
             allMods.Clear();
@@ -127,45 +128,52 @@ namespace GTAIVDowngrader.Dialogs
             modCheck = null;
         }
 
-        public void RetrieveMods()
+        private void RetrieveMods()
         {
             try
             {
                 Clear();
                 ChangeLoadingPageState(true, "Retrieving all mods");
 
-                if (!Core.IsInOfflineMode)
+                // Check offline mode state
+                if (Core.IsInOfflineMode)
                 {
+                    ChangeLoadingPageState(true, string.Format("Could not retrieve all mods.{0}" +
+                        "The downgrader is running in offline mode, and is therefor not allowed to download anything.{0}" +
+                        "Please download the mods that you want manually after the downgrade.", Environment.NewLine), false);
 
-                    string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.0_and_up/modInfos.json";
+                    return;
+                }
 
-                    if (Core.UseAlternativeDownloadLinks)
-                    {
-                        dLink = "https://www.dropbox.com/scl/fi/3024byprjl73h3pk9kqp5/modInfos.json?rlkey=ka8p5323gkc01k7j3eywm2ga6&dl=1";
-                        Core.AddLogItem(LogType.Warning, "Using alternative download link for modInfos.json! Mods might be outdated!");
-                        Core.Notification.ShowNotification(NotificationType.Warning, 10100, "Outdated Mods Information", string.Format("The downgrader used an alternative download link to the list of all mods, this list might be outdated.{0}" +
-                            "Please make sure to manually update your mods after the downgrade if necessary.", Environment.NewLine));
+                // The download link for downloading the mod stuff
+#if DEBUG
+                string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/refs/heads/testing/v2.2_and_up/modInfos.json";
+#else
+                string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.2_and_up/modInfos.json";
+#endif
 
-                        string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                        downloadWebClient.DownloadFileAsync(new Uri(dLink), filePath);
-                    }
-                    else
-                    {
-                        downloadWebClient.DownloadStringAsync(new Uri(dLink));
-                    }
+                if (Core.UseAlternativeDownloadLinks)
+                {
+                    dLink = "https://www.dropbox.com/scl/fi/3024byprjl73h3pk9kqp5/modInfos.json?rlkey=ka8p5323gkc01k7j3eywm2ga6&dl=1";
 
+                    Core.AddLogItem(LogType.Warning, "Using alternative download link for modInfos.json! Mods might be outdated!");
+                    Core.Notification.ShowNotification(NotificationType.Warning, 10100, "Outdated Mods Information", string.Format("The downgrader used an alternative download link to the list of all mods, this list might be outdated.{0}" +
+                        "Please make sure to manually update your mods after the downgrade if necessary.", Environment.NewLine));
+
+                    string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                    downloadWebClient.DownloadFileAsync(new Uri(dLink), filePath);
                 }
                 else
-                    ChangeLoadingPageState(true, string.Format("Could not retrieve all mods.{0}" +
-                        "The downgrader is running in offline mode.{0}" +
-                        "Please download the mods that you want manually after the downgrade.", Environment.NewLine), false);
+                {
+                    downloadWebClient.DownloadStringAsync(new Uri(dLink));
+                }
             }
             catch (Exception ex)
             {
                 ChangeLoadingPageState(true, string.Format("An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, ex.Message), false);
             }
         }
-        public void AddModsToContainer()
+        private void AddModsToContainer()
         {
             Dispatcher.Invoke(() =>
             {
@@ -173,7 +181,7 @@ namespace GTAIVDowngrader.Dialogs
                 // Add mods to container
                 for (int i = 0; i < allMods.Count; i++)
                 {
-                    JsonObjects.ModInformation mod = allMods[i];
+                    ModDetails mod = allMods[i];
 
                     // Check if mod can be added to container
                     if (!mod.ShowInDowngrader)
@@ -215,15 +223,19 @@ namespace GTAIVDowngrader.Dialogs
                 SelectAllButton.IsEnabled = true;
                 DeselectAllButton.IsEnabled = true;
 
+                // Calculate size of already checked mods
+                CalculateModsSize();
+
             });
         }
         private void ModItem_CheckedChanged(ModItem sender, bool newState)
         {
             CreateModCheck();
             DoModCheck();
+            CalculateModsSize();
         }
 
-        public void SelectAllModsInList()
+        private void SelectAllModsInList()
         {
             for (int i = 0; i < ModListStackPanel.Children.Count; i++)
             {
@@ -232,7 +244,7 @@ namespace GTAIVDowngrader.Dialogs
                     item.IsChecked = true;
             }
         }
-        public void DeselectAllModsInList()
+        private void DeselectAllModsInList()
         {
             for (int i = 0; i < ModListStackPanel.Children.Count; i++)
             {
@@ -242,7 +254,7 @@ namespace GTAIVDowngrader.Dialogs
             }
         }
 
-        public void CreateModCheck()
+        private void CreateModCheck()
         {
             modCheck = new ModCheck();
             for (int i = 0; i < ModListStackPanel.Children.Count; i++)
@@ -284,7 +296,7 @@ namespace GTAIVDowngrader.Dialogs
                 }
             }
         }
-        public void DoModCheck()
+        private void DoModCheck()
         {
             if (modCheck != null)
             {
@@ -358,18 +370,49 @@ namespace GTAIVDowngrader.Dialogs
                 }
             }
         }
+
+        private void CalculateModsSize()
+        {
+            long size = 0;
+            int selectedMods = 0;
+
+            // Mods
+            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
+            {
+                ModItem item = (ModItem)ModListStackPanel.Children[i];
+
+                if (item.IsChecked)
+                {
+                    selectedMods++;
+                    size += item.ModInfo.FileSize;
+
+                    if (item.ModInfo.OptionalComponents == null)
+                        continue;
+
+                    for (int o = 0; o < item.OptionalsWrapPanel.Children.Count; o++)
+                    {
+                        CheckBox cBox = item.OptionalsWrapPanel.Children[o] as CheckBox;
+
+                        if (cBox.IsChecked.Value)
+                            size += ((OptionalComponentInfo)cBox.Tag).FileSize;
+                    }
+                }
+            }
+
+            SelectedModsInfoLabel.Text = string.Format("Selected {0} mod(s). Total Size: {1}", selectedMods, FileHelper.GetExactFileSizeAdvanced(size));
+        }
         #endregion
 
         #region Constructor
         public SelectComponentsUC(MainWindow window)
         {
             instance = window;
-            allMods = new List<JsonObjects.ModInformation>();
+            allMods = new List<ModDetails>();
             InitializeComponent();
         }
         public SelectComponentsUC()
         {
-            allMods = new List<JsonObjects.ModInformation>();
+            allMods = new List<ModDetails>();
             InitializeComponent();
         }
         #endregion
@@ -406,7 +449,7 @@ namespace GTAIVDowngrader.Dialogs
                         CheckBox cBox = item.OptionalsWrapPanel.Children[o] as CheckBox;
 
                         if (cBox.IsChecked.Value)
-                            Core.CurrentDowngradingInfo.SelectedOptionalComponents.Add((JsonObjects.OptionalComponentInfo)cBox.Tag);
+                            Core.CurrentDowngradingInfo.SelectedOptionalComponents.Add((OptionalComponentInfo)cBox.Tag);
                     }
                 }
             }
@@ -415,7 +458,7 @@ namespace GTAIVDowngrader.Dialogs
             Core.CurrentDowngradingInfo.SetInstallPrerequisites(InstallPrerequisitesCheckBox.IsChecked.Value);
 
             // Final step
-            if (Core.IsInOfflineMode || allMods.Count == 0)
+            if (allMods.Count == 0)
             {
                 instance.ShowMessageDialogScreen("Important Note",
                     string.Format("It is HIGHLY recommended to install the Ultimate ASI Loader (xlive.dll) and ZolikaPatch to your game otherwise your game probably won't launch.{0}" +
@@ -426,10 +469,32 @@ namespace GTAIVDowngrader.Dialogs
                     "Ultimate ASI Loader",
                     () => Web.AskUserToGoToURL(new Uri("https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases")),
                     "ZolikaPatch",
-                    () => Web.AskUserToGoToURL(new Uri("https://gtaforums.com/topic/955449-iv-zolikapatch/")));
+                    () => Web.AskUserToGoToURL(new Uri("https://gtaforums.com/topic/955449-iv-zolikapatch/")),
+                    () => // Next button override
+                    {
+                        if (Core.IsInSimpleMode)
+                        {
+                            Core.LogDowngradingInfos();
+                            instance.NextStep(1);
+                        }
+                        else
+                        {
+                            instance.NextStep();
+                        }
+                    });
             }
             else
-                instance.NextStep();
+            {
+                if (Core.IsInSimpleMode)
+                {
+                    Core.LogDowngradingInfos();
+                    instance.NextStep(1);
+                }
+                else
+                {
+                    instance.NextStep();
+                }
+            }
         }
 
         private void DownloadWebClient_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
@@ -439,34 +504,34 @@ namespace GTAIVDowngrader.Dialogs
                 if (e.Cancelled)
                     return;
 
-                if (e.Error == null)
-                {
-                    string result = e.Result;
-                    if (!string.IsNullOrWhiteSpace(result))
-                    {
-
-                        allMods = JsonConvert.DeserializeObject<List<JsonObjects.ModInformation>>(result);
-
-#if DEBUG
-                        Console.WriteLine("- - - Mods - - -");
-                        allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
-#endif
-                       
-                        if (allMods.Count != 0)
-                            AddModsToContainer(); // Add all mods to mods container
-
-                        ChangeLoadingPageState(false, "");
-
-                    }
-                    else
-                    {
-                        ChangeLoadingPageState(true, "An unknown error occured while trying to retrieve all mods.", false);
-                    }
-                }
-                else
+                if (e.Error != null)
                 {
                     ChangeLoadingPageState(true, string.Format("(1) An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, e.Error.Message), false);
+                    return;
                 }
+
+                // Get the result and do validation
+                string result = e.Result;
+
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    ChangeLoadingPageState(true, "An unknown error occured while trying to retrieve all mods.", false);
+                    return;
+                }
+
+                // Parse mods
+                allMods = JsonConvert.DeserializeObject<List<ModDetails>>(result);
+
+#if DEBUG
+                // Debug
+                Console.WriteLine("- - - Mods - - -");
+                allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
+#endif
+
+                if (allMods.Count != 0)
+                    AddModsToContainer(); // Add all mods to mods container
+
+                ChangeLoadingPageState(false, "");
             }
             catch (Exception ex)
             {
@@ -480,33 +545,34 @@ namespace GTAIVDowngrader.Dialogs
                 if (e.Cancelled)
                     return;
 
-                if (e.Error == null)
-                {
-                    // Read file
-                    string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-                    if (!File.Exists(filePath))
-                    {
-                        ChangeLoadingPageState(true, string.Format("(1) An error occured while trying to retrieve all mods."), false);
-                        return;
-                    }
-
-                    allMods = JsonConvert.DeserializeObject<List<JsonObjects.ModInformation>>(File.ReadAllText(filePath));
-
-#if DEBUG
-                    Console.WriteLine("- - - Mods - - -");
-                    allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
-#endif
-
-                    if (allMods.Count != 0)
-                        AddModsToContainer(); // Add all mods to mods container
-
-                    ChangeLoadingPageState(false, "");
-                }
-                else
+                if (e.Error != null)
                 {
                     ChangeLoadingPageState(true, string.Format("(2) An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, e.Error.Message), false);
+                    return;
                 }
+
+                // Read file
+                string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+
+                if (!File.Exists(filePath))
+                {
+                    ChangeLoadingPageState(true, string.Format("(1) An error occured while trying to retrieve all mods."), false);
+                    return;
+                }
+
+                // Parse mods
+                allMods = JsonConvert.DeserializeObject<List<ModDetails>>(File.ReadAllText(filePath));
+
+#if DEBUG
+                // Debug
+                Console.WriteLine("- - - Mods - - -");
+                allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
+#endif
+
+                if (allMods.Count != 0)
+                    AddModsToContainer(); // Add all mods to mods container
+
+                ChangeLoadingPageState(false, "");
             }
             catch (Exception ex)
             {
@@ -531,6 +597,12 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            if (Core.IsInSimpleMode)
+            {
+                instance.NextButton.Content = "Downgrade";
+                NextInstruction.Text = "To downgrade, press the 'Downgrade' button.";
+            }
+
             instance.NextButtonClicked += Instance_NextButtonClicked;
             instance.BackButtonClicked += Instance_BackButtonClicked;
 
@@ -549,13 +621,15 @@ namespace GTAIVDowngrader.Dialogs
             // Set ToolTip for InstallPrerequisites CheckBox
             if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
             {
-                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and Visual C++ 2005 SP1 which is required for GTA IV and most mods.{0}" +
+                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and the all-in-one Visual C++ 2005-2022 Redistributable{0}" +
+                    "These are required for GTA IV and some mods.{0}" +
                     "It will also install the Prerequisites required by GFWL because you checked the 'Configure this downgrade for GFWL' checkbox earlier.{0}" +
                     "You can uncheck this if you are sure that you already have everything.", Environment.NewLine);
             }
             else
             {
-                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and Visual C++ 2005 SP1 which is required for GTA IV and most mods.{0}" +
+                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and the all-in-one Visual C++ 2005-2022 Redistributable{0}" +
+                    "These are required for GTA IV and some mods.{0}" +
                     "You can uncheck this if you are sure that you already have those.", Environment.NewLine);
             }
 
