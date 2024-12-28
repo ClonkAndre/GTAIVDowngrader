@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 using CCL;
 
-using GTAIVDowngrader.Classes.Json;
+using GTAIVDowngrader.Classes.Json.Modification;
 
 namespace GTAIVDowngrader.Controls
 {

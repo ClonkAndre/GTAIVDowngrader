@@ -450,14 +450,14 @@ namespace GTAIVDowngrader
 
         public static DowngradeFileDetails GetDowngradeFileByFileName(string fileName)
         {
-            return DowngradeFiles.Where(x => x.FileName == fileName).FirstOrDefault();
+            return DowngradeFiles.Where(x => x.FileDetails.Name == fileName).FirstOrDefault();
         }
         public static long GetDowngradeFileSizeByFileName(string fileName)
         {
-            DowngradeFileDetails file = DowngradeFiles.Where(x => x.FileName == fileName).FirstOrDefault();
+            DowngradeFileDetails file = DowngradeFiles.Where(x => x.FileDetails.Name == fileName).FirstOrDefault();
 
             if (file != null)
-                return file.FileSize;
+                return file.FileDetails.SizeInBytes;
 
             return 0L;
         }

@@ -15,7 +15,7 @@ namespace GTAIVDowngrader.Classes
         public string GeneratedMD5Hash { get; private set; }
         public string NewGTAIVTargetLocation { get; private set; }
 
-        public GameVersion DowngradeTo { get; private set; }
+        public string DowngradeTo { get; private set; }
         public RadioDowngrader SelectedRadioDowngrader { get; private set; }
         public VladivostokTypes SelectedVladivostokType { get; private set; }
 
@@ -57,7 +57,7 @@ namespace GTAIVDowngrader.Classes
             NewGTAIVTargetLocation = location;
         }
 
-        public void SetDowngradeVersion(GameVersion version)
+        public void SetDowngradeVersion(string version)
         {
             DowngradeTo = version;
         }
