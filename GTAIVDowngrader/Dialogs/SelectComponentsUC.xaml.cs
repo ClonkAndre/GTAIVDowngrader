@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows;
@@ -11,7 +12,6 @@ using CCL;
 
 using GTAIVDowngrader.Controls;
 using GTAIVDowngrader.Classes.Json.Modification;
-using System.Linq;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -49,6 +49,12 @@ namespace GTAIVDowngrader.Dialogs
 
         private void Clear()
         {
+            if (modCheckResultBuilder != null)
+            {
+                modCheckResultBuilder.Clear();
+                modCheckResultBuilder = null;
+            }
+
             ModListStackPanel.Children.Clear();
             allMods.Clear();
             SelectAllButton.IsEnabled = false;
@@ -66,7 +72,7 @@ namespace GTAIVDowngrader.Dialogs
                 if (Core.IsInOfflineMode)
                 {
                     ChangeLoadingPageState(true, string.Format("Could not retrieve all mods.{0}" +
-                        "The downgrader is running in offline mode, and is therefor not allowed to download anything.{0}" +
+                        "The downgrader is running in offline mode, and is therefor not allowed to download anything from the internet.{0}" +
                         "Please download the mods that you want manually after the downgrade.", Environment.NewLine), false);
 
                     return;
@@ -182,10 +188,26 @@ namespace GTAIVDowngrader.Dialogs
             }
         }
 
+        private void AppendNewLineToModCheck()
+        {
+            if (modCheckResultBuilder == null)
+                modCheckResultBuilder = new StringBuilder();
+
+            modCheckResultBuilder.AppendLine();
+        }
+        private void AppendStringToModCheck(string str, params object[] args)
+        {
+            if (modCheckResultBuilder == null)
+                modCheckResultBuilder = new StringBuilder();
+
+            modCheckResultBuilder.AppendLine(string.Format(str, args));
+        }
+        private void AppendBooleanToModCheck(string str, bool value)
+        {
+            AppendStringToModCheck(str, value ? "Yes" : "No");
+        }
         private void DoModCheck()
         {
-            bool areThereAnyProblems = false;
-
             // Get the selected mods
             List<ModDetails> selectedMods = GetSelectedMods();
 
@@ -196,20 +218,83 @@ namespace GTAIVDowngrader.Dialogs
                 return;
             }
 
-            // Check the selected mods
+            // Check the selected ASI Loaders, Mod Loaders and Dependencies
             int selectedAsiLoaders =        selectedMods.Count(x => x.IsASILoader);
             bool selectedScriptHook =       selectedMods.Any(x => x.IsScriptHook);
             bool selectedScriptHookDotNet = selectedMods.Any(x => x.IsScriptHookDotNet);
             bool selectedIVSDKDotNet =      selectedMods.Any(x => x.IsIVSDKDotNet);
 
-            // Check the selected mods for real now
-            ASIModDetails[] selectedAsiMods =       selectedMods.Where(x => x.HasASIModDetails()).Select(x => x.ASIModDetails).ToArray();
-            DotNetModDetails[] selectedDotNetMods = selectedMods.Where(x => x.HasDotNetModDetails()).Select(x => x.DotNetModDetails).ToArray();
+            AppendStringToModCheck("- - - Mod Check - - -");
+            AppendStringToModCheck("ASI Loaders selected: {0}",         selectedAsiLoaders);
+            AppendBooleanToModCheck("ScriptHook selected: {0}",         selectedScriptHook);
+            AppendBooleanToModCheck("ScriptHookDotNet selected: {0}",   selectedScriptHookDotNet);
+            AppendBooleanToModCheck("IV-SDK .NET selected: {0}",        selectedIVSDKDotNet);
 
-            // TODO: Check if there are any problems with the selected mods
+            AppendNewLineToModCheck();
+
+            // Check the selected ASI Mods
+            bool wasThereAnyAsiModProblem = false;
+            List<ModDetails> selectedAsiMods = selectedMods.Where(x => x.HasASIModDetails()).ToList();
+
+            AppendStringToModCheck("- - - ASI Mod Check Result - - -");
+
+            // Did the user select an ASI Loader?
+            if (selectedAsiLoaders > 0)
+            {
+                // Yes, now check the possible dependencies
+                selectedAsiMods.ForEach(x =>
+                {
+                    if (x.ASIModDetails.ForScriptHook && !selectedScriptHook)
+                    {
+                        // Let user know about the missing dependency
+                        AppendStringToModCheck("- {0} requires ScriptHook to work!", x.Title);
+
+                        wasThereAnyAsiModProblem = true;
+                    }
+                });
+            }
+            else
+            {
+                // No, let user know about it
+                AppendStringToModCheck("You've selected {0} ASI Mod(s) but no ASI Loader! " +
+                    "Please select atleast one ASI Loader from the list to fix this issue.", selectedAsiMods.Count);
+
+                wasThereAnyAsiModProblem = true;
+            }
+
+            if (!wasThereAnyAsiModProblem)
+                AppendStringToModCheck("No problems detected.");
+
+            // Check the selected .NET Mods
+            bool wasThereAnyDotNetModProblem = false;
+            List<ModDetails> selectedDotNetMods = selectedMods.Where(x => x.HasDotNetModDetails()).ToList();
+
+            AppendStringToModCheck("- - - .NET Mod Check Result - - -");
+
+            // Check the possible dependencies
+            selectedDotNetMods.ForEach(x =>
+            {
+                if (x.DotNetModDetails.ForScriptHookDotNet && !selectedScriptHookDotNet)
+                {
+                    // Let user know about the missing dependency
+                    AppendStringToModCheck("- {0} requires ScriptHookDotNet to work!", x.Title);
+
+                    wasThereAnyDotNetModProblem = true;
+                }
+                else if (x.DotNetModDetails.ForIVSDKDotNet && !selectedIVSDKDotNet)
+                {
+                    // Let user know about the missing dependency
+                    AppendStringToModCheck("- {0} requires IV-SDK .NET to work!", x.Title);
+
+                    wasThereAnyDotNetModProblem = true;
+                }
+            });
+
+            if (!wasThereAnyDotNetModProblem)
+                AppendStringToModCheck("No problems detected.");
 
             // Was there any problem?
-            if (areThereAnyProblems)
+            if (wasThereAnyAsiModProblem || wasThereAnyDotNetModProblem)
             {
                 ProblemsButton.Visibility = Visibility.Visible;
                 instance.ChangeActionButtonEnabledState(true, true, true, false);
@@ -269,6 +354,32 @@ namespace GTAIVDowngrader.Dialogs
 
             return selectedMods;
         }
+        private List<OptionalComponentInfo> GetSelectedOptionalComponents()
+        {
+            List<OptionalComponentInfo> selectedOptionalComponents = new List<OptionalComponentInfo>();
+
+            // Add all checked mods to list
+            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
+            {
+                ModItem item = (ModItem)ModListStackPanel.Children[i];
+
+                if (item.IsChecked)
+                {
+                    if (item.ModInfo.OptionalComponents == null)
+                        continue;
+
+                    for (int o = 0; o < item.OptionalsWrapPanel.Children.Count; o++)
+                    {
+                        CheckBox componentCheckBox = item.OptionalsWrapPanel.Children[o] as CheckBox;
+
+                        if (componentCheckBox.IsChecked.Value)
+                            selectedOptionalComponents.Add((OptionalComponentInfo)componentCheckBox.Tag);
+                    }
+                }
+            }
+
+            return selectedOptionalComponents;
+        }
         #endregion
 
         #region Constructor
@@ -296,31 +407,12 @@ namespace GTAIVDowngrader.Dialogs
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
             // Add all checked mods to list
-            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
-            {
-                ModItem item = (ModItem)ModListStackPanel.Children[i];
-                if (item.IsChecked)
-                    Core.CurrentDowngradingInfo.SelectedMods.Add(item.ModInfo);
-            }
+            Core.CurrentDowngradingInfo.SelectedMods.Clear();
+            Core.CurrentDowngradingInfo.SelectedMods.AddRange(GetSelectedMods());
 
             // Add all optional mod components to list
-            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
-            {
-                ModItem item = (ModItem)ModListStackPanel.Children[i];
-                if (item.IsChecked)
-                {
-                    if (item.ModInfo.OptionalComponents == null)
-                        continue;
-
-                    for (int o = 0; o < item.OptionalsWrapPanel.Children.Count; o++)
-                    {
-                        CheckBox cBox = item.OptionalsWrapPanel.Children[o] as CheckBox;
-
-                        if (cBox.IsChecked.Value)
-                            Core.CurrentDowngradingInfo.SelectedOptionalComponents.Add((OptionalComponentInfo)cBox.Tag);
-                    }
-                }
-            }
+            Core.CurrentDowngradingInfo.SelectedOptionalComponents.Clear();
+            Core.CurrentDowngradingInfo.SelectedOptionalComponents.AddRange(GetSelectedOptionalComponents());
 
             // Set if user wants to install prerequisites
             Core.CurrentDowngradingInfo.SetInstallPrerequisites(InstallPrerequisitesCheckBox.IsChecked.Value);
@@ -329,9 +421,9 @@ namespace GTAIVDowngrader.Dialogs
             if (allMods.Count == 0)
             {
                 instance.ShowMessageDialogScreen("Important Note",
-                    string.Format("It is HIGHLY recommended to install the Ultimate ASI Loader (xlive.dll) and ZolikaPatch to your game otherwise your game probably won't launch.{0}" +
-                    "To download the Ultimate ASI Loader and ZolikaPatch, just click on the buttons next to the Continue button.{0}" +
-                    "We can't guarantee for a stable and functional downgrade if those 2 components are not installed.", Environment.NewLine),
+                    string.Format("It is HIGHLY recommended to install the Ultimate ASI Loader and ZolikaPatch to your game, as otherwise your game probably won't launch.{0}" +
+                    "To download the Ultimate ASI Loader and ZolikaPatch, just click on the buttons below.{0}" +
+                    "We can't guarantee for a stable and functional downgrade if those 2 components aren't installed.", Environment.NewLine),
                     Steps.S9_Confirm,
                     null,
                     "Ultimate ASI Loader",

@@ -37,7 +37,7 @@ namespace GTAIVDowngrader.Dialogs
 
         // Download Stuff
         private WebClient downloadWebClient;
-        private Queue<FileDownload> downloadQueue;
+        private Queue<FileDetails> downloadQueue;
         private DateTime downloadStartTime; // Remaining Time Calculation
 
         // States
@@ -482,103 +482,43 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Download
-        private bool PopulateDownloadQueueList(out bool returnOutOfLoadedMethod)
+        private bool PopulateDownloadQueueList(out bool returnOutOfCallingMethod)
         {
             try
             {
 
-                string filePath;
-
                 // Game stuff
-                switch (Core.CurrentDowngradingInfo.DowngradeTo)
+                string gameVersionArchiveName = string.Format("{0}.zip", Core.CurrentDowngradingInfo.DowngradeTo);
+                string filePath = GetFileLocationInTempFolder(gameVersionArchiveName);
+
+                if (!File.Exists(filePath))
                 {
-                    case GameVersion.v1080:
-                        {
-                            filePath = GetFileLocationInTempFolder("1080.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1080.zip")));
-                                else
-                                    return ShowMissingFileWarning("1080.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
+                    if (!Core.IsInOfflineMode)
+                        downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(gameVersionArchiveName).FileDetails);
+                    else
+                        return ShowMissingFileWarning(gameVersionArchiveName, out returnOutOfCallingMethod);
+                }
+                else
+                {
 
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("1080.zip", out returnOutOfLoadedMethod);
+                    // Check if already existing zip file is corrupted or not
+                    if (IsZipFileCorrupted(filePath))
+                    {
+                        if (Core.IsInOfflineMode)
+                            return ShowCorruptedFileWarning(gameVersionArchiveName, out returnOutOfCallingMethod);
 
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1080.zip")));
-                                    AddLogItem(LogType.Info, "1080.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "1080.zip is already downloaded. Skipping.");
+                        downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(gameVersionArchiveName).FileDetails);
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded but the file is corrupted. Adding to download queue to redownload.", gameVersionArchiveName));
+                    }
+                    else
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", gameVersionArchiveName));
 
-                            }
-                        }
-                        break;
-                    case GameVersion.v1070:
-                        {
-                            filePath = GetFileLocationInTempFolder("1070.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1070.zip")));
-                                else
-                                    return ShowMissingFileWarning("1070.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("1070.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1070.zip")));
-                                    AddLogItem(LogType.Info, "1070.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "1070.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
-                    case GameVersion.v1040:
-                        {
-                            filePath = GetFileLocationInTempFolder("1040.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1040.zip")));
-                                else
-                                    return ShowMissingFileWarning("1040.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("1040.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1040.zip")));
-                                    AddLogItem(LogType.Info, "1040.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "1040.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
                 }
 
                 // Radio stuff
+                // TODO: Change RadioDowngrader.SneedsDowngrader enum to "SneedsRadioDowngrader" string
+                // TODO: Change RadioDowngrader.LegacyDowngrader enum to "LegacyRadioDowngrader" string
+
                 switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
                 {
                     case RadioDowngrader.SneedsDowngrader:
@@ -589,7 +529,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (!Core.IsInOfflineMode)
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("SneedsRadioDowngrader.zip")));
                                 else
-                                    return ShowMissingFileWarning("SneedsRadioDowngrader.zip", out returnOutOfLoadedMethod);
+                                    return ShowMissingFileWarning("SneedsRadioDowngrader.zip", out returnOutOfCallingMethod);
                             }
                             else
                             {
@@ -598,7 +538,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (IsZipFileCorrupted(filePath))
                                 {
                                     if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("SneedsRadioDowngrader.zip", out returnOutOfLoadedMethod);
+                                        return ShowCorruptedFileWarning("SneedsRadioDowngrader.zip", out returnOutOfCallingMethod);
 
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("SneedsRadioDowngrader.zip")));
                                     AddLogItem(LogType.Info, "SneedsRadioDowngrader.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
@@ -617,7 +557,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (!Core.IsInOfflineMode)
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("LegacyRadioDowngrader.zip")));
                                 else
-                                    return ShowMissingFileWarning("LegacyRadioDowngrader.zip", out returnOutOfLoadedMethod);
+                                    return ShowMissingFileWarning("LegacyRadioDowngrader.zip", out returnOutOfCallingMethod);
                             }
                             else
                             {
@@ -626,7 +566,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (IsZipFileCorrupted(filePath))
                                 {
                                     if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("LegacyRadioDowngrader.zip", out returnOutOfLoadedMethod);
+                                        return ShowCorruptedFileWarning("LegacyRadioDowngrader.zip", out returnOutOfCallingMethod);
 
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("LegacyRadioDowngrader.zip")));
                                     AddLogItem(LogType.Info, "LegacyRadioDowngrader.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
@@ -638,6 +578,10 @@ namespace GTAIVDowngrader.Dialogs
                         }
                         break;
                 }
+
+                // TODO: Change VladivostokTypes.New enum to "" string
+                // TODO: Change VladivostokTypes.Old enum to "" string
+
                 switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
                 {
                     case VladivostokTypes.New:
@@ -648,7 +592,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (!Core.IsInOfflineMode)
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithNewVladivostok.zip")));
                                 else
-                                    return ShowMissingFileWarning("WithNewVladivostok.zip", out returnOutOfLoadedMethod);
+                                    return ShowMissingFileWarning("WithNewVladivostok.zip", out returnOutOfCallingMethod);
                             }
                             else
                             {
@@ -657,7 +601,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (IsZipFileCorrupted(filePath))
                                 {
                                     if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("WithNewVladivostok.zip", out returnOutOfLoadedMethod);
+                                        return ShowCorruptedFileWarning("WithNewVladivostok.zip", out returnOutOfCallingMethod);
 
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithNewVladivostok.zip")));
                                     AddLogItem(LogType.Info, "WithNewVladivostok.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
@@ -676,7 +620,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (!Core.IsInOfflineMode)
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithoutNewVladivostok.zip")));
                                 else
-                                    return ShowMissingFileWarning("WithoutNewVladivostok.zip", out returnOutOfLoadedMethod);
+                                    return ShowMissingFileWarning("WithoutNewVladivostok.zip", out returnOutOfCallingMethod);
                             }
                             else
                             {
@@ -685,7 +629,7 @@ namespace GTAIVDowngrader.Dialogs
                                 if (IsZipFileCorrupted(filePath))
                                 {
                                     if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("WithoutNewVladivostok.zip", out returnOutOfLoadedMethod);
+                                        return ShowCorruptedFileWarning("WithoutNewVladivostok.zip", out returnOutOfCallingMethod);
 
                                     downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithoutNewVladivostok.zip")));
                                     AddLogItem(LogType.Info, "WithoutNewVladivostok.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
@@ -706,7 +650,7 @@ namespace GTAIVDowngrader.Dialogs
                         if (!Core.IsInOfflineMode)
                             downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("EpisodeOnlyMusicCE.zip")));
                         else
-                            return ShowMissingFileWarning("EpisodeOnlyMusicCE.zip", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning("EpisodeOnlyMusicCE.zip", out returnOutOfCallingMethod);
                     }
                     else
                     {
@@ -715,7 +659,7 @@ namespace GTAIVDowngrader.Dialogs
                         if (IsZipFileCorrupted(filePath))
                         {
                             if (Core.IsInOfflineMode)
-                                return ShowCorruptedFileWarning("EpisodeOnlyMusicCE.zip", out returnOutOfLoadedMethod);
+                                return ShowCorruptedFileWarning("EpisodeOnlyMusicCE.zip", out returnOutOfCallingMethod);
 
                             downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("EpisodeOnlyMusicCE.zip")));
                             AddLogItem(LogType.Info, "EpisodeOnlyMusicCE.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
@@ -747,7 +691,7 @@ namespace GTAIVDowngrader.Dialogs
                         if (!Core.IsInOfflineMode)
                             downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("directx_Jun2010_redist.exe")));
                         else
-                            return ShowMissingFileWarning("directx_Jun2010_redist.exe", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning("directx_Jun2010_redist.exe", out returnOutOfCallingMethod);
                     }
                     else
                     {
@@ -761,7 +705,7 @@ namespace GTAIVDowngrader.Dialogs
                         if (!Core.IsInOfflineMode)
                             downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("VisualCppRedist_AIO_x86_x64.exe")));
                         else
-                            return ShowMissingFileWarning("VisualCppRedist_AIO_x86_x64.exe", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning("VisualCppRedist_AIO_x86_x64.exe", out returnOutOfCallingMethod);
                     }
                     else
                     {
@@ -776,7 +720,7 @@ namespace GTAIVDowngrader.Dialogs
                         if (!Core.IsInOfflineMode)
                             downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("gfwlivesetup.exe")));
                         else
-                            return ShowMissingFileWarning("gfwlivesetup.exe", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning("gfwlivesetup.exe", out returnOutOfCallingMethod);
                     }
                     else
                     {
@@ -789,7 +733,7 @@ namespace GTAIVDowngrader.Dialogs
                         if (!Core.IsInOfflineMode)
                             downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("xliveredist.msi")));
                         else
-                            return ShowMissingFileWarning("xliveredist.msi", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning("xliveredist.msi", out returnOutOfCallingMethod);
                     }
                     else
                     {
@@ -804,7 +748,7 @@ namespace GTAIVDowngrader.Dialogs
                             if (!Core.IsInOfflineMode)
                                 downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("wllogin_64.msi")));
                             else
-                                return ShowMissingFileWarning("wllogin_64.msi", out returnOutOfLoadedMethod);
+                                return ShowMissingFileWarning("wllogin_64.msi", out returnOutOfCallingMethod);
                         }
                         else
                         {
@@ -819,7 +763,7 @@ namespace GTAIVDowngrader.Dialogs
                             if (!Core.IsInOfflineMode)
                                 downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("wllogin_32.msi")));
                             else
-                                return ShowMissingFileWarning("wllogin_32.msi", out returnOutOfLoadedMethod);
+                                return ShowMissingFileWarning("wllogin_32.msi", out returnOutOfCallingMethod);
                         }
                         else
                         {
@@ -853,7 +797,7 @@ namespace GTAIVDowngrader.Dialogs
                     AddLogItem(LogType.Info, "Nothing selected to populate download queue list.");
                 }
 
-                returnOutOfLoadedMethod = false;
+                returnOutOfCallingMethod = false;
                 return downloadQueue.Count > 0;
             }
             catch (Exception ex)
@@ -861,7 +805,7 @@ namespace GTAIVDowngrader.Dialogs
                 AddLogItem(LogType.Warning, string.Format("Could not populate the download queue list! Details: {0}", ex.Message));
             }
 
-            returnOutOfLoadedMethod = false;
+            returnOutOfCallingMethod = false;
             return false;
         }
         private void StartDownloads()
@@ -1570,18 +1514,18 @@ namespace GTAIVDowngrader.Dialogs
             }
         }
 
-        private bool ShowMissingFileWarning(string file, out bool returnOutOfLoadedMethod)
+        private bool ShowMissingFileWarning(string file, out bool returnOutOfCallingMethod)
         {
-            returnOutOfLoadedMethod = true;
+            returnOutOfCallingMethod = true;
             instance.ShowStandaloneWarningScreen("Downgrading file missing", string.Format("Could not continue downgrading because the file {1} is missing.{0}" +
-                "Place all required files for your downgrade in the 'Data\\Temp' folder and try again.", Environment.NewLine, file));
+                "Place all the required files for your downgrade in the 'Data -> Temp' folder and try again.", Environment.NewLine, file));
             return false;
         }
-        private bool ShowCorruptedFileWarning(string file, out bool returnOutOfLoadedMethod)
+        private bool ShowCorruptedFileWarning(string file, out bool returnOutOfCallingMethod)
         {
-            returnOutOfLoadedMethod = true;
+            returnOutOfCallingMethod = true;
             instance.ShowStandaloneWarningScreen("Downgrading file appears to be corrupted", string.Format("Could not continue downgrading because the file {1} appears to be corrupted.{0}" +
-                "Redownload the file and place it in the 'Data\\Temp' folder and try again.", Environment.NewLine, file));
+                "Either try do redowngrade, or download the file manually and place it in the 'Data -> Temp' folder and try again.", Environment.NewLine, file));
             return false;
         }
         #endregion

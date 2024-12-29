@@ -181,7 +181,6 @@
     </Compile>
     <Compile Include="Classes\CommandLineArgument.cs" />
     <Compile Include="Classes\DowngradingInfo.cs" />
-    <Compile Include="Classes\FileDownload.cs" />
     <Compile Include="Controls\CommandlineItem.xaml.cs">
       <DependentUpon>CommandlineItem.xaml</DependentUpon>
     </Compile>
