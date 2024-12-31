@@ -23,7 +23,11 @@ namespace GTAIVDowngrader.Dialogs
         {
             long size = 0;
 
-            // Game stuff
+            // TODO: Continue here
+
+            // Game Downgrade
+            size += Core.GetDowngradeFileSizeByFileName("...");
+
             switch (Core.CurrentDowngradingInfo.DowngradeTo)
             {
                 case GameVersion.v1080:

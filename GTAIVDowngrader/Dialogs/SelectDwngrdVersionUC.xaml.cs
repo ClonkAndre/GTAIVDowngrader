@@ -31,10 +31,10 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (Core.CurrentDowngradingInfo.DowngradeTo == "1040")
             {
-                Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
-                Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
+                Core.CurrentDowngradingInfo.SetRadioDowngrader("LegacyRadioDowngrader");
+                Core.CurrentDowngradingInfo.SetVladivostokType(null);
                 Core.CurrentDowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
                 Core.CurrentDowngradingInfo.SetConfigureForGFWL(false);
 
@@ -80,17 +80,17 @@ namespace GTAIVDowngrader.Dialogs
 
         private void IV1080Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetDowngradeVersion(GameVersion.v1080);
+            Core.CurrentDowngradingInfo.SetDowngradeVersion("1080");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void IV1070Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetDowngradeVersion(GameVersion.v1070);
+            Core.CurrentDowngradingInfo.SetDowngradeVersion("1070");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void IV1040Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetDowngradeVersion(GameVersion.v1040);
+            Core.CurrentDowngradingInfo.SetDowngradeVersion("1040");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
 

@@ -71,12 +71,12 @@ namespace GTAIVDowngrader.Dialogs
 
         private void OldVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.Old);
+            Core.CurrentDowngradingInfo.SetVladivostokType("OldVladivostok");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NewVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.New);
+            Core.CurrentDowngradingInfo.SetVladivostokType("NewVladivostok");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
 

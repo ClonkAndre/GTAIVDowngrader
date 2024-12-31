@@ -42,35 +42,32 @@ namespace GTAIVDowngrader.Dialogs
                 Core.CurrentDowngradingInfo.SetInstallPrerequisites(true);
             }
             else
+            {
                 instance.NextStep(1);
+            }
         }
         #endregion
 
         #region Events
         private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
-            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (Core.CurrentDowngradingInfo.DowngradeTo == "1040")
                 instance.PreviousStep(1);
             else
                 instance.PreviousStep();
         }
         private void Instance_SkipButtonClicked(object sender, EventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
+            Core.CurrentDowngradingInfo.SetRadioDowngrader(null);
+            Core.CurrentDowngradingInfo.SetVladivostokType(null);
             NextStep();
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
-            {
-                case RadioDowngrader.SneedsDowngrader:
-                    instance.NextStep();
-                    break;
-                default:
-                    NextStep();
-                    break;
-            }
+            if (Core.CurrentDowngradingInfo.IsSelectedRadioDowngraderSneeds())
+                instance.NextStep();
+            else
+                NextStep();
         }
         #endregion
 
@@ -95,8 +92,8 @@ namespace GTAIVDowngrader.Dialogs
                 bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             // Reset
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
+            Core.CurrentDowngradingInfo.SetRadioDowngrader(null);
+            Core.CurrentDowngradingInfo.SetVladivostokType(null);
             Core.CurrentDowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
             SneedsRadioDowngraderCheckbox.IsChecked = false;
             LegacyRadioDowngraderCheckbox.IsChecked = false;
@@ -105,12 +102,12 @@ namespace GTAIVDowngrader.Dialogs
 
         private void SneedsRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.SneedsDowngrader);
+            Core.CurrentDowngradingInfo.SetRadioDowngrader("SneedsRadioDowngrader");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void LegacyRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
+            Core.CurrentDowngradingInfo.SetRadioDowngrader("LegacyRadioDowngrader");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NoEFLCMusicInIVCheckbox_CheckedChanged(object sender, RoutedEventArgs e)

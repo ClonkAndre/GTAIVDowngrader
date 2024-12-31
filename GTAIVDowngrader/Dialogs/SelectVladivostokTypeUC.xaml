@@ -21,14 +21,14 @@
                     In this step you have the choice to pick between old and new Vladivostok.<LineBreak/>
                     Choose "Old Vladivostok" if you are not sure what to pick.
                 </TextBlock>
-                <RadioButton x:Name="OldVladivostokCheckbox" Checked="OldVladivostokCheckbox_Checked" Foreground="White" FontSize="16" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,25,0,0">
+                <RadioButton x:Name="OldVladivostokCheckbox" Checked="OldVladivostokCheckbox_Checked" Foreground="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,25,0,0">
                     <TextBlock TextWrapping="Wrap">
                         Old Vladivostok
                         <LineBreak/>
                             <Run Text="Choose this if you only want pre-cut songs before the April 2018 update." FontSize="12"/>
                         </TextBlock>
                 </RadioButton>
-                <RadioButton x:Name="NewVladivostokCheckbox" Checked="NewVladivostokCheckbox_Checked" Foreground="White" FontSize="16" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,20,0,0">
+                <RadioButton x:Name="NewVladivostokCheckbox" Checked="NewVladivostokCheckbox_Checked" Foreground="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,20,0,0">
                     <TextBlock TextWrapping="Wrap">
                         New Vladivostok
                         <LineBreak/>

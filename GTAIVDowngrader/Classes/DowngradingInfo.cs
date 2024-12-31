@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 using GTAIVDowngrader.Classes.Json.Modification;
@@ -16,8 +15,8 @@ namespace GTAIVDowngrader.Classes
         public string NewGTAIVTargetLocation { get; private set; }
 
         public string DowngradeTo { get; private set; }
-        public RadioDowngrader SelectedRadioDowngrader { get; private set; }
-        public VladivostokTypes SelectedVladivostokType { get; private set; }
+        public string SelectedRadioDowngrader { get; private set; }
+        public string SelectedVladivostokType { get; private set; }
 
         public bool ConfigureForGFWL { get; private set; }
         public bool InstallNoEFLCMusicInIVFix { get; private set; }
@@ -61,11 +60,11 @@ namespace GTAIVDowngrader.Classes
         {
             DowngradeTo = version;
         }
-        public void SetRadioDowngrader(RadioDowngrader radioDowngrader)
+        public void SetRadioDowngrader(string radioDowngrader)
         {
             SelectedRadioDowngrader = radioDowngrader;
         }
-        public void SetVladivostokType(VladivostokTypes type)
+        public void SetVladivostokType(string type)
         {
             SelectedVladivostokType = type;
         }
@@ -93,6 +92,21 @@ namespace GTAIVDowngrader.Classes
         public void SetGTAIVInstallationGotMovedByDowngrader(bool value)
         {
             GTAIVInstallationGotMovedByDowngrader = value;
+        }
+        #endregion
+
+        #region Functions
+        public bool WasAnyRadioDowngraderSelected()
+        {
+            return !string.IsNullOrWhiteSpace(SelectedRadioDowngrader);
+        }
+        public bool IsSelectedRadioDowngraderSneeds()
+        {
+            return SelectedRadioDowngrader == "SneedsRadioDowngrader";
+        }
+        public bool IsSelectedRadioDowngraderLegacy()
+        {
+            return SelectedRadioDowngrader == "LegacyRadioDowngrader";
         }
         #endregion
     }
