@@ -33,30 +33,32 @@
                 <TextBlock TextTrimming="WordEllipsis" TextWrapping="Wrap" FontSize="14" Foreground="White" HorizontalAlignment="Left">
                     This downgrader allows you to effortlessly downgrade the <Run FontWeight="Bold" Text="latest"/> versions of GTA IV to either version <Run FontWeight="Bold" Text="1.0.8.0"/>, <Run FontWeight="Bold" Text="1.0.7.0"/> or <Run FontWeight="Bold" Text="1.0.4.0"/>.
                     
-                    <LineBreak/><LineBreak/><LineBreak/>
+                    <LineBreak/><LineBreak/>
                     <Run Text="Why should I downgrade and what are the advantages of it?" FontSize="18" FontWeight="Medium"/>
                     
                     <!-- Reason 1 -->
+                    <LineBreak/><LineBreak/>
+                    <Run Text="1. Modding" FontSize="16" FontWeight="Medium"/>
                     <LineBreak/>
-                    The top and most obvious reason is for <Run Text="modding capability" FontWeight="Bold"/>. Tons of mods (especially those made <Run Text="before 2020" FontWeight="Bold"/>) only work on <Run FontWeight="Bold" Text="1.0.8.0"/> or lower.
-                    <LineBreak/>
-                    For example, one of the most important mods made for the game, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/955449-iv-zolikapatch/" FontWeight="Bold">Zolika Patch</Hyperlink>, <Run Text="only" FontWeight="Bold"/> works on <Run FontWeight="Bold" Text="1.0.8.0"/> or lower.
-                    <LineBreak/>
-                    Or one of the most famous mods ever made, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.lcpdfr.com/lcpdfr" FontWeight="Bold">LCPDFR</Hyperlink>, works best on <Run Text="1.0.7.0" FontWeight="Bold"/>!
+                    The most obvious reason is enhanced modding capability. Many mods, especially those created before the 2020 Complete Edition update, are only compatible with version 1.0.8.0 or earlier.
+                    For example, one of the most essential mods, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://zolika1351.pages.dev/mods/ivpatch" FontWeight="Bold">ZolikaPatch</Hyperlink>, works exclusively on 1.0.8.0 or lower.
+                    Similarly, one of the most famous mods ever made, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.lcpdfr.com/lcpdfr" FontWeight="Bold">LCPDFR</Hyperlink>, works best on version 1.0.7.0.
                     
                     <!-- Reason 2 -->
                     <LineBreak/><LineBreak/>
-                    The second reason is for <Run Text="stability &amp; performance" FontWeight="Bold"/>. There's utilities/mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/doitsujin/dxvk" FontWeight="Bold">DXVK</Hyperlink>, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/elishacloud/dxwrapper" FontWeight="Bold">DxWrapper</Hyperlink>, <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/ThirteenAG/IV.EFLC.ColAccel" FontWeight="Bold">ColAccel</Hyperlink>, etc... which all work BEST on <Run Text="downgraded copies" FontWeight="Bold"/>.
-                    
-                    <!-- Reason 3 -->
-                    <LineBreak/><LineBreak/>
-                    The third reason is for <Run Text="multiplayer" FontWeight="Bold"/>. GFWL is available on downgraded copies, and multiplayer mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaconnected.com/" FontWeight="Bold">GTA Connected</Hyperlink>, <Run Text="require" FontWeight="Bold"/> a downgraded game.
+                    <Run Text="2. Multiplayer" FontSize="16" FontWeight="Medium"/>
+                    <LineBreak/>
+                    Games for Windows – Live, which Rockstar Games removed in the 2020 update, is available on downgraded copies! More on that later.
+                    <LineBreak/>
+                    There are also multiplayer mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaconnected.com/" FontWeight="Bold">GTA Connected</Hyperlink>, which <Run Text="require" FontWeight="Bold"/> a downgraded game.
                     
                     <!-- Additional Resources -->
-                    <LineBreak/><LineBreak/><LineBreak/>
+                    <LineBreak/><LineBreak/>
                     <Run Text="Additional Resources" FontSize="18" FontWeight="Medium"/>
                     <LineBreak/>
                     Check out the <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gillian-guide.github.io/" FontWeight="Bold">Modding Guide</Hyperlink> made by Gillian for more information on how to downgrade, what to look out for, optimization tips, and more!
+                    <LineBreak/>
+                    If you need additional help, feel free to watch some of the recommended downgrading videos you can find on <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/976691-gta-iv-downgrader/" FontWeight="Bold">here</Hyperlink>.
                     
                 </TextBlock>
             </StackPanel>

@@ -64,8 +64,9 @@
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20,370,35">
                 <TextBlock Text="Congratulations!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    Your GTA IV installation was downgraded to the desired version!
-                        
+                    Your GTA IV installation was downgraded to the desired version!<LineBreak/>
+                    Click on the 'Play GTA IV' button to start playing! (Yes, the button works)
+                    
                     <!-- Final notes -->
                     <LineBreak/><LineBreak/>
                     <Run Text="Some final notes" FontSize="20" FontWeight="Medium"/>

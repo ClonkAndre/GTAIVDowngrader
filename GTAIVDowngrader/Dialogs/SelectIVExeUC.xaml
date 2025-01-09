@@ -21,18 +21,19 @@
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
                 <TextBlock Text="Select downgrade directory or file" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="0,0,250,0">
-                    Please select a GTA IV directory (Containing the GTAIV.exe) or the GTAIV.exe executable file itself that you want to have downgraded.
+                    Please select a GTA IV directory (Containing the GTAIV.exe) or the "GTAIV.exe" executable file itself that you want to have downgraded.
+                    It doesn't matter if you select the directory or the file, the downgrader will automatically detect the correct files.
                 </TextBlock>
 
                 <WrapPanel Margin="0,60,0,0">
-                    <Button x:Name="BrowseFolderButton" Click="BrowseFolderButton_Click" Content="Browse for GTA IV directory" FontSize="16" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <Button x:Name="BrowseFolderButton" Click="BrowseFolderButton_Click" Content="Browse for GTA IV directory" FontSize="16" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Left" Width="220" Margin="0,0,0,0"/>
                     <TextBlock Text="OR" FontSize="12" Foreground="White" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                    <Button x:Name="BrowseFileButton" Click="BrowseFileButton_Click" Content="Browse for GTA IV executable file" FontSize="16" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <Button x:Name="BrowseFileButton" Click="BrowseFileButton_Click" Content="Browse for GTAIV.exe file" FontSize="16" Background="#0050bf" Style="{StaticResource MetroButton}" HorizontalAlignment="Left" Width="220" Margin="0,0,0,0"/>
                 </WrapPanel>
 
                 <StackPanel Width="660" HorizontalAlignment="Left" Margin="0,25,0,0">
                     <Controls:CustomTextBox x:Name="PathTextBox" TextChanged="PathTextBox_TextChanged" WatermarkText="Path to GTA IV folder or executable file"/>
-                    <TextBlock x:Name="StatusTextBlock" Text="Please select a GTA IV directory, or the GTAIV.exe file." TextWrapping="Wrap" FontSize="13" Foreground="#d6d6d6" Margin="0,5,0,0"/>
+                    <TextBlock x:Name="StatusTextBlock" Text="Please either browse for a directory or file." TextWrapping="Wrap" FontSize="13" Foreground="#d6d6d6" Margin="0,5,0,0"/>
                 </StackPanel>
 
             </StackPanel>

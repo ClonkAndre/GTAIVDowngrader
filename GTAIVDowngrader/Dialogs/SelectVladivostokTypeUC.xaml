@@ -20,6 +20,9 @@
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
                     In this step you have the choice to pick between old and new Vladivostok.<LineBreak/>
                     Choose "Old Vladivostok" if you are not sure what to pick.
+                    <LineBreak/><LineBreak/>
+                    To learn more about the changes to Vladivostok FM, check out <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gta.fandom.com/wiki/Vladivostok_FM#Grand_Theft_Auto_IV">this article</Hyperlink> on gta.fandom.com.<LineBreak/>
+                    It details the songs featured before the April 2018 update, after the update, and those included in The Ballad of Gay Tony (TBoGT).
                 </TextBlock>
                 <RadioButton x:Name="OldVladivostokCheckbox" Checked="OldVladivostokCheckbox_Checked" Foreground="White" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,25,0,0">
                     <TextBlock TextWrapping="Wrap">

@@ -7,6 +7,8 @@ using System.Windows.Media.Imaging;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
 
+using GTAIVDowngrader.Classes;
+
 namespace GTAIVDowngrader.Dialogs {
     public partial class MoveGameFilesQuestionUC : UserControl {
 
@@ -101,7 +103,7 @@ namespace GTAIVDowngrader.Dialogs {
         #region Events
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetNewGTAIVTargetLocation(MoveLocationTextbox.Text);
+            DowngradingInfo.SetNewGTAIVTargetLocation(MoveLocationTextbox.Text);
             instance.NextStep();
         }
         private void Instance_SkipButtonClicked(object sender, EventArgs e)

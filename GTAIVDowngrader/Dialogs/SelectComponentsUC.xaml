@@ -26,7 +26,13 @@
                     <Button x:Name="SelectAllButton" Click="SelectAllButton_Click" IsEnabled="False" Content="Select All" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Button x:Name="DeselectAllButton" Click="DeselectAllButton_Click" IsEnabled="False" Content="Deselect All" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Button x:Name="RefreshButton" Click="RefreshButton_Click" IsEnabled="True" Content="Refresh list" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <Button x:Name="ProblemsButton" Click="ProblemsButton_Click" Visibility="Collapsed" IsEnabled="True" Content="There are problems with your current mod configuration. Click here to see them." Background="#870000" Style="{StaticResource MetroButton}" Height="28" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Button x:Name="ProblemsButton" Click="ProblemsButton_Click" Visibility="Collapsed" IsEnabled="True" Content="Click to view the problems detected in your mod configuration." Background="#870000" Style="{StaticResource MetroButton}" Height="28" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                    <StackPanel Margin="5,-3,0,0" HorizontalAlignment="Right" Width="210">
+                        <TextBlock Text="Filter" FontSize="10" Foreground="White"/>
+                        <TextBox x:Name="FilterTextBox" TextChanged="FilterTextBox_TextChanged" BorderBrush="Black"/>
+                    </StackPanel>
+                    
                 </DockPanel>
             </StackPanel>
 

@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 
+using GTAIVDowngrader.Classes;
+
 namespace GTAIVDowngrader.Dialogs
 {
     public partial class MultiplayerUC : UserControl
@@ -32,7 +34,7 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
+            DowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
 
             if (ConfigureForGFWLCheckBox.IsChecked.Value)
             {

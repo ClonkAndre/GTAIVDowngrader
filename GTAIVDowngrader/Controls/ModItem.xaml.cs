@@ -48,20 +48,22 @@ namespace GTAIVDowngrader.Controls
             // Set mod infos
             ModInfo = modInfo;
             Title = ModInfo.Title;
-            Description = ModInfo.Description;
+            Description = ModInfo.Description.Replace("\\n", "\n");
             IsChecked = ModInfo.CheckedByDefault;
 
             // Set warning and/or web page
             if (!string.IsNullOrWhiteSpace(ModInfo.WarningMessage))
             {
-                WarningImage.ToolTip = ModInfo.WarningMessage;
+                WarningImage.ToolTip = ModInfo.WarningMessage.Replace("\\n", "\n");
                 WarningImage.Visibility = Visibility.Visible;
             }
             if (!string.IsNullOrWhiteSpace(ModInfo.OfficialModWebPage))
+            {
                 WebImage.Visibility = Visibility.Visible;
+            }
 
             // Set optionals components
-            if (ModInfo.OptionalComponents != null)
+            if (ModInfo.OptionalComponents.Count != 0)
             {
                 // Clear container
                 OptionalsWrapPanel.Children.Clear();
@@ -76,7 +78,7 @@ namespace GTAIVDowngrader.Controls
                     cBox.Foreground = Brushes.White;
                     cBox.Tag = info;
                     cBox.Content = info.Title;
-                    cBox.ToolTip = info.Description;
+                    cBox.ToolTip = info.Description.Replace("\\n", "\n");
                     cBox.Margin = new Thickness(0, 0, 5, 0);
 
                     if (info.CheckedByDefault)

@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
+using GTAIVDowngrader.Classes;
+
 namespace GTAIVDowngrader.Dialogs
 {
     public partial class FinishUC : UserControl
@@ -34,7 +36,7 @@ namespace GTAIVDowngrader.Dialogs
             if (!Core.IsInSimpleMode)
                 return;
 
-            string path = string.Format("{0}\\commandline.txt", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+            string path = string.Format("{0}\\commandline.txt", DowngradingInfo.IVWorkingDirectoy);
             
             try
             {
@@ -66,9 +68,9 @@ namespace GTAIVDowngrader.Dialogs
             {
                 Core.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", "A UnauthorizedAccessException occured while trying to create log file.", "COULD_NOT_CREATE_LOG_FILE");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Core.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", "An unknown error occured while trying to create log file.", "COULD_NOT_CREATE_LOG_FILE");
+                Core.Notification.ShowNotification(NotificationType.Error, 5000, "Could not create log file", ex.Message, "COULD_NOT_CREATE_LOG_FILE");
             }
         }
         #endregion
@@ -85,14 +87,14 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
-            string fileLoc = string.Format("{0}\\PlayGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+            string fileLoc = string.Format("{0}\\PlayGTAIV.exe", DowngradingInfo.IVWorkingDirectoy);
             try
             {
                 if (File.Exists(fileLoc))
                 {
                     Process process = new Process();
                     process.StartInfo.FileName = fileLoc;
-                    process.StartInfo.WorkingDirectory = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
+                    process.StartInfo.WorkingDirectory = DowngradingInfo.IVWorkingDirectoy;
                     process.Start();
                 }
                 else
@@ -124,6 +126,7 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ExitButton.Content = "Show Log";
             instance.BackButton.Content = "Play GTA IV";
+            instance.BackButton.Background = System.Windows.Media.Brushes.ForestGreen;
             instance.NextButton.Content = "Exit";
 
             instance.UpdateOverallProgress(true);

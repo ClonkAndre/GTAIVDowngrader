@@ -1,6 +1,6 @@
 ﻿namespace GTAIVDowngrader.Classes
 {
-    internal class CommandLineArgument
+    internal class IVCommandLineArgument
     {
         #region Properties
         public int Category { get; private set; }
@@ -9,7 +9,7 @@
         #endregion
 
         #region Constructor
-        public CommandLineArgument(int category, string aName, string aDesc)
+        public IVCommandLineArgument(int category, string aName, string aDesc)
         {
             Category = category;
             ArgumentName = aName;

@@ -27,7 +27,7 @@
                         Radio downgrader by <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/936600-iii-iv-various-gta-downgraders/">Sneed</Hyperlink>
                     <LineBreak/>
                     <Run FontSize="12">
-                        If you choose this downgrader you will be able to choose between the old Vladivostok and the new Vladivostok. More about that on the next step.
+                        This downgrader will let you choose between old and new Vladivostok. More about that on the next step.
                     </Run>
                     </TextBlock>
                 </RadioButton>
@@ -44,7 +44,15 @@
                     </Run>
                     </TextBlock>
                 </RadioButton>
-                <CheckBox x:Name="NoEFLCMusicInIVCheckbox" Checked="NoEFLCMusicInIVCheckbox_CheckedChanged" Unchecked="NoEFLCMusicInIVCheckbox_CheckedChanged" Content="Also install no EFLC music in IV fix" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Foreground="White" Margin="5,30,0,0"/>
+                <CheckBox x:Name="NoEFLCMusicInIVCheckbox" Checked="NoEFLCMusicInIVCheckbox_CheckedChanged" Unchecked="NoEFLCMusicInIVCheckbox_CheckedChanged" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Foreground="White" Margin="5,22,0,0">
+                    <TextBlock>
+                        Install no EFLC music in IV fix
+                        <LineBreak/>
+                        <Run FontSize="12">
+                             If you dont want the music from EFLC to be played in IV, check this box.
+                        </Run>
+                    </TextBlock>
+                </CheckBox>
             </StackPanel>
 
             <TextBlock Text="To proceed, press the 'Next' button. Or 'Skip' if you want to skip this step." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>

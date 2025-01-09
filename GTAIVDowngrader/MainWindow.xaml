@@ -157,15 +157,15 @@
                 </Border>
                 <Border x:Name="BottomActionBorder" Background="#B3000000" BorderThickness="1" BorderBrush="#993b3b3b" CornerRadius="8" Height="50" Margin="10,10,10,10">
                     <Grid>
-
+                        
                         <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">
                             <Button x:Name="BackButton" Click="BackButton_Click" Content="Back" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80" Margin="0,0,10,0"/>
                             <Button x:Name="SkipButton" Click="SkipButton_Click" Content="Skip" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80" Margin="0,0,10,0"/>
                             <Button x:Name="NextButton" Click="NextButton_Click" Content="Next" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80"/>
                         </WrapPanel>
-
+                        
                         <Button x:Name="ExitButton" Click="ExitButton_Click" Content="Exit" Background="#0050bf" Style="{StaticResource MetroButton}" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
-
+                        
                     </Grid>
                 </Border>
             </StackPanel>

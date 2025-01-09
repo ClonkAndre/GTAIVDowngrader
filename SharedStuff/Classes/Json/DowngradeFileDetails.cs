@@ -7,20 +7,21 @@
 
         // Details
         public FileDetails FileDetails;
-        public string Type;
 
         #endregion
 
         #region Constructor
+#if FILE_EDITOR_PROJ
+        // copy constructor
         public DowngradeFileDetails(DowngradeFileDetails instance)
         {
-            FileDetails = instance.FileDetails;
-            Type = instance.Type;
+            FileDetails = new FileDetails(instance.FileDetails);
         }
+#endif
+        // default constructor
         public DowngradeFileDetails()
         {
             FileDetails = new FileDetails();
-            Type = "";
         }
         #endregion
 
@@ -28,10 +29,8 @@
         public override string ToString()
         {
             return string.Format(
-                "FileDetails: {0}, " +
-                "Type: {1}",
-                FileDetails.ToString(),
-                Type);
+                "FileDetails: {0}",
+                FileDetails.ToString());
         }
         #endregion
 

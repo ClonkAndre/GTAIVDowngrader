@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shell;
 
 using CCL;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -31,11 +34,31 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Methods
-        private void AddLogItem(string str)
+        private void AddLogItem(LogType type, string str, bool includeTimeStamp = true, bool printInListBox = true)
         {
             Dispatcher.Invoke(() =>
             {
-                StatusListbox.Items.Add(str);
+                string logTime = string.Format("{0}", DateTime.Now.ToString("HH:mm:ss"));
+
+                string logText = "";
+                if (includeTimeStamp)
+                    logText = string.Format("[{0}] [{1}] {2}", logTime, type.ToString(), str);
+                else
+                    logText = string.Format("[{0}] {1}", type.ToString(), str);
+
+                // Add log to StatusListBox
+                if (printInListBox)
+                    StatusListbox.Items.Add(logText);
+
+                // Add log to log file
+                if (includeTimeStamp)
+                    Core.AddLogItem(type, string.Format("[{0}] {1}", logTime, str));
+                else
+                    Core.AddLogItem(type, str);
+
+                // Auto scroll StatusListBox to last item
+                StatusListbox.SelectedIndex = StatusListbox.Items.Count - 1;
+                StatusListbox.ScrollIntoView(StatusListbox.SelectedItem);
             });
         }
 
@@ -61,6 +84,14 @@ namespace GTAIVDowngrader.Dialogs
             });
         }
 
+        private void SetMainProgressBarAsIndeterminate(bool value)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                instance.taskbarItemInfo.ProgressState = value ? TaskbarItemProgressState.Indeterminate : TaskbarItemProgressState.None;
+                instance.GetMainProgressBar().IsIndeterminate = value;
+            });
+        }
         private void SetProgressBarState(int state)
         {
             Dispatcher.Invoke(() =>
@@ -101,8 +132,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             Dispatcher.Invoke(() =>
             {
-                string exePath = string.Format("{0}\\GTAIV.exe", path);
-                Core.CurrentDowngradingInfo.SetPath(exePath);
+                DowngradingInfo.SetPath(string.Format("{0}\\GTAIV.exe", path));
             });
         }
 
@@ -121,6 +151,9 @@ namespace GTAIVDowngrader.Dialogs
             {
                 string dirPath = directorys[i];
                 string replacedPath = dirPath.Replace(originalDirPath, rightPath);
+
+                AddLogItem(LogType.Info, string.Format("Creating directory {0}...", Path.GetDirectoryName(replacedPath)));
+
                 Directory.CreateDirectory(replacedPath);
             }
 
@@ -129,7 +162,11 @@ namespace GTAIVDowngrader.Dialogs
             {
                 string newPath = files[i];
                 string replacedPath = newPath.Replace(originalDirPath, rightPath);
+
+                AddLogItem(LogType.Info, string.Format("Moving file {0}...", Path.GetFileName(replacedPath)));
+
                 File.Move(newPath, replacedPath);
+
                 IncrementProgressValue();
             }
         }
@@ -138,7 +175,7 @@ namespace GTAIVDowngrader.Dialogs
         #region Events
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetGTAIVInstallationGotMovedByDowngrader(true);
+            DowngradingInfo.SetGTAIVInstallationGotMovedByDowngrader(true);
             instance.NextStep();
         }
         #endregion
@@ -155,10 +192,13 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonEnabledState(true, true, true, false);
 
             StatusListbox.Items.Clear();
-            string oldGTAIVPath = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
-            string newGTAIVPath = Core.CurrentDowngradingInfo.NewGTAIVTargetLocation;
+            string oldGTAIVPath = DowngradingInfo.IVWorkingDirectoy;
+            string newGTAIVPath = DowngradingInfo.NewGTAIVTargetLocation;
             string folderName = Path.GetFileName(oldGTAIVPath);
-            MovingLocationText.Text = string.Format(@"{0}\{1}", newGTAIVPath, folderName);
+            MovingLocationText.Text = string.Format("{0}\\{1}", newGTAIVPath, folderName);
+            MovingLocationText.ToolTip = MovingLocationText.Text;
+
+            AddLogItem(LogType.Info, "- - - Starting Moving Process - - -");
 
             Task.Run(() =>
             {
@@ -166,46 +206,49 @@ namespace GTAIVDowngrader.Dialogs
 
                 try
                 {
-                    // Get file count of old GTA IV path
-                    int fileCount = Directory.GetFiles(oldGTAIVPath, "*.*", SearchOption.AllDirectories).Count();
-
                     // Set things
+                    SetMainProgressBarAsIndeterminate(true);
                     SetNextButtonEnabledState(false);
                     SetProgressBarState(2);
-                    SetProgressMaximum(fileCount);
+                    SetProgressMaximum(Directory.GetFiles(oldGTAIVPath, "*.*", SearchOption.AllDirectories).Count());
                     SetProgressValue(0);
 
                     // Start moving files
-                    AddLogItem(string.Format("Starting to move {0} to {1}...", folderName, newGTAIVPath));
+                    AddLogItem(LogType.Info, string.Format("Moving {0} to {1}...", folderName, newGTAIVPath));
 
                     MoveFilesRecursively(folderName, oldGTAIVPath, newGTAIVPath);
 
-                    AddLogItem(string.Format("Finished moving {0} to {1}!", folderName, newGTAIVPath));
+                    AddLogItem(LogType.Info, string.Format("Finished moving {0} to {1}!", folderName, newGTAIVPath));
 
                     // Delete old files
                     SetProgressBarState(1);
-                    AddLogItem("Deleting remaining files...");
+                    AddLogItem(LogType.Info, "Deleting remaining files...");
                     Directory.Delete(oldGTAIVPath, true);
-
-                    //SetProgressBarState(2);
 
                     result = new AResult<bool>(null, true);
                 }
                 catch (Exception ex)
                 {
                     SetProgressBarState(3);
-                    AddLogItem(string.Format("Error while moving files: {0}", ex.Message));
+                    AddLogItem(LogType.Error, string.Format("Error while moving files: {0}", ex.Message));
                     result = new AResult<bool>(ex, false);
                 }
                 
                 return result;
-            }).ContinueWith(r => {
+            }).ContinueWith(r =>
+            {
                 AResult<bool> result = r.Result;
+
+                SetMainProgressBarAsIndeterminate(false);
+                SetNextButtonEnabledState(true);
+                SetProgressBarState(2);
+                SetProgressMaximum(0);
+                SetProgressValue(0);
+
                 if (result.Result)
                 {
                     SetNewGTAIVPath(newGTAIVPath);
-                    AddLogItem("Moving process completed successfully!");
-                    SetNextButtonEnabledState(true);
+                    AddLogItem(LogType.Info, "Moving process completed successfully!");
                 }
                 else
                 {

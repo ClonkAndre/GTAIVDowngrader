@@ -15,5 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Json\Modification\DotNetModDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Json\Modification\ModDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\Json\Modification\OptionalComponentInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Json\PostInstallActions\EditIniFileAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Json\PostInstallActions\Enums.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Json\PostInstallActions\PostInstallAction.cs" />
   </ItemGroup>
 </Project>

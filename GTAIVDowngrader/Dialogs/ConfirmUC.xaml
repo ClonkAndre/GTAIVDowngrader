@@ -23,8 +23,8 @@
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="15" Foreground="White" HorizontalAlignment="Left">
                     Before starting the downgrade process, here are a few things for you to check:
                     <LineBreak/><LineBreak/>
-                    1. (<Run FontWeight="Bold">Important</Run>) Make sure to deactivate your antivirus software or add an exclusion for your GTA IV directory. Some antivirus programs may flag false positives, which can interfere with the downgrade.<LineBreak/>
-                    2. (Recommended) Make sure that you've a backup of your <Run Text="fresh, unmodified" FontWeight="Bold"/> copy of GTA IV.<LineBreak/>
+                    1. (<Run Text="Important" Foreground="Red" FontWeight="Bold"/>) Make sure to deactivate your antivirus software or add an exclusion for your GTA IV directory. Some antivirus programs may flag false positives, which can interfere with the downgrade.<LineBreak/>
+                    2. (<Run Text="Recommended" Foreground="Green" FontWeight="Bold"/>) Make sure that you've a backup of your <Run Text="fresh, unmodified" FontWeight="Bold"/> copy of GTA IV.<LineBreak/>
                     3. Make sure that your game (or this downgrader) is not in a system folder like <Run Text="Program Files" FontWeight="Bold"/> or <Run Text="Program Files (x86)" FontWeight="Bold"/>.<LineBreak/>
                     4. Make sure that your game (or this downgrader) is not on a <Run Text="A:\" FontWeight="Bold"/> or <Run Text="B:\" FontWeight="Bold"/> drive. Those drive letters are usually used by floppy disk drives, and could cause errors while downgrading.
                     <LineBreak/><LineBreak/>

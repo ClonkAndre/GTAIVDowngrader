@@ -1,110 +1,141 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using GTAIVDowngrader.Classes.Json.Modification;
 
 namespace GTAIVDowngrader.Classes
 {
-    internal class DowngradingInfo
+    internal static class DowngradingInfo
     {
         #region Properties
-        public string IVExecutablePath { get; private set; }
-        public string IVWorkingDirectoy { get; private set; }
-        public string IVTargetBackupDirectory { get; private set; }
-        public string GeneratedMD5Hash { get; private set; }
-        public string NewGTAIVTargetLocation { get; private set; }
+        public static string IVExecutablePath { get; private set; }
+        public static string IVWorkingDirectoy { get; private set; }
+        public static string IVTargetBackupDirectory { get; private set; }
+        public static string GeneratedMD5Hash { get; private set; }
+        public static string NewGTAIVTargetLocation { get; private set; }
 
-        public string DowngradeTo { get; private set; }
-        public string SelectedRadioDowngrader { get; private set; }
-        public string SelectedVladivostokType { get; private set; }
+        public static string DowngradeTo { get; private set; }
+        public static string SelectedRadioDowngrader { get; private set; }
+        public static string SelectedVladivostokType { get; private set; }
 
-        public bool ConfigureForGFWL { get; private set; }
-        public bool InstallNoEFLCMusicInIVFix { get; private set; }
-        public bool InstallPrerequisites { get; private set; }
-        public bool WantsToCreateBackup { get; private set; }
-        public bool CreateBackupInZipFile { get; private set; }
-        public bool GTAIVInstallationGotMovedByDowngrader { get; private set; }
+        public static bool ConfigureForGFWL { get; private set; }
+        public static bool InstallNoEFLCMusicInIVFix { get; private set; }
+        public static bool InstallPrerequisites { get; private set; }
+        public static bool WantsToCreateBackup { get; private set; }
+        public static bool CreateBackupInZipFile { get; private set; }
+        public static bool GTAIVInstallationGotMovedByDowngrader { get; private set; }
 
-        public List<ModDetails> SelectedMods;
-        public List<OptionalComponentInfo> SelectedOptionalComponents;
-        #endregion
-
-        #region Constructor
-        public DowngradingInfo()
-        {
-            SelectedMods = new List<ModDetails>();
-            SelectedOptionalComponents = new List<OptionalComponentInfo>();
-        }
+        public static Queue<ModDetails> SelectedMods;
+        public static Queue<OptionalComponentInfo> SelectedOptionalComponents;
         #endregion
 
         #region Methods
-        public void SetPath(string executablePath)
+        public static void Init()
+        {
+            SelectedMods = new Queue<ModDetails>();
+            SelectedOptionalComponents = new Queue<OptionalComponentInfo>();
+        }
+        public static void Cleanup()
+        {
+            IVExecutablePath = string.Empty;
+            IVWorkingDirectoy = string.Empty;
+            IVTargetBackupDirectory = string.Empty;
+            GeneratedMD5Hash = string.Empty;
+            NewGTAIVTargetLocation = string.Empty;
+
+            DowngradeTo = string.Empty;
+            SelectedRadioDowngrader = string.Empty;
+            SelectedVladivostokType = string.Empty;
+
+            ConfigureForGFWL = false;
+            InstallNoEFLCMusicInIVFix = false;
+            InstallPrerequisites = false;
+            WantsToCreateBackup = false;
+            CreateBackupInZipFile = false;
+            GTAIVInstallationGotMovedByDowngrader = false;
+
+            SelectedMods.Clear();
+            SelectedOptionalComponents.Clear();
+        }
+
+        public static void SetPath(string executablePath)
         {
             IVExecutablePath = executablePath;
             IVWorkingDirectoy = Path.GetDirectoryName(executablePath);
         }
-        public void SetTargetBackupPath(string backupPath)
+        public static void SetTargetBackupPath(string backupPath)
         {
             IVTargetBackupDirectory = backupPath;
         }
-        public void SetGeneratedMD5Hash(string hash)
+        public static void SetGeneratedMD5Hash(string hash)
         {
             GeneratedMD5Hash = hash;
         }
-        public void SetNewGTAIVTargetLocation(string location)
+        public static void SetNewGTAIVTargetLocation(string location)
         {
             NewGTAIVTargetLocation = location;
         }
 
-        public void SetDowngradeVersion(string version)
+        public static void SetDowngradeVersion(string version)
         {
             DowngradeTo = version;
         }
-        public void SetRadioDowngrader(string radioDowngrader)
+        public static void SetRadioDowngrader(string radioDowngrader)
         {
             SelectedRadioDowngrader = radioDowngrader;
         }
-        public void SetVladivostokType(string type)
+        public static void SetVladivostokType(string type)
         {
             SelectedVladivostokType = type;
         }
 
-        public void SetConfigureForGFWL(bool value)
+        public static void SetConfigureForGFWL(bool value)
         {
             ConfigureForGFWL = value;
         }
-        public void SetInstallNoEFLCMusicInIVFix(bool value)
+        public static void SetInstallNoEFLCMusicInIVFix(bool value)
         {
             InstallNoEFLCMusicInIVFix = value;
         }
-        public void SetInstallPrerequisites(bool value)
+        public static void SetInstallPrerequisites(bool value)
         {
             InstallPrerequisites = value;
         }
-        public void SetWantsToCreateBackup(bool value)
+        public static void SetWantsToCreateBackup(bool value)
         {
             WantsToCreateBackup = value;
         }
-        public void SetCreateBackupInZipFile(bool value)
+        public static void SetCreateBackupInZipFile(bool value)
         {
             CreateBackupInZipFile = value;
         }
-        public void SetGTAIVInstallationGotMovedByDowngrader(bool value)
+        public static void SetGTAIVInstallationGotMovedByDowngrader(bool value)
         {
             GTAIVInstallationGotMovedByDowngrader = value;
+        }
+
+        public static void AddSelectedMods(List<ModDetails> mods)
+        {
+            mods = mods.OrderBy(x => x.ForceToBeLastInInstallQueue).ToList();
+            mods.ForEach(x => SelectedMods.Enqueue(x));
+        }
+        public static void AddSelectedOptionalComponents(List<OptionalComponentInfo> optionalComponents)
+        {
+            optionalComponents.ForEach(x => SelectedOptionalComponents.Enqueue(x));
         }
         #endregion
 
         #region Functions
-        public bool WasAnyRadioDowngraderSelected()
+        public static bool WasAnyRadioDowngraderSelected()
         {
             return !string.IsNullOrWhiteSpace(SelectedRadioDowngrader);
         }
-        public bool IsSelectedRadioDowngraderSneeds()
+        public static bool IsSelectedRadioDowngraderSneeds()
         {
             return SelectedRadioDowngrader == "SneedsRadioDowngrader";
         }
-        public bool IsSelectedRadioDowngraderLegacy()
+        public static bool IsSelectedRadioDowngraderLegacy()
         {
             return SelectedRadioDowngrader == "LegacyRadioDowngrader";
         }

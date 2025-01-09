@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
+using GTAIVDowngrader.Classes;
+
 namespace GTAIVDowngrader.Dialogs
 {
     public partial class SelectVladivostokTypeUC : UserControl
@@ -31,6 +33,16 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
+            // Set selected type
+            if (OldVladivostokCheckbox.IsChecked.Value)
+            {
+                DowngradingInfo.SetVladivostokType("OldVladivostok");
+            }
+            else if (NewVladivostokCheckbox.IsChecked.Value)
+            {
+                DowngradingInfo.SetVladivostokType("NewVladivostok");
+            }
+
             // Show message and skip select components tab if in offline mode
             if (Core.IsInOfflineMode)
             {
@@ -43,10 +55,12 @@ namespace GTAIVDowngrader.Dialogs
                     Steps.S9_Confirm);
 
                 // Force this to be true
-                Core.CurrentDowngradingInfo.SetInstallPrerequisites(true);
+                DowngradingInfo.SetInstallPrerequisites(true);
             }
             else
+            {
                 instance.NextStep();
+            }
         }
         #endregion
 
@@ -71,13 +85,16 @@ namespace GTAIVDowngrader.Dialogs
 
         private void OldVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetVladivostokType("OldVladivostok");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NewVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetVladivostokType("NewVladivostok");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Core.AskUserToOpenURL(e.Uri);
         }
 
     }

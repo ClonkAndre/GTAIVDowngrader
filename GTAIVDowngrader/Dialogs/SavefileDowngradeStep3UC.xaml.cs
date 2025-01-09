@@ -5,6 +5,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
+using GTAIVDowngrader.Classes;
+
 namespace GTAIVDowngrader.Dialogs
 {
     public partial class SavefileDowngradeStep3UC : UserControl
@@ -56,7 +58,7 @@ namespace GTAIVDowngrader.Dialogs
                 bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             // Change location text based on downgrading options
-            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) {
+            if (DowngradingInfo.ConfigureForGFWL) {
                 gfwlLocationTextBlock.Visibility = Visibility.Visible;
                 xliveLocationTextBlock.Visibility = Visibility.Collapsed;
             }

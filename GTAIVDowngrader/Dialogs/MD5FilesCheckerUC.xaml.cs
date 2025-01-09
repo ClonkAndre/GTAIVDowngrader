@@ -12,8 +12,10 @@ using System.Windows.Media.Imaging;
 
 using CCL;
 
+using GTAIVDowngrader.Classes;
+
 namespace GTAIVDowngrader.Dialogs
-{
+{ 
     public partial class MD5FilesCheckerUC : UserControl
     {
 
@@ -76,7 +78,7 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void NextStep()
         {
-            AResult<bool> result = CheckCurrentLocation(Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+            AResult<bool> result = CheckCurrentLocation(DowngradingInfo.IVWorkingDirectoy);
 
             if (result.Result)
                 instance.NextStep(2);
@@ -300,7 +302,7 @@ namespace GTAIVDowngrader.Dialogs
                         return;
                     }
 
-                    Core.Notification.ShowNotification(NotificationType.Warning, 9000, "Offline Mode Information", "Can't get the latest MD5 Hashes because of offline mode. Using already existing ones. Hashes might be outdated, and could end up resulting in a wrong result.", "OUTDATED_HASHES_WARNING");
+                    Core.Notification.ShowNotification(NotificationType.Warning, 9000, "Offline Mode Information", "Unable to fetch the latest MD5 hashes due to offline mode. Using existing hashes, which may be outdated and could lead to incorrect results.", "OUTDATED_HASHES_WARNING");
                 }
 
                 SetNavigationButtonsEnabledState(false);
@@ -312,7 +314,7 @@ namespace GTAIVDowngrader.Dialogs
                 Task.Run(() =>
                 {
 
-                    return GetMD5StringFromFolder(Core.CurrentDowngradingInfo.IVWorkingDirectoy, new List<string>()
+                    return GetMD5StringFromFolder(DowngradingInfo.IVWorkingDirectoy, new List<string>()
                     {
                         "876bd1d9393712ac.bin",
                         "playgtaiv.exe",
@@ -385,7 +387,7 @@ namespace GTAIVDowngrader.Dialogs
                             "To continue, press the Next button.", Environment.NewLine));
 
                         // Set Hash for log file
-                        Core.CurrentDowngradingInfo.SetGeneratedMD5Hash(result.Result);
+                        DowngradingInfo.SetGeneratedMD5Hash(result.Result);
 
                         // Automatically get to the next step when started using valid commandline args
                         if (Core.GotStartedWithValidCommandLineArgs)
@@ -408,7 +410,7 @@ namespace GTAIVDowngrader.Dialogs
                             "Please consider sending the log file created by the IV Downgrader at the end of the downgrading process in our Discord server to help improve the IV Downgrader!", Environment.NewLine));
 
                         // Set Hashes for log file
-                        Core.CurrentDowngradingInfo.SetGeneratedMD5Hash(result.Result);
+                        DowngradingInfo.SetGeneratedMD5Hash(result.Result);
 
                     }
 
@@ -421,7 +423,9 @@ namespace GTAIVDowngrader.Dialogs
 
                 // Set stuff
                 SetNavigationButtonsEnabledState(true);
-                SetStatusText(string.Format("Error while creating MD5 Hash from directory. However, this does not stop you from downgrading. To continue, press the Next button.{0}" +
+                SetStatusText(string.Format("Error while creating MD5 Hash from directory. However, this does not stop you from downgrading.{0}" +
+                    "Please report this issue to the developer.{0}" +
+                    "To continue, press the Next button.{0}{0}" +
                     "Details: {1}", Environment.NewLine, ex.StackTrace));
                 SetStatusImage(Icon.Error);
                 SetProgressBarState(ProgressBarState.Errored);

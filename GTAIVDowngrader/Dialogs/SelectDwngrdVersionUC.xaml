@@ -43,7 +43,7 @@
                     <LineBreak/><LineBreak/>
                     <Run Text="Select which version you would like to downgrade to" FontSize="15"/>
                 </TextBlock>
-                <RadioButton x:Name="IV1080Radiobtn" Checked="IV1080Radiobtn_Checked" Content="1.0.8.0 (Recommended)" FontSize="18" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,9,0,0"/>
+                <RadioButton x:Name="IV1080Radiobtn" Checked="IV1080Radiobtn_Checked" Content="1.0.8.0 (Recommended)" IsChecked="True" FontSize="18" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,9,0,0"/>
                 <RadioButton x:Name="IV1070Radiobtn" Checked="IV1070Radiobtn_Checked" Content="1.0.7.0" FontSize="18" Foreground="#d9d9d9" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
                 <RadioButton x:Name="IV1040Radiobtn" Checked="IV1040Radiobtn_Checked" Content="1.0.4.0" FontSize="18" Foreground="#d9d9d9" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
             </StackPanel>

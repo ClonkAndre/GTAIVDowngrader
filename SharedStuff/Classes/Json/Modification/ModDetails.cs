@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+#if FILE_EDITOR_PROJ
 using Newtonsoft.Json;
+#endif
+
+using GTAIVDowngrader.Classes.Json.PostInstallActions;
 
 namespace GTAIVDowngrader.Classes.Json.Modification
 {
@@ -13,8 +17,11 @@ namespace GTAIVDowngrader.Classes.Json.Modification
         public FileDetails FileDetails;
         public List<string> ForGameVersion;
 
+        public string UniqueName;
         public string Title;
+#if FILE_EDITOR_PROJ
         [JsonIgnore()] public string EditTitle;
+#endif
         public string Description;
         public string WarningMessage;
         public string OfficialModWebPage;
@@ -36,39 +43,55 @@ namespace GTAIVDowngrader.Classes.Json.Modification
         // Optional Components
         public List<OptionalComponentInfo> OptionalComponents;
 
+        // Post Install Actions
+        public List<PostInstallAction> PostInstallActions;
+
         #endregion
 
         #region Constructor
-        public ModDetails(ModDetails instance)
+#if FILE_EDITOR_PROJ
+        // copy constructor
+        public ModDetails(ModDetails modDetails)
         {
-            FileDetails = instance.FileDetails;
-            ForGameVersion = instance.ForGameVersion.ToList();
+            FileDetails = new FileDetails(modDetails.FileDetails);
+            ForGameVersion = modDetails.ForGameVersion.ToList();
 
-            Title = instance.Title;
-            EditTitle = instance.EditTitle;
-            Description = instance.Description;
-            WarningMessage = instance.WarningMessage;
-            OfficialModWebPage = instance.OfficialModWebPage;
+            UniqueName = modDetails.UniqueName;
+            Title = modDetails.Title;
+            EditTitle = modDetails.EditTitle;
+            Description = modDetails.Description;
+            WarningMessage = modDetails.WarningMessage;
+            OfficialModWebPage = modDetails.OfficialModWebPage;
 
-            IsASILoader = instance.IsASILoader;
-            IsScriptHook = instance.IsScriptHook;
-            ASIModDetails = new ASIModDetails(instance.ASIModDetails);
-            DotNetModDetails = new DotNetModDetails(instance.DotNetModDetails);
+            IsASILoader = modDetails.IsASILoader;
+            IsScriptHook = modDetails.IsScriptHook;
+            IsScriptHookDotNet = modDetails.IsScriptHookDotNet;
+            IsIVSDKDotNet = modDetails.IsIVSDKDotNet;
+            ASIModDetails = new ASIModDetails(modDetails.ASIModDetails);
+            DotNetModDetails = new DotNetModDetails(modDetails.DotNetModDetails);
 
-            CompatibleWithGFWL = instance.CompatibleWithGFWL;
-            ShowInDowngrader = instance.ShowInDowngrader;
-            CheckedByDefault = instance.CheckedByDefault;
+            CompatibleWithGFWL = modDetails.CompatibleWithGFWL;
+            ShowInDowngrader = modDetails.ShowInDowngrader;
+            CheckedByDefault = modDetails.CheckedByDefault;
 
-            OptionalComponents = instance.OptionalComponents.ToList();
+            OptionalComponents = modDetails.OptionalComponents.ToList();
+
+            PostInstallActions = modDetails.PostInstallActions.ToList();
         }
+#endif
+        // default constructor
         public ModDetails()
         {
             FileDetails = new FileDetails();
             ForGameVersion = new List<string>();
             OptionalComponents = new List<OptionalComponentInfo>();
+            PostInstallActions = new List<PostInstallAction>();
 
+            UniqueName = "";
             Title = "";
+#if FILE_EDITOR_PROJ
             EditTitle = "";
+#endif
             Description = "";
             WarningMessage = "";
             OfficialModWebPage = "";
@@ -78,12 +101,15 @@ namespace GTAIVDowngrader.Classes.Json.Modification
         #endregion
 
         #region Methods
+#if FILE_EDITOR_PROJ
         public void PrepareForEditor()
         {
             EditTitle = Title;
             FileDetails.PrepareForEditor();
             OptionalComponents.ForEach(x => x.PrepareForEditor());
+            PostInstallActions.ForEach(x => x.PrepareForEditor());
         }
+#endif
         #endregion
 
         #region Functions
@@ -126,15 +152,17 @@ namespace GTAIVDowngrader.Classes.Json.Modification
                 "ShowInDowngrader: {6}, " +
                 "CheckedByDefault: {7}, " +
                 "OptionalComponents Count: {8}",
+                "PostInstallActions Count: {9}",
                 FileDetails, // 0
                 ForGameVersion.Count, // 1
                 Title, // 2
-                ASIModDetails.ToString(), // 3
-                DotNetModDetails.ToString(), // 4
+                ASIModDetails == null ? "-" : ASIModDetails.ToString(), // 3
+                DotNetModDetails == null ? "-" : DotNetModDetails.ToString(), // 4
                 CompatibleWithGFWL, // 5
                 ShowInDowngrader, // 6
                 CheckedByDefault, // 7
-                OptionalComponents.Count); // 8
+                OptionalComponents.Count, // 8
+                PostInstallActions.Count); // 9
         }
         #endregion
     }

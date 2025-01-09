@@ -3,9 +3,12 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
+using Microsoft.WindowsAPICodePack.Dialogs;
 using CCL;
+
+using GTAIVDowngrader.Classes;
+using GTAIVDowngrader.Classes.Json.Modification;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -23,75 +26,46 @@ namespace GTAIVDowngrader.Dialogs
         {
             long size = 0;
 
-            // TODO: Continue here
-
             // Game Downgrade
-            size += Core.GetDowngradeFileSizeByFileName("...");
+            size += Core.GetDowngradeFileSizeByFileName(string.Concat(DowngradingInfo.DowngradeTo, ".zip"));
 
-            switch (Core.CurrentDowngradingInfo.DowngradeTo)
+            // Radio Downgrade
+            if (DowngradingInfo.WasAnyRadioDowngraderSelected())
             {
-                case GameVersion.v1080:
-                    size += Core.GetDowngradeFileSizeByFileName("1080.zip");
-                    break;
-                case GameVersion.v1070:
-                    size += Core.GetDowngradeFileSizeByFileName("1070.zip");
-                    break;
-                case GameVersion.v1040:
-                    size += Core.GetDowngradeFileSizeByFileName("1040.zip");
-                    break;
-            }
+                size += Core.GetDowngradeFileSizeByFileName(string.Concat(DowngradingInfo.SelectedRadioDowngrader, ".zip"));
 
-            // Radio stuff
-            switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
-            {
-                case RadioDowngrader.SneedsDowngrader:
-                    size += Core.GetDowngradeFileSizeByFileName("SneedsRadioDowngrader.zip");
-                    break;
-                case RadioDowngrader.LegacyDowngrader:
-                    size += Core.GetDowngradeFileSizeByFileName("LegacyRadioDowngrader.zip");
-                    break;
-            }
-            switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
-            {
-                case VladivostokTypes.New:
-                    size += Core.GetDowngradeFileSizeByFileName("WithNewVladivostok.zip");
-                    break;
-                case VladivostokTypes.Old:
-                    size += Core.GetDowngradeFileSizeByFileName("WithoutNewVladivostok.zip");
-                    break;
-            }
-            if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
-            {
-                size += Core.GetDowngradeFileSizeByFileName("EpisodeOnlyMusicCE.zip");
+                if (DowngradingInfo.IsSelectedRadioDowngraderSneeds())
+                    size += Core.GetDowngradeFileSizeByFileName(string.Concat(DowngradingInfo.SelectedVladivostokType, ".zip"));
+
+                if (DowngradingInfo.InstallNoEFLCMusicInIVFix)
+                    size += Core.GetDowngradeFileSizeByFileName("NoEpisodeMusicInIV.zip");
             }
 
             // Mods
-            for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
+            ModDetails[] selectedMods = DowngradingInfo.SelectedMods.ToArray();
+            for (int i = 0; i < selectedMods.Length; i++)
             {
-                size += Core.CurrentDowngradingInfo.SelectedMods[i].FileSize;
+                size += selectedMods[i].FileDetails.SizeInBytes;
             }
 
             // Optional Mod Stuff
-            for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count; i++)
+            OptionalComponentInfo[] selectedOptionalComponentInfos = DowngradingInfo.SelectedOptionalComponents.ToArray();
+            for (int i = 0; i < selectedOptionalComponentInfos.Length; i++)
             {
-                size += Core.CurrentDowngradingInfo.SelectedOptionalComponents[i].FileSize;
+                size += selectedOptionalComponentInfos[i].FileDetails.SizeInBytes;
             }
 
             // Prerequisites
-            if (Core.CurrentDowngradingInfo.InstallPrerequisites)
+            if (DowngradingInfo.InstallPrerequisites)
             {
                 size += Core.GetDowngradeFileSizeByFileName("directx_Jun2010_redist.exe");
-                size += Core.GetDowngradeFileSizeByFileName("vcredist_x86.exe");
+                size += Core.GetDowngradeFileSizeByFileName("VisualCppRedist_AIO_x86_x64.exe");
             }
-            if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
+            if (DowngradingInfo.ConfigureForGFWL)
             {
                 size += Core.GetDowngradeFileSizeByFileName("gfwlivesetup.exe");
                 size += Core.GetDowngradeFileSizeByFileName("xliveredist.msi");
-
-                if (Environment.Is64BitOperatingSystem)
-                    size += Core.GetDowngradeFileSizeByFileName("wllogin_64.msi");
-                else
-                    size += Core.GetDowngradeFileSizeByFileName("wllogin_32.msi");
+                size += Core.GetDowngradeFileSizeByFileName(Environment.Is64BitOperatingSystem ? "wllogin_64.msi" : "wllogin_32.msi");
             }
 
             DownloadSizeInfoLabel.Text = string.Format("The downgrader will download {0} of data from the internet for this downgrade.", FileHelper.GetExactFileSizeAdvanced(size));
@@ -147,11 +121,11 @@ namespace GTAIVDowngrader.Dialogs
         {
             bool pluginsFolderExists = false, scriptsFolderExists = false;
 
-            string pluginsFolder = string.Format("{0}\\plugins", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+            string pluginsFolder = string.Format("{0}\\plugins", DowngradingInfo.IVWorkingDirectoy);
             if (Directory.Exists(pluginsFolder))
                 pluginsFolderExists = true;
 
-            string scriptsFolder = string.Format("{0}\\scripts", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+            string scriptsFolder = string.Format("{0}\\scripts", DowngradingInfo.IVWorkingDirectoy);
             if (Directory.Exists(scriptsFolder))
                 scriptsFolderExists = true;
 
@@ -175,7 +149,7 @@ namespace GTAIVDowngrader.Dialogs
         private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
             if (Core.IsInOfflineMode)
-                instance.PreviousStep(Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040 ? 4 : 2);
+                instance.PreviousStep(DowngradingInfo.DowngradeTo == "1040" ? 4 : 2);
             else
                 instance.PreviousStep();
         }
@@ -183,8 +157,8 @@ namespace GTAIVDowngrader.Dialogs
         {
             if (CheckIfOldFoldersExists())
             {
-                switch (MessageBox.Show("We've noticed that you still have a plugins or scripts folder inside of the GTA IV directory that should be downgraded. " +
-                    "If you don't want to loose them, now it's the time to make a backup of them! Just press No, and make a backup of them. " +
+                switch (MessageBox.Show("We've noticed that you still have a plugins and/or scripts folder inside of the GTA IV directory that should be downgraded. " +
+                    "If you don't want to loose them, now it's the time to make a backup of them! Just press No, and start backing them up. " +
                     "If you don't want them anymore, you can press Yes, this will start the downgrading process, which will delete them.", "Confirm deletion", MessageBoxButton.YesNo, MessageBoxImage.Warning))
                 {
                     case MessageBoxResult.Yes: break;
@@ -196,8 +170,8 @@ namespace GTAIVDowngrader.Dialogs
             {
                 if (CheckBackupDirectory(BackupLocationTextbox.Text))
                 {
-                    Core.CurrentDowngradingInfo.SetTargetBackupPath(BackupLocationTextbox.Text);
-                    Core.CurrentDowngradingInfo.SetCreateBackupInZipFile(CreateBackupInZIPFileCheckBox.IsChecked.Value);
+                    DowngradingInfo.SetTargetBackupPath(BackupLocationTextbox.Text);
+                    DowngradingInfo.SetCreateBackupInZipFile(CreateBackupInZIPFileCheckBox.IsChecked.Value);
                     Core.LogDowngradingInfos();
                     instance.NextStep();
                 }
@@ -243,7 +217,7 @@ namespace GTAIVDowngrader.Dialogs
 
         private void MakeABackupForMeCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetWantsToCreateBackup(MakeABackupForMeCheckbox.IsChecked.Value);
+            DowngradingInfo.SetWantsToCreateBackup(MakeABackupForMeCheckbox.IsChecked.Value);
 
             if (MakeABackupForMeCheckbox.IsChecked.Value)
             {

@@ -30,6 +30,7 @@ namespace GTAIVDowngrader.Dialogs
         #region Events
         private void Instance_SkipButtonClicked(object sender, EventArgs e)
         {
+            Core.AddLogItem(LogType.Info, "User skipped the savefile downgrade process.");
             instance.NextStep(2);
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
@@ -76,7 +77,8 @@ namespace GTAIVDowngrader.Dialogs
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             Uri uri = e.Uri;
-            switch (uri.Host) {
+            switch (uri.Host)
+            {
                 case "gotodocumentsfolder":
                     string documentsFolder = string.Format("{0}\\Rockstar Games\\GTA IV\\savegames", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
                     if (Directory.Exists(documentsFolder))

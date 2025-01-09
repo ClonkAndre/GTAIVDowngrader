@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -367,6 +366,27 @@ namespace GTAIVDowngrader
             ChangeStep(Steps.Error, new List<object>() { e });
         }
 
+        private void ContinueWithCountryCheck()
+        {
+            // Check if user is in a restricted area
+            if (Core.InPotentialRestrictedArea && !Core.IsInOfflineMode)
+            {
+                ShowMessageDialogScreen("Potential Restricted Country Warning",
+                    string.Format("It appears that you might be in a country or region where services like Dropbox and GitHub are blocked. " +
+                    "The downgrader relies on these services to download necessary mods and data. " +
+                    "If the downgrading process fails during downloads, this may be the cause.{0}{0}" +
+                    "What you can Do:{0}" +
+                    "- Try to continue and see if it might work.{0}" +
+                    "- Try out the offline version of this downgrader. More information about that on the GTAForums thread.", Environment.NewLine),
+                    Steps.S0_Welcome);
+
+                messageDialogUC.OverrideNextButtonClick(() => ContinueWithAdminCheck());
+            }
+            else
+            {
+                ContinueWithAdminCheck();
+            }
+        }
         private void ContinueWithAdminCheck()
         {
             // Check if downgrader did not got started with admin privileges
@@ -441,7 +461,7 @@ namespace GTAIVDowngrader
             Dispatcher.Invoke(() =>
             {
 
-                ShowStandaloneWarningScreen("Retrieving information", string.Format("Please wait while the downgrader finished retrieving necessary information...{0}" +
+                ShowStandaloneWarningScreen("Retrieving Information", string.Format("Please wait while the downgrader finished retrieving necessary information...{0}" +
                     "If you are stuck at this step, please try to restart the downgrader.", Environment.NewLine));
 
                 // Download required data
@@ -458,6 +478,9 @@ namespace GTAIVDowngrader
 
                     while (!finishedDownloadingFileInfo && !finishedDownloadingMD5Hashes) // Wait till downloads are complete
                         Thread.Sleep(1500);
+
+                    // Save the downloaded data
+                    Core.SaveDowngradingDataToFile();
 
                 }).ContinueWith(r => // Downloads completed
                 {
@@ -506,31 +529,35 @@ namespace GTAIVDowngrader
 
         private void DownloadWebClient_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
         {
+            if (e.Cancelled)
+            {
+                ShowStandaloneWarningScreen("Downloading Data Cancelled", string.Format("Could not retrieve downgrading information because the data download was cancelled.{0}" +
+                    "Try to restart the downgrader, and make sure you have a proper internet connection.", Environment.NewLine));
+                return;
+            }
+            if (e.Error != null)
+            {
+                ShowErrorScreen(new Exception(string.Format("An error occured while trying to retrieve downgrading information.{0}" +
+                    "Details: {1}", Environment.NewLine, e.Error), e.Error));
+                return;
+            }
+
+            string userState = e.UserState != null ? e.UserState.ToString() : null;
+
+            if (string.IsNullOrEmpty(userState))
+            {
+                ShowErrorScreen(new ArgumentNullException("Failed to read UserState value while retrieving downgrading information."));
+                return;
+            }
+
             try
             {
-                if (e.Cancelled)
-                    return;
-
-                string userState = e.UserState != null ? e.UserState.ToString() : null;
-
-                if (string.IsNullOrEmpty(userState))
-                {
-                    ShowErrorScreen(new Exception(string.Format("[STRING] (1) Unknown error while trying to read user state.")));
-                    return;
-                }
-
-                if (e.Error != null)
-                {
-                    ShowErrorScreen(new Exception(string.Format("[STRING] (1) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, e.Error.ToString()), e.Error));
-                    return;
-                }
-
                 // Get the result and do validation
                 string result = e.Result;
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
-                    ShowErrorScreen(new Exception("An unknown error occured while trying to retrieve downgrading info."));
+                    ShowErrorScreen(new Exception("An unknown error occured while trying to retrieve downgrading information."));
                     return;
                 }
 
@@ -544,24 +571,7 @@ namespace GTAIVDowngrader
                             Core.IsPrideMonth = e.Result == "1";
 
                             // The download link for downloading the downgrading files info
-#if DEBUG
-                            string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/refs/heads/testing/v2.2_and_up/downgradingFiles.json";
-#else
-                            string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.2_and_up/downgradingFiles.json";
-#endif
-
-                            if (Core.UseAlternativeDownloadLinks)
-                            {
-                                dLink = "https://www.dropbox.com/scl/fi/7682k1hfmkvy24gyjsvxq/downgradingFiles.json?rlkey=wocqup7jor02xop2e90up136n&dl=1";
-                                Core.AddLogItem(LogType.Warning, "Using alternative download link for downgradingFiles.json! Files might be outdated!");
-
-                                string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\downgradingFiles.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                                downloadWebClient.DownloadFileAsync(new Uri(dLink), filePath, "DOWNGRADING_FILES");
-                            }
-                            else
-                            {
-                                downloadWebClient.DownloadStringAsync(new Uri(dLink), "DOWNGRADING_FILES");
-                            }
+                            downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/refs/heads/v2.2/downgradeFileDetails.json"), "DOWNGRADING_FILES");
 
                             break;
                         }
@@ -580,16 +590,10 @@ namespace GTAIVDowngrader
 
                             if (Core.DowngradeFiles.Count != 0)
                                 Core.DowngradeFiles.ForEach(d => Console.WriteLine(d.ToString())); // Print to console
-
-                            Console.WriteLine("");
 #endif
 
                             // The download link for downloading the MD5 Hashes
-#if DEBUG
-                            string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/refs/heads/testing/v2.2_and_up/md5Hashes.json";
-#else
-                            string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.2_and_up/md5Hashes.json";
-#endif
+                            string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/refs/heads/v2.2/md5Hashes.json";
 
                             downloadWebClient.DownloadStringAsync(new Uri(dLink), "MD5_HASHES");
                             finishedDownloadingFileInfo = true;
@@ -600,10 +604,6 @@ namespace GTAIVDowngrader
 
                     #region MD5_HASHES
                     case "MD5_HASHES":
-
-                        // Save result to file
-                        string md5HashesFilePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\md5Hashes_v2.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                        File.WriteAllText(md5HashesFilePath, result);
 
                         // Parse result
                         Core.MD5Hashes = JsonConvert.DeserializeObject<List<string>>(result);
@@ -620,8 +620,6 @@ namespace GTAIVDowngrader
 
                         // Now begin downloading supporter information
                         downloadWebClient.DownloadStringAsync(new Uri("https://www.dropbox.com/scl/fi/ml4gx8sgzmznru5llcqpm/TierOneSupporter.json?rlkey=wldl4y6swfb2oy96h763grft3&dl=1"), "TIER_1_SUPPORTER");
-
-
 
                         break;
                     #endregion
@@ -693,91 +691,9 @@ namespace GTAIVDowngrader
             }
             catch (Exception ex)
             {
-                ShowErrorScreen(new Exception(string.Format("[STRING] (2) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, ex.ToString())));
-            }
-        }
-        private void DownloadWebClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                if (e.Cancelled)
-                    return;
-
-                if (e.Error != null)
-                {
-                    ShowErrorScreen(new Exception(string.Format("[FILE] (1) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, e.Error.ToString()), e.Error));
-                    return;
-                }
-
-                switch (e.UserState.ToString())
-                {
-
-                    #region DOWNGRADING_FILES
-                    case "DOWNGRADING_FILES":
-                        {
-
-                            // Read file
-                            string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\downgradingFiles.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-                            // show failed message when file does not exists
-
-                            Core.DowngradeFiles = JsonConvert.DeserializeObject<List<DowngradeFileDetails>>(File.ReadAllText(filePath));
-
-#if DEBUG
-                            // Debug
-                            Console.WriteLine("- - - Downgrading Files - - -");
-
-                            if (Core.DowngradeFiles.Count != 0)
-                                Core.DowngradeFiles.ForEach(d => Console.WriteLine(d.ToString())); // Print to console
-
-                            Console.WriteLine("");
-#endif
-
-                            Core.AddLogItem(LogType.Warning, "Using alternative download link for md5Hashes.json! Hashes might be outdated!");
-
-                            string md5HashesFilePathWrite = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\md5Hashes.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-                            downloadWebClient.DownloadFileAsync(new Uri("https://www.dropbox.com/scl/fi/qxx9wzne7jhjoe8w7l5sc/md5Hashes.json?rlkey=2wik2odxfqxk7a25fwhgv7trk&dl=1"), md5HashesFilePathWrite, "MD5_HASHES");
-                            finishedDownloadingFileInfo = true;
-
-                            break;
-                        }
-                    #endregion
-
-                    #region MD5_HASHES
-                    case "MD5_HASHES":
-
-                        // Read file
-                        string md5HashesFilePathRead = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\md5Hashes_v2.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-                        // show failed message when file does not exists
-
-                        Core.MD5Hashes = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(md5HashesFilePathRead));
-
-#if DEBUG
-                        // Debug
-                        Console.WriteLine("- - - MD5 Hashes - - -");
-
-                        if (Core.MD5Hashes.Count != 0)
-                            Core.MD5Hashes.ForEach(hash => Console.WriteLine(hash.ToString())); // Print to console
-#endif
-
-                        finishedDownloadingMD5Hashes = true;
-
-                        // Destroy WebClient
-                        downloadWebClient.DownloadStringCompleted -= DownloadWebClient_DownloadStringCompleted;
-                        downloadWebClient.CancelAsync();
-                        downloadWebClient.Dispose();
-                        downloadWebClient = null;
-
-                        break;
-                        #endregion
-
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowErrorScreen(new Exception(string.Format("[FILE] (2) An error occured while trying to retrieve downgrading info.{0}{1}", Environment.NewLine, ex.ToString())));
+                Core.AddLogItem(LogType.Error, string.Format("Retrieving downgrading information failed at state: {0}", userState));
+                ShowErrorScreen(new Exception(string.Format("An error occured while trying to retrieve downgrading information.{0}" +
+                    "Details: {1}", Environment.NewLine, ex)));
             }
         }
 
@@ -804,14 +720,6 @@ namespace GTAIVDowngrader
                 return;
             }
 
-            // Check if current culture is india
-            CultureInfo currentCulture = CultureInfo.CurrentCulture;
-            if (currentCulture.Name.Contains("IN") || currentCulture.DisplayName.ToLower().Contains("india"))
-                Core.UseAlternativeDownloadLinks = true;
-
-            // Set current thread culture to en-US so error messages and such will be in english
-            Culture.SetThreadCulture("en-US");
-
             // Register global exception handler
             Application.Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
 
@@ -821,23 +729,9 @@ namespace GTAIVDowngrader
             // Init Core
             Core.Init(this, "2.2");
 
-            // Check OS Version
-            OperatingSystem osInfo = Environment.OSVersion;
-            if (osInfo.Platform == PlatformID.Win32NT)
-            {
-                if (osInfo.Version.Major == 6 && osInfo.Version.Minor == 1) // Windows 7
-                {
-                    // Apply WebClient Protocol Fix
-                    ServicePointManager.Expect100Continue = true;
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-                }
-            }
-
             // Init WebClient
             downloadWebClient = new WebClient();
             downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
-            downloadWebClient.DownloadFileCompleted += DownloadWebClient_DownloadFileCompleted;
 
             // Dialogs
             welcomeUC = new WelcomeUC(this);
@@ -905,6 +799,8 @@ namespace GTAIVDowngrader
                 }
                 catch (Exception) { }
             }
+
+            Core.Cleanup();
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -925,6 +821,7 @@ namespace GTAIVDowngrader
             if (!File.Exists(".\\Data\\bin\\Microsoft.WindowsAPICodePack.Shell.dll"))   missingThingsSB.AppendLine("- Microsoft.WindowsAPICodePack.Shell.dll");
             if (!File.Exists(".\\Data\\bin\\Newtonsoft.Json.dll"))                      missingThingsSB.AppendLine("- Newtonsoft.Json.dll");
             if (!File.Exists(".\\Data\\bin\\ClonksCodingLib.dll"))                      missingThingsSB.AppendLine("- ClonksCodingLib.dll");
+            if (!File.Exists(".\\Data\\bin\\INIFileParser.dll"))                        missingThingsSB.AppendLine("- INIFileParser.dll");
 
             // Check if something is missing
             if (missingThingsSB.Length != 0)
@@ -942,32 +839,22 @@ namespace GTAIVDowngrader
                 missingThingsSB = null;
             }
 
-            // Check if app was started as admin
-            Core.DoAdminCheck();
-
-            // Read command line
-            Core.ReadCommandLine();
-            
-            // Set window title
-            Core.SetMainWindowTitle();
-
             // Log startup stuff
             Core.LogStartupInfo();
 
-            // Check if the current OS Platform is Unix or MacOSX
-            OperatingSystem os = Environment.OSVersion;
-            if (os.Platform == PlatformID.Unix || os.Platform == PlatformID.MacOSX)
+            // Check if current OS is unsupported
+            if (Core.IsOSUnsupported)
             {
                 ShowMessageDialogScreen("Unsupported Operating System",
-                    string.Format("The downgrader is running on the {1} platform. Only Windows is officially supported. You might encounter bugs while using the downgrader, which is to be expected.{0}{0}" +
-                    "Press the Continue button to continue.", Environment.NewLine, os.Platform.ToString()),
+                    string.Format("The current platform the downgrader is running on is not officially supported. Please note that only Windows is officially supported at the moment. You might encounter bugs while using the downgrader, which is to be expected.{0}{0}" +
+                    "Press the Continue button to continue.", Environment.NewLine),
                     Steps.S0_Welcome);
 
-                messageDialogUC.OverrideNextButtonClick(() => ContinueWithAdminCheck());
+                messageDialogUC.OverrideNextButtonClick(() => ContinueWithCountryCheck());
             }
             else
             {
-                ContinueWithAdminCheck();
+                ContinueWithCountryCheck();
             }
         }
 
