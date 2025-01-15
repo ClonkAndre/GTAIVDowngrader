@@ -93,6 +93,9 @@ namespace GTAIVDowngrader.Dialogs
             Dispatcher.Invoke(() =>
             {
 
+                // Correct some things
+                allMods.ForEach(x => x.CorrectSomePotentialIssues());
+
                 // Sort mods by title
                 allMods = allMods.OrderBy(x => x.Title).ToList();
 
@@ -100,6 +103,10 @@ namespace GTAIVDowngrader.Dialogs
                 for (int i = 0; i < allMods.Count; i++)
                 {
                     ModDetails mod = allMods[i];
+
+                    // Check if mod is even valid
+                    if (!mod.IsValid())
+                        continue;
 
                     // Check if mod can be added to container
                     if (!mod.ShowInDowngrader)
@@ -605,6 +612,7 @@ namespace GTAIVDowngrader.Dialogs
 
             // Init WebClient
             downloadWebClient = new WebClient();
+            downloadWebClient.Encoding = Encoding.UTF8;
             downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
             downloadWebClient.DownloadFileCompleted += DownloadWebClient_DownloadFileCompleted;
 

@@ -110,9 +110,24 @@ namespace GTAIVDowngrader.Classes.Json.Modification
             PostInstallActions.ForEach(x => x.PrepareForEditor());
         }
 #endif
+
+        public void CorrectSomePotentialIssues()
+        {
+            Title = Title.Replace("\n", "");                 // Remove new line character
+            Description = Description.Replace("\\n", "\n");  // Replace incorrect new line character with correct one
+        }
         #endregion
 
         #region Functions
+        public bool IsValid()
+        {
+            return FileDetails != null &&
+                ForGameVersion != null &&
+                !string.IsNullOrWhiteSpace(Title) &&
+                !string.IsNullOrWhiteSpace(Description) &&
+                OptionalComponents != null &&
+                PostInstallActions != null;
+        }
         public bool AreDetailsValid()
         {
             return !string.IsNullOrWhiteSpace(Title)
@@ -150,9 +165,7 @@ namespace GTAIVDowngrader.Classes.Json.Modification
                 "DotNetModDetails: {4}, " +
                 "CompatibleWithGFWL: {5}, " +
                 "ShowInDowngrader: {6}, " +
-                "CheckedByDefault: {7}, " +
-                "OptionalComponents Count: {8}",
-                "PostInstallActions Count: {9}",
+                "CheckedByDefault: {7}",
                 FileDetails, // 0
                 ForGameVersion.Count, // 1
                 Title, // 2
@@ -160,9 +173,7 @@ namespace GTAIVDowngrader.Classes.Json.Modification
                 DotNetModDetails == null ? "-" : DotNetModDetails.ToString(), // 4
                 CompatibleWithGFWL, // 5
                 ShowInDowngrader, // 6
-                CheckedByDefault, // 7
-                OptionalComponents.Count, // 8
-                PostInstallActions.Count); // 9
+                CheckedByDefault); // 7
         }
         #endregion
     }

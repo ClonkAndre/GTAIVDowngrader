@@ -25,8 +25,6 @@
                 </EventTrigger>
             </Grid.Triggers>
 
-            <Image x:Name="RedWolfLogo" Source="..\Resources\Misc\RedWolfInteractive.png" RenderOptions.BitmapScalingMode="HighQuality" ToolTip="Made by the Red Wolf Interactive Team" Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,20,60"/>
-
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
                 <TextBlock Text="Welcome to the GTA IV Downgrader!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
@@ -63,6 +61,9 @@
                 </TextBlock>
             </StackPanel>
 
+            <!-- Red Wolf Interactive Logo -->
+            <Image x:Name="RedWolfLogo" MouseDown="RedWolfLogo_MouseDown" Cursor="Hand" Source="..\Resources\Misc\RedWolfInteractive.png" RenderOptions.BitmapScalingMode="HighQuality" ToolTip="Made by ItsClonkAndre from the Red Wolf Interactive Team" Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,20,60"/>
+            
             <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
             <TextBlock x:Name="DowngraderVersionLabel" Text="Version 1.0" FontSize="12" Foreground="#adadad" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30,32"/>
             <TextBlock FontSize="12" Foreground="#adadad" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30,15">

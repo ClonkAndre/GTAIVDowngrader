@@ -104,6 +104,11 @@ namespace GTAIVDowngrader.Dialogs
         {
             Core.AskUserToOpenURL(e.Uri);
         }
+        private void RedWolfLogo_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+                Core.AskUserToOpenURL(new Uri("https://gtaforums.com/topic/988909-itsclonkandres-workshop"));
+        }
 
     }
 }

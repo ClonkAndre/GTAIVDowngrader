@@ -366,6 +366,20 @@ namespace GTAIVDowngrader
             ChangeStep(Steps.Error, new List<object>() { e });
         }
 
+#if PREVIEW
+        private void ContinueWithPreviewNote()
+        {
+            ShowMessageDialogScreen("IV Downgrader Preview Version",
+                string.Format("This is a preview version of the IV Downgrader v{1}, which means it's only meant to be a preview of what to expect in the final update.{0}" +
+                "You usually only get this preview when you got an active Patreon/Ko-fi subscription. So if that's the case, thank you!{0}" +
+                "If you got this preview build from somewhere else, maybe consider supporting my work and get access to more preview stuff!{0}{0}" +
+                "If you encounter any bugs or got any suggestions, be sure to share them on my discord server or on the gtaforums thread!", Environment.NewLine, Core.TheUpdateChecker.CurrentVersion),
+                Steps.S0_Welcome);
+
+            messageDialogUC.OverrideNextButtonClick(() => ContinueWithCountryCheck());
+        }
+#endif
+
         private void ContinueWithCountryCheck()
         {
             // Check if user is in a restricted area
@@ -775,7 +789,7 @@ namespace GTAIVDowngrader
             base.OnSourceInitialized(e);
         }
         #endregion
-
+        
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             switch (MessageBox.Show("Do you really want to quit?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question))
@@ -850,11 +864,19 @@ namespace GTAIVDowngrader
                     "Press the Continue button to continue.", Environment.NewLine),
                     Steps.S0_Welcome);
 
+#if PREVIEW
+                messageDialogUC.OverrideNextButtonClick(() => ContinueWithPreviewNote());
+#else
                 messageDialogUC.OverrideNextButtonClick(() => ContinueWithCountryCheck());
+#endif
             }
             else
             {
+#if PREVIEW
+                ContinueWithPreviewNote();
+#else
                 ContinueWithCountryCheck();
+#endif
             }
         }
 

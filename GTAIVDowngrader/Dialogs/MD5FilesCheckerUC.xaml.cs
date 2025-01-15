@@ -403,11 +403,13 @@ namespace GTAIVDowngrader.Dialogs
 
                         SetStatusText(string.Format("Could not find any MD5 Hashes for your selected directory!{0}{0}" +
                             "- What does this mean?{0}" +
-                            "This means that your selected GTA IV directory is probably modified (contains mods) and it is HIGHLY recommended to downgrade a fresh, unmodified copy of GTA IV.{0}{0}" +
-                            "- What now?{0}" +
-                            "To get the best downgrading experience, redownload GTA IV, and downgrade the freshly downloaded copy of GTA IV.{0}{0}" +
-                            "If you are sure that there are NO mods in your selected directory, you can safely continue by pressing the Next button. " +
-                            "Please consider sending the log file created by the IV Downgrader at the end of the downgrading process in our Discord server to help improve the IV Downgrader!", Environment.NewLine));
+                            "Your directory probably contains extra files which were not expected to be there (Mostly happen with repacks). " +
+                            "Alternatively, the version of GTA IV might not be one of the newer ones, such as 1.2.0.59. " +
+                            "Please note that this tool was only meant to downgrade a official CE copy of GTA IV." +
+                            "{0}{0}- What now?{0}" +
+                            "To ensure the best downgrading experience, start by redownloading GTA IV and downgrading the freshly downloaded copy. " +
+                            "If you are confident that your selected directory contains no mods, you can safely proceed by clicking the Next button. " +
+                            "At the end of the downgrading process, please consider sharing the log file created by the IV Downgrader in our Discord server to help us improve the tool.", Environment.NewLine));
 
                         // Set Hashes for log file
                         DowngradingInfo.SetGeneratedMD5Hash(result.Result);

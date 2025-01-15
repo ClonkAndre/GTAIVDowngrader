@@ -48,7 +48,7 @@ namespace GTAIVDowngrader.Controls
             // Set mod infos
             ModInfo = modInfo;
             Title = ModInfo.Title;
-            Description = ModInfo.Description.Replace("\\n", "\n");
+            Description = ModInfo.Description;
             IsChecked = ModInfo.CheckedByDefault;
 
             // Set warning and/or web page

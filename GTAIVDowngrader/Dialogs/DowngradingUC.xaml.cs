@@ -50,6 +50,7 @@ namespace GTAIVDowngrader.Dialogs
         // Download Stuff
         private WebClient downloadWebClient;
         private Queue<FileDetails> downloadQueue;
+        private List<string> cancelledDownloadItems;
         private DateTime downloadStartTime; // Remaining Time Calculation
 
         // States
@@ -94,6 +95,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             instance = window;
             downloadQueue = new Queue<FileDetails>();
+            cancelledDownloadItems = new List<string>();
             iniParser = new FileIniDataParser();
 
             InitializeComponent();
@@ -101,6 +103,7 @@ namespace GTAIVDowngrader.Dialogs
         public DowngradingUC()
         {
             downloadQueue = new Queue<FileDetails>();
+            cancelledDownloadItems = new List<string>();
             iniParser = new FileIniDataParser();
 
             InitializeComponent();
@@ -194,6 +197,8 @@ namespace GTAIVDowngrader.Dialogs
 
             Dispatcher.Invoke(() =>
             {
+                instance.ChangeActionButtonVisiblity(false, currentDowngradeStep == DowngradeStep.Download, false, true);
+
                 switch (currentDowngradeStep)
                 {
                     case DowngradeStep.Download:
@@ -812,6 +817,7 @@ namespace GTAIVDowngrader.Dialogs
 
                 // Get next download item in queue and log
                 FileDetails downloadItem = downloadQueue.Dequeue();
+
                 AddLogItem(LogType.Info, string.Format("Downloading {0}...", downloadItem.Name));
 
                 // Create temp folders
@@ -1250,6 +1256,11 @@ namespace GTAIVDowngrader.Dialogs
                     AddLogItem(LogType.Warning, string.Format("File '{0}' was not found and could not be extracted. Skipping.", Path.GetFileName(fileLoc)));
                     return;
                 }
+                if (IsZipFileCorrupted(fileLoc))
+                {
+                    AddLogItem(LogType.Warning, string.Format("Skipping file '{0}' because it appears to be corrupted!", Path.GetFileName(fileLoc)));
+                    return;
+                }
 
                 // Begin extracting archive
                 try
@@ -1317,15 +1328,18 @@ namespace GTAIVDowngrader.Dialogs
                         break;
                     case DowngradeStep.ModInstall:
 
-                        // Rename dinput8.dll to xlive.dll if current mod is an ASI Loader and if the user does not want to configure for GFWL
-                        if (currentModToInstall.IsASILoader)
+                        if (!cancelledDownloadItems.Contains(currentModToInstall.FileDetails.Name))
                         {
-                            if (!DowngradingInfo.ConfigureForGFWL)
-                                RenameFile("dinput8.dll", "xlive.dll");
-                        }
+                            // Rename dinput8.dll to xlive.dll if current mod is an ASI Loader and if the user does not want to configure for GFWL
+                            if (currentModToInstall.IsASILoader)
+                            {
+                                if (!DowngradingInfo.ConfigureForGFWL)
+                                    RenameFile("dinput8.dll", "xlive.dll");
+                            }
 
-                        // Execute post install actions of current mod
-                        ExecutePostInstallActionsOfCurrentMod();
+                            // Execute post install actions of current mod
+                            ExecutePostInstallActionsOfCurrentMod();
+                        }
 
                         // Reset current mod to be installed
                         currentModToInstall = null;
@@ -1465,6 +1479,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             if (DowngradingInfo.SelectedOptionalComponents.Count != 0)
             {
+                // TODO: Prevent installing optional components when the parent mod did not install due to corrupted archive or something
                 currentOptionalComponentToInstall = DowngradingInfo.SelectedOptionalComponents.Dequeue();
                 BeginExtractionProcess(DowngradeStep.OptionalComponentsInstall);
             }
@@ -1598,6 +1613,31 @@ namespace GTAIVDowngrader.Dialogs
         {
             instance.NextStep();
         }
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            if (downloadWebClient == null)
+                return;
+            if (!downloadWebClient.IsBusy)
+                return;
+
+            switch (MessageBox.Show("Canceling the current download may lead to unforeseen issues. Only proceed if you believe the download is stuck. Are you sure you want to cancel?", "Cancel current download", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+            {
+                case MessageBoxResult.Yes:
+
+                    if (currentDowngradeStep == DowngradeStep.Download)
+                    {
+                        try
+                        {
+                            downloadWebClient.CancelAsync();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    break;
+            }
+        }
 
         private void DownloadClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
@@ -1606,7 +1646,10 @@ namespace GTAIVDowngrader.Dialogs
             try
             {
                 if (e.Cancelled)
-                    AddLogItem(LogType.Warning, string.Format("Download was cancelled for {0}", downloadItem.Name));
+                {
+                    AddLogItem(LogType.Warning, string.Format("Download was cancelled for {0}!", downloadItem.Name));
+                    cancelledDownloadItems.Add(downloadItem.Name);
+                }
                 if (e.Error != null)
                     AddLogItem(LogType.Error, string.Format("An error occured while downloading item {0}. Details: {1}", downloadItem.Name, e.Error.Message));
 
@@ -1684,20 +1727,46 @@ namespace GTAIVDowngrader.Dialogs
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+            instance.BackButton.Content = "Back";
 
+            // Lists
+            if (downloadQueue != null)
+            {
+                downloadQueue.Clear();
+                downloadQueue = null;
+            }
+            if (cancelledDownloadItems != null)
+            {
+                cancelledDownloadItems.Clear();
+                cancelledDownloadItems = null;
+            }
+            
             // Destroy WebClient
-            downloadWebClient.DownloadProgressChanged -= DownloadClient_DownloadProgressChanged;
-            downloadWebClient.DownloadFileCompleted -= DownloadClient_DownloadFileCompleted;
-            downloadWebClient.CancelAsync();
-            downloadWebClient.Dispose();
-            downloadWebClient = null;
+            if (downloadWebClient != null)
+            {
+                downloadWebClient.DownloadProgressChanged -= DownloadClient_DownloadProgressChanged;
+                downloadWebClient.DownloadFileCompleted -= DownloadClient_DownloadFileCompleted;
+
+                if (downloadWebClient.IsBusy)
+                    downloadWebClient.CancelAsync();
+
+                downloadWebClient.Dispose();
+                downloadWebClient = null;
+            }
+
+            // Other
+            iniParser = null;
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
 
             instance.ChangeActionButtonVisiblity(false, false, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, false);
+
+            instance.BackButton.Content = "Skip current download";
 
             // Init WebClient
             downloadWebClient = new WebClient();
