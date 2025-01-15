@@ -33,10 +33,10 @@ For smaller things such as mods or data, a seperate [GitHub](https://github.com/
 [GTAinside](https://www.gtainside.com/gta4/tools/184088-gta-iv-downgrader/)
 
 ## Credits
-**QA Tester**: Internet Rob, catsmackaroo, DayL and Not AJ
-**Ideas**: Internet Rob and catsmackaroo
-**Logo**: catsmackaroo
-**Icon**: nastyyaboi
+**QA Tester**: Internet Rob, catsmackaroo, DayL and Not AJ  
+**Ideas**: Internet Rob and catsmackaroo  
+**Logo**: catsmackaroo  
+**Icon**: nastyyaboi  
 
 ## How to Contribute
 Do you have an idea on how to improve this project, or did you happen to run into a bug? Please share your idea or the bug you found in the **[issues page](https://github.com/ClonkAndre/GTAIVDowngrader/issues)**, or even better: feel free to fork and contribute to this project with a **[Pull Request](https://github.com/ClonkAndre/GTAIVDowngrader/pulls)**.
