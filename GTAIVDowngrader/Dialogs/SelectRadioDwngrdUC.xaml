@@ -14,7 +14,7 @@
         <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\johnny.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,20,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\johnny.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,40,20,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
@@ -22,18 +22,18 @@
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="0,0,150,0">
                     Here you can choose which radio downgrade you want to have installed. The radio downgrade is optional for version 1.0.7.0 and 1.0.8.0, but its recommended! If you want to downgrade your radio but don't know what to choose, just choose the Radio downgrader by <Run Text="Sneed" FontWeight="Bold"/>.
                 </TextBlock>
-                <RadioButton x:Name="SneedsRadioDowngraderCheckbox" Checked="SneedsRadioDowngraderCheckbox_Checked" Foreground="White" FontSize="16" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,30,0,0">
+                <RadioButton x:Name="SneedsRadioDowngraderCheckbox" Checked="SneedsRadioDowngraderCheckbox_Checked" Foreground="White" FontSize="18" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,30,0,0">
                     <TextBlock TextWrapping="Wrap">
                         Radio downgrader by <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtaforums.com/topic/936600-iii-iv-various-gta-downgraders/">Sneed</Hyperlink>
                     <LineBreak/>
                     <Run FontSize="12">
-                        If you choose this downgrader you will be able to choose between the old Vladivostok and the new Vladivostok. More informations about that on the next step if you choose this downgrader.
+                        This downgrader will let you choose between old and new Vladivostok. More about that on the next step.
                     </Run>
                     </TextBlock>
                 </RadioButton>
-                <RadioButton x:Name="LegacyRadioDowngraderCheckbox" Checked="LegacyRadioDowngraderCheckbox_Checked" Foreground="White" FontSize="16" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,20,0,0">
+                <RadioButton x:Name="LegacyRadioDowngraderCheckbox" Checked="LegacyRadioDowngraderCheckbox_Checked" Foreground="White" FontSize="18" MaxWidth="472" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,20,0,0">
                     <TextBlock TextWrapping="Wrap">
-                    Legacy Radio Downgrader
+                        Legacy Radio Downgrader
                     <LineBreak/>
                     <Run FontSize="12">
                         Basically the same as Sneed's radio downgrader but this avoids some trivial issues such as the wrong station being mentioned during taxi rides, or not being able to switch to Independence FM while in Multiplayer lobbies.
@@ -44,7 +44,15 @@
                     </Run>
                     </TextBlock>
                 </RadioButton>
-                <CheckBox x:Name="NoEFLCMusicInIVCheckbox" Checked="NoEFLCMusicInIVCheckbox_CheckedChanged" Unchecked="NoEFLCMusicInIVCheckbox_CheckedChanged" Content="Also install no EFLC music in IV fix" FontSize="14" VerticalContentAlignment="Center" HorizontalAlignment="Left" Foreground="White" Margin="5,25,0,0"/>
+                <CheckBox x:Name="NoEFLCMusicInIVCheckbox" Checked="NoEFLCMusicInIVCheckbox_CheckedChanged" Unchecked="NoEFLCMusicInIVCheckbox_CheckedChanged" FontSize="18" VerticalContentAlignment="Center" HorizontalAlignment="Left" Foreground="White" Margin="5,22,0,0">
+                    <TextBlock>
+                        Install no EFLC music in IV fix
+                        <LineBreak/>
+                        <Run FontSize="12">
+                             If you dont want the music from EFLC to be played in IV, check this box.
+                        </Run>
+                    </TextBlock>
+                </CheckBox>
             </StackPanel>
 
             <TextBlock Text="To proceed, press the 'Next' button. Or 'Skip' if you want to skip this step." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>

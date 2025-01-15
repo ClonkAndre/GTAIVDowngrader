@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
 using Newtonsoft.Json;
+using CCL;
 
 using GTAIVDowngrader.Controls;
-using CCL;
+using GTAIVDowngrader.Classes;
+using GTAIVDowngrader.Classes.Json.Modification;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -20,82 +23,9 @@ namespace GTAIVDowngrader.Dialogs
         private MainWindow instance;
 
         private WebClient downloadWebClient;
-        private List<JsonObjects.ModInformation> allMods;
+        private List<ModDetails> allMods;
 
-        private ModCheck modCheck;
-        private StringBuilder errorText;
-        #endregion
-
-        #region Classes
-        public class ModCheck
-        {
-
-            #region Variables
-            public int ASILoadersSelected;
-            public int ASIModsSelected;
-            public List<string> ASIModsSelectedNames;
-
-            public bool ScriptHookSelected;
-            public int ScriptHookModsSelected;
-            public List<string> ScriptHookModsSelectedNames;
-
-            public bool ScriptHookHookSelected;
-
-            public bool ScriptHookDotNetSelected;
-            public int ScriptHookDotNetModsSelected;
-            public List<string> ScriptHookDotNetModsSelectedNames;
-
-            public bool IVSDKDotNetSelected;
-            public int IVSDKDotNetModsSelected;
-            public List<string> IVSDKDotNetModsSelectedNames;
-            #endregion
-
-            #region Constructor
-            public ModCheck()
-            {
-                ASILoadersSelected = 0;
-                ASIModsSelected = 0;
-                ASIModsSelectedNames = new List<string>();
-
-                ScriptHookSelected = false;
-                ScriptHookModsSelected = 0;
-                ScriptHookModsSelectedNames = new List<string>();
-
-                ScriptHookHookSelected = false;
-
-                ScriptHookDotNetSelected = false;
-                ScriptHookDotNetModsSelected = 0;
-                ScriptHookDotNetModsSelectedNames = new List<string>();
-
-                IVSDKDotNetSelected = false;
-                IVSDKDotNetModsSelected = 0;
-                IVSDKDotNetModsSelectedNames = new List<string>();
-            }
-            #endregion
-
-            #region Overrides
-            public override string ToString()
-            {
-                StringBuilder str = new StringBuilder();
-                str.AppendLine("- - - ASI - - -");
-                str.AppendLine("ASI Loaders selected: " + ASILoadersSelected.ToString());
-                str.AppendLine("ASI Mods selected: " + ASIModsSelected.ToString());
-                str.AppendLine();
-                str.AppendLine("- - - ScriptHook - - -");
-                str.AppendLine("ScriptHook selected: " + ScriptHookSelected.ToString());
-                str.AppendLine("ScriptHook Mods selected: " + ScriptHookModsSelected.ToString());
-                str.AppendLine();
-                str.AppendLine("- - - ScriptHookHook - - -");
-                str.AppendLine("ScriptHookHook selected: " + ScriptHookHookSelected.ToString());
-                str.AppendLine();
-                str.AppendLine("- - - ScriptHookDotNet - - -");
-                str.AppendLine("ScriptHookDotNet selected: " + ScriptHookDotNetSelected.ToString());
-                str.AppendLine("ScriptHookDotNet Mods selected: " + ScriptHookDotNetModsSelected.ToString());
-                return str.ToString();
-            }
-            #endregion
-
-        }
+        private StringBuilder modCheckResultBuilder;
         #endregion
 
         #region Methods
@@ -118,91 +48,92 @@ namespace GTAIVDowngrader.Dialogs
             }
         }
 
-        public void Clear()
+        private void Clear()
         {
+            if (modCheckResultBuilder != null)
+            {
+                modCheckResultBuilder.Clear();
+                modCheckResultBuilder = null;
+            }
+
+            FilterTextBox.Clear();
             ModListStackPanel.Children.Clear();
             allMods.Clear();
             SelectAllButton.IsEnabled = false;
             DeselectAllButton.IsEnabled = false;
-            modCheck = null;
         }
 
-        public void RetrieveMods()
+        private void RetrieveMods()
         {
             try
             {
                 Clear();
                 ChangeLoadingPageState(true, "Retrieving all mods");
 
-                if (!Core.IsInOfflineMode)
+                // Check offline mode state
+                if (Core.IsInOfflineMode)
                 {
-
-                    string dLink = "https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/main/v2.0_and_up/modInfos.json";
-
-                    if (Core.UseAlternativeDownloadLinks)
-                    {
-                        dLink = "https://www.dropbox.com/scl/fi/3024byprjl73h3pk9kqp5/modInfos.json?rlkey=ka8p5323gkc01k7j3eywm2ga6&dl=1";
-                        Core.AddLogItem(LogType.Warning, "Using alternative download link for modInfos.json! Mods might be outdated!");
-                        Core.Notification.ShowNotification(NotificationType.Warning, 10100, "Outdated Mods Information", string.Format("The downgrader used an alternative download link to the list of all mods, this list might be outdated.{0}" +
-                            "Please make sure to manually update your mods after the downgrade if necessary.", Environment.NewLine));
-
-                        string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-                        downloadWebClient.DownloadFileAsync(new Uri(dLink), filePath);
-                    }
-                    else
-                    {
-                        downloadWebClient.DownloadStringAsync(new Uri(dLink));
-                    }
-
-                }
-                else
                     ChangeLoadingPageState(true, string.Format("Could not retrieve all mods.{0}" +
-                        "The downgrader is running in offline mode.{0}" +
+                        "The downgrader is running in offline mode, and is therefor not allowed to download anything from the internet.{0}" +
                         "Please download the mods that you want manually after the downgrade.", Environment.NewLine), false);
+
+                    return;
+                }
+
+                // The download link for downloading the mod stuff
+                downloadWebClient.DownloadStringAsync(new Uri("https://raw.githubusercontent.com/ClonkAndre/GTAIVDowngraderOnline_Files/refs/heads/v2.2/modDetails.json"));
             }
             catch (Exception ex)
             {
                 ChangeLoadingPageState(true, string.Format("An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, ex.Message), false);
             }
         }
-        public void AddModsToContainer()
+        private void AddModsToContainer()
         {
             Dispatcher.Invoke(() =>
             {
 
+                // Correct some things
+                allMods.ForEach(x => x.CorrectSomePotentialIssues());
+
+                // Sort mods by title
+                allMods = allMods.OrderBy(x => x.Title).ToList();
+
                 // Add mods to container
                 for (int i = 0; i < allMods.Count; i++)
                 {
-                    JsonObjects.ModInformation mod = allMods[i];
+                    ModDetails mod = allMods[i];
+
+                    // Check if mod is even valid
+                    if (!mod.IsValid())
+                        continue;
 
                     // Check if mod can be added to container
                     if (!mod.ShowInDowngrader)
                         continue;
 
-                    if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
+                    if (DowngradingInfo.ConfigureForGFWL)
                     {
+                        // Do not show mods which are NOT compatible with GFWL
                         if (!mod.CompatibleWithGFWL)
                             continue;
                     }
-                    else
-                    {
-                        if (mod.Title == "dsound")
-                            continue;
-                        if (mod.Title.Contains("ZolikaPatch") && mod.Title.Contains("GFWL"))
-                            continue;
-                        if (mod.Title.Contains("ZMenuIV") && mod.Title.Contains("GFWL"))
-                            continue;
-                    }
 
-                    if (!mod.ForVersions.Contains(ModVersion.All))
+                    // Skip if mod was already added
+                    if (WasModWithUniqueNameAlreadyAdded(mod.UniqueName))
+                        continue;
+
+                    // Check if mod is compatible with selected downgrading version
+                    if (mod.ForGameVersion.Count != 0)
                     {
-                        if (!mod.ForVersions.Contains((ModVersion)(int)Core.CurrentDowngradingInfo.DowngradeTo))
+                        if (!mod.ForGameVersion.Contains(DowngradingInfo.DowngradeTo))
                             continue;
                     }
 
                     // Add mod item
                     ModItem modItem = new ModItem(mod);
                     modItem.CheckedChanged += ModItem_CheckedChanged;
+
                     if (i != allMods.Count - 1)
                         modItem.Margin = new Thickness(3, 3, 3, 3);
                     else 
@@ -215,15 +146,18 @@ namespace GTAIVDowngrader.Dialogs
                 SelectAllButton.IsEnabled = true;
                 DeselectAllButton.IsEnabled = true;
 
+                // Calculate size of already checked mods
+                CalculateModsSize();
+
             });
         }
         private void ModItem_CheckedChanged(ModItem sender, bool newState)
         {
-            CreateModCheck();
             DoModCheck();
+            CalculateModsSize();
         }
 
-        public void SelectAllModsInList()
+        private void SelectAllModsInList()
         {
             for (int i = 0; i < ModListStackPanel.Children.Count; i++)
             {
@@ -232,7 +166,7 @@ namespace GTAIVDowngrader.Dialogs
                     item.IsChecked = true;
             }
         }
-        public void DeselectAllModsInList()
+        private void DeselectAllModsInList()
         {
             for (int i = 0; i < ModListStackPanel.Children.Count; i++)
             {
@@ -242,162 +176,151 @@ namespace GTAIVDowngrader.Dialogs
             }
         }
 
-        public void CreateModCheck()
+        private void AppendNewLineToModCheck()
         {
-            modCheck = new ModCheck();
-            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
-            {
-                ModItem item = (ModItem)ModListStackPanel.Children[i];
-                if (item.IsChecked)
-                {
-                    if (item.ModInfo.IsASILoader)
-                        modCheck.ASILoadersSelected++;
-                    if (item.ModInfo.IsScriptHook)
-                        modCheck.ScriptHookSelected = true;
-                    if (item.ModInfo.IsScriptHookHook)
-                        modCheck.ScriptHookHookSelected = true;
-                    if (item.ModInfo.IsScriptHookDotNet)
-                        modCheck.ScriptHookDotNetSelected = true;
-                    if (item.ModInfo.IsIVSDKDotNet)
-                        modCheck.IVSDKDotNetSelected = true;
+            if (modCheckResultBuilder == null)
+                modCheckResultBuilder = new StringBuilder();
 
-                    if (item.ModInfo.RequiresASILoader)
-                    {
-                        modCheck.ASIModsSelected++;
-                        modCheck.ASIModsSelectedNames.Add(item.ModInfo.Title);
-                    }
-                    if (item.ModInfo.RequiresScriptHook)
-                    {
-                        modCheck.ScriptHookModsSelected++;
-                        modCheck.ScriptHookModsSelectedNames.Add(item.ModInfo.Title);
-                    }
-                    if (item.ModInfo.RequiresScriptHookDotNet)
-                    {
-                        modCheck.ScriptHookDotNetModsSelected++;
-                        modCheck.ScriptHookDotNetModsSelectedNames.Add(item.ModInfo.Title);
-                    }
-                    if (item.ModInfo.RequiresIVSDKDotNet)
-                    {
-                        modCheck.IVSDKDotNetModsSelected++;
-                        modCheck.IVSDKDotNetModsSelectedNames.Add(item.ModInfo.Title);
-                    }
-                }
-            }
+            modCheckResultBuilder.AppendLine();
         }
-        public void DoModCheck()
+        private void AppendStringToModCheck(string str, params object[] args)
         {
-            if (modCheck != null)
+            if (modCheckResultBuilder == null)
+                modCheckResultBuilder = new StringBuilder();
+
+            modCheckResultBuilder.AppendLine(string.Format(str, args));
+        }
+        private void AppendBooleanToModCheck(string str, bool value)
+        {
+            AppendStringToModCheck(str, value ? "Yes" : "No");
+        }
+        private void DoModCheck()
+        {
+            if (modCheckResultBuilder != null)
+                modCheckResultBuilder.Clear();
+
+            // Get the selected mods
+            List<ModDetails> selectedMods = GetSelectedMods();
+
+            if (selectedMods.Count == 0)
             {
+                ProblemsButton.Visibility = Visibility.Hidden;
+                instance.ChangeActionButtonEnabledState(true, true, true, true);
+                return;
+            }
 
-                bool areAnyErrorsAvailable = false;
+            // Check the selected ASI Loaders, Mod Loaders and Dependencies
+            int selectedAsiLoaders =        selectedMods.Count(x => x.IsASILoader);
+            bool selectedScriptHook =       selectedMods.Any(x => x.IsScriptHook);
+            bool selectedScriptHookDotNet = selectedMods.Any(x => x.IsScriptHookDotNet);
+            bool selectedIVSDKDotNet =      selectedMods.Any(x => x.IsIVSDKDotNet);
 
-                errorText = new StringBuilder();
-                errorText.AppendLine("The following issues need to be fixed so that we can continue.");
-                errorText.AppendLine();
+            AppendStringToModCheck("- - - Mod Check - - -");
+            AppendStringToModCheck("ASI Loaders selected: {0}",         selectedAsiLoaders);
+            AppendBooleanToModCheck("ScriptHook selected: {0}",         selectedScriptHook);
+            AppendBooleanToModCheck("ScriptHookDotNet selected: {0}",   selectedScriptHookDotNet);
+            AppendBooleanToModCheck("IV-SDK .NET selected: {0}",        selectedIVSDKDotNet);
 
-                if (modCheck.ASIModsSelected >= 1 || modCheck.ASILoadersSelected > 1)
+            AppendNewLineToModCheck();
+
+            // Check the selected ASI Mods
+            bool wasThereAnyAsiModProblem = false;
+            List<ModDetails> selectedAsiMods = selectedMods.Where(x => x.HasASIModDetails()).ToList();
+
+            AppendStringToModCheck("- - - ASI Mod Check Result - - -");
+
+            // Did the user select any ASI Mods?
+            if (selectedAsiMods.Count > 0)
+            {
+                // Did the user select an ASI Loader?
+                if (selectedAsiLoaders > 0)
                 {
-                    if (modCheck.ASILoadersSelected == 0)
+                    // Yes, now check the possible dependencies
+                    selectedAsiMods.ForEach(x =>
                     {
-                        errorText.AppendLine("- - - ASI Loader - - -");
-                        if (modCheck.ASIModsSelected > 1)
+                        if (x.ASIModDetails.ForScriptHook && !selectedScriptHook)
                         {
-                            errorText.AppendLine(string.Format("You've selected {0} ASI Mods but you haven't selected any ASI Loader. Please select an ASI Loader from the mod list.", modCheck.ASIModsSelected.ToString()));
-                            errorText.AppendLine();
-                            errorText.Append("Selected ASI Mods: ");
+                            // Let user know about the missing dependency
+                            AppendStringToModCheck("- {0} requires ScriptHook to work!", x.Title);
+
+                            wasThereAnyAsiModProblem = true;
                         }
-                        else
-                        {
-                            errorText.AppendLine(string.Format("You've selected {0} ASI Mod but you haven't selected any ASI Loader. Please select an ASI Loader from the mod list.", modCheck.ASIModsSelected.ToString()));
-                            errorText.AppendLine();
-                            errorText.Append("Selected ASI Mod: ");
-                        }
-                        for (int i = 0; i < modCheck.ASIModsSelectedNames.Count; i++)
-                        {
-                            if (i == (modCheck.ASIModsSelectedNames.Count - 1))
-                                errorText.Append(modCheck.ASIModsSelectedNames[i]);
-                            else
-                                errorText.Append(modCheck.ASIModsSelectedNames[i] + ", ");
-                        }
-                        errorText.AppendLine();
-                        areAnyErrorsAvailable = true;
-                    }
-                    else if (modCheck.ASILoadersSelected > 1)
-                    {
-                        errorText.AppendLine("- - - ASI Loader - - -");
-                        errorText.AppendLine(string.Format("You've selected {0} ASI Loaders but you only need one.", modCheck.ASILoadersSelected.ToString()));
-                        errorText.AppendLine();
-                        areAnyErrorsAvailable = true;
-                    }
-                }
-
-                if (modCheck.ScriptHookModsSelected >= 1)
-                {
-                    // Empty for now...
-                }
-
-                if (modCheck.ScriptHookDotNetModsSelected >= 1)
-                {
-                    // Empty for now...
-                }
-
-                if (modCheck.IVSDKDotNetModsSelected >= 1)
-                {
-                    // Empty for now...
-                }
-
-                if (areAnyErrorsAvailable)
-                {
-                    ProblemsButton.Visibility = Visibility.Visible;
-                    instance.ChangeActionButtonEnabledState(true, true, true, false);
+                    });
                 }
                 else
                 {
-                    ProblemsButton.Visibility = Visibility.Hidden;
-                    instance.ChangeActionButtonEnabledState(true, true, true, true);
+                    // No, let user know about it
+                    AppendStringToModCheck("You've selected {0} ASI Mod(s) but no ASI Loader! " +
+                        "Please select atleast one ASI Loader from the list to fix this issue.", selectedAsiMods.Count);
+
+                    wasThereAnyAsiModProblem = true;
                 }
             }
-        }
-        #endregion
-
-        #region Constructor
-        public SelectComponentsUC(MainWindow window)
-        {
-            instance = window;
-            allMods = new List<JsonObjects.ModInformation>();
-            InitializeComponent();
-        }
-        public SelectComponentsUC()
-        {
-            allMods = new List<JsonObjects.ModInformation>();
-            InitializeComponent();
-        }
-        #endregion
-
-        #region Events
-        private void Instance_BackButtonClicked(object sender, EventArgs e)
-        {
-            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
-                instance.PreviousStep(3);
             else
-                instance.PreviousStep(1);
-        }
-        private void Instance_NextButtonClicked(object sender, EventArgs e)
-        {
-            // Add all checked mods to list
-            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
             {
-                ModItem item = (ModItem)ModListStackPanel.Children[i];
-                if (item.IsChecked)
-                    Core.CurrentDowngradingInfo.SelectedMods.Add(item.ModInfo);
+                wasThereAnyAsiModProblem = false;
             }
 
-            // Add all optional mod components to list
+            if (!wasThereAnyAsiModProblem)
+                AppendStringToModCheck("No problems detected.");
+
+            // Check the selected .NET Mods
+            bool wasThereAnyDotNetModProblem = false;
+            List<ModDetails> selectedDotNetMods = selectedMods.Where(x => x.HasDotNetModDetails()).ToList();
+
+            AppendNewLineToModCheck();
+            AppendStringToModCheck("- - - .NET Mod Check Result - - -");
+
+            // Check the possible dependencies
+            selectedDotNetMods.ForEach(x =>
+            {
+                if (x.DotNetModDetails.ForScriptHookDotNet && !selectedScriptHookDotNet)
+                {
+                    // Let user know about the missing dependency
+                    AppendStringToModCheck("- {0} requires ScriptHookDotNet to work!", x.Title);
+
+                    wasThereAnyDotNetModProblem = true;
+                }
+                else if (x.DotNetModDetails.ForIVSDKDotNet && !selectedIVSDKDotNet)
+                {
+                    // Let user know about the missing dependency
+                    AppendStringToModCheck("- {0} requires IV-SDK .NET to work!", x.Title);
+
+                    wasThereAnyDotNetModProblem = true;
+                }
+            });
+
+            if (!wasThereAnyDotNetModProblem)
+                AppendStringToModCheck("No problems detected.");
+
+            // Was there any problem?
+            if (wasThereAnyAsiModProblem || wasThereAnyDotNetModProblem)
+            {
+                ProblemsButton.Visibility = Visibility.Visible;
+                instance.ChangeActionButtonEnabledState(true, true, true, false);
+            }
+            else
+            {
+                ProblemsButton.Visibility = Visibility.Hidden;
+                instance.ChangeActionButtonEnabledState(true, true, true, true);
+            }
+        }
+
+        private void CalculateModsSize()
+        {
+            long size = 0;
+            int selectedMods = 0;
+
+            // Mods
             for (int i = 0; i < ModListStackPanel.Children.Count; i++)
             {
                 ModItem item = (ModItem)ModListStackPanel.Children[i];
+
                 if (item.IsChecked)
                 {
+                    selectedMods++;
+                    size += item.ModInfo.FileDetails.SizeInBytes;
+
                     if (item.ModInfo.OptionalComponents == null)
                         continue;
 
@@ -406,30 +329,173 @@ namespace GTAIVDowngrader.Dialogs
                         CheckBox cBox = item.OptionalsWrapPanel.Children[o] as CheckBox;
 
                         if (cBox.IsChecked.Value)
-                            Core.CurrentDowngradingInfo.SelectedOptionalComponents.Add((JsonObjects.OptionalComponentInfo)cBox.Tag);
+                            size += ((OptionalComponentInfo)cBox.Tag).FileDetails.SizeInBytes;
                     }
                 }
             }
 
+            SelectedModsInfoLabel.Text = string.Format("Selected {0} mod(s). Total Size: {1}", selectedMods, FileHelper.GetExactFileSizeAdvanced(size));
+        }
+        #endregion
+
+        #region Functions
+        private bool WasModWithUniqueNameAlreadyAdded(string uniqueName)
+        {
+            if (string.IsNullOrWhiteSpace(uniqueName))
+                return false;
+
+            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
+            {
+                ModItem item = (ModItem)ModListStackPanel.Children[i];
+
+                if (item.ModInfo.UniqueName == uniqueName)
+                    return true;
+            }
+
+            return false;
+        }
+        private List<ModDetails> GetSelectedMods()
+        {
+            List<ModDetails> selectedMods = new List<ModDetails>();
+
+            // Add all checked mods to list
+            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
+            {
+                ModItem item = (ModItem)ModListStackPanel.Children[i];
+
+                if (item.IsChecked)
+                    selectedMods.Add(item.ModInfo);
+            }
+
+            return selectedMods;
+        }
+        private List<OptionalComponentInfo> GetSelectedOptionalComponents()
+        {
+            List<OptionalComponentInfo> selectedOptionalComponents = new List<OptionalComponentInfo>();
+
+            // Add all checked mods to list
+            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
+            {
+                ModItem item = (ModItem)ModListStackPanel.Children[i];
+
+                if (item.IsChecked)
+                {
+                    if (item.ModInfo.OptionalComponents == null)
+                        continue;
+
+                    for (int o = 0; o < item.OptionalsWrapPanel.Children.Count; o++)
+                    {
+                        CheckBox componentCheckBox = item.OptionalsWrapPanel.Children[o] as CheckBox;
+
+                        if (componentCheckBox.IsChecked.Value)
+                            selectedOptionalComponents.Add((OptionalComponentInfo)componentCheckBox.Tag);
+                    }
+                }
+            }
+
+            return selectedOptionalComponents;
+        }
+        #endregion
+
+        #region Constructor
+        public SelectComponentsUC(MainWindow window)
+        {
+            instance = window;
+            allMods = new List<ModDetails>();
+            InitializeComponent();
+        }
+        public SelectComponentsUC()
+        {
+            allMods = new List<ModDetails>();
+            InitializeComponent();
+        }
+        #endregion
+
+        #region Events
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            if (DowngradingInfo.DowngradeTo == "1040")
+                instance.PreviousStep(3);
+            else
+                instance.PreviousStep(1);
+        }
+        private void Instance_NextButtonClicked(object sender, EventArgs e)
+        {
+            // Add all checked mods to list
+            DowngradingInfo.SelectedMods.Clear();
+            DowngradingInfo.AddSelectedMods(GetSelectedMods());
+
+            // Add all optional mod components to list
+            DowngradingInfo.SelectedOptionalComponents.Clear();
+            DowngradingInfo.AddSelectedOptionalComponents(GetSelectedOptionalComponents());
+
             // Set if user wants to install prerequisites
-            Core.CurrentDowngradingInfo.SetInstallPrerequisites(InstallPrerequisitesCheckBox.IsChecked.Value);
+            DowngradingInfo.SetInstallPrerequisites(InstallPrerequisitesCheckBox.IsChecked.Value);
 
             // Final step
-            if (Core.IsInOfflineMode || allMods.Count == 0)
+            if (allMods.Count == 0)
             {
                 instance.ShowMessageDialogScreen("Important Note",
-                    string.Format("It is HIGHLY recommended to install the Ultimate ASI Loader (xlive.dll) and ZolikaPatch to your game otherwise your game probably won't launch.{0}" +
-                    "To download the Ultimate ASI Loader and ZolikaPatch, just click on the buttons next to the Continue button.{0}" +
-                    "We can't guarantee for a stable and functional downgrade if those 2 components are not installed.", Environment.NewLine),
+                    string.Format("It is HIGHLY recommended to install the Ultimate ASI Loader and ZolikaPatch to your game, as otherwise your game probably won't launch.{0}" +
+                    "To download the Ultimate ASI Loader and ZolikaPatch, just click on the buttons below.{0}" +
+                    "We can't guarantee for a stable and functional downgrade if those 2 components aren't installed.", Environment.NewLine),
                     Steps.S9_Confirm,
                     null,
                     "Ultimate ASI Loader",
                     () => Web.AskUserToGoToURL(new Uri("https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases")),
                     "ZolikaPatch",
-                    () => Web.AskUserToGoToURL(new Uri("https://gtaforums.com/topic/955449-iv-zolikapatch/")));
+                    () => Web.AskUserToGoToURL(new Uri("https://gtaforums.com/topic/955449-iv-zolikapatch/")),
+                    () => // Next button override
+                    {
+                        if (Core.IsInSimpleMode)
+                        {
+                            Core.LogDowngradingInfos();
+                            instance.NextStep(1);
+                        }
+                        else
+                        {
+                            instance.NextStep();
+                        }
+                    });
             }
             else
-                instance.NextStep();
+            {
+                if (Core.IsInSimpleMode)
+                {
+                    Core.LogDowngradingInfos();
+                    instance.NextStep(1);
+                }
+                else
+                {
+                    instance.NextStep();
+                }
+            }
+        }
+
+        private void FilterTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            for (int i = 0; i < ModListStackPanel.Children.Count; i++)
+            {
+                UIElement element = ModListStackPanel.Children[i];
+
+                if (string.IsNullOrWhiteSpace(FilterTextBox.Text))
+                {
+                    element.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    ModItem item = (ModItem)element;
+
+                    if (item.Title.ToLower().Contains(FilterTextBox.Text.ToLower()))
+                    {
+                        element.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        element.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
         }
 
         private void DownloadWebClient_DownloadStringCompleted(object sender, DownloadStringCompletedEventArgs e)
@@ -439,34 +505,34 @@ namespace GTAIVDowngrader.Dialogs
                 if (e.Cancelled)
                     return;
 
-                if (e.Error == null)
-                {
-                    string result = e.Result;
-                    if (!string.IsNullOrWhiteSpace(result))
-                    {
-
-                        allMods = JsonConvert.DeserializeObject<List<JsonObjects.ModInformation>>(result);
-
-#if DEBUG
-                        Console.WriteLine("- - - Mods - - -");
-                        allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
-#endif
-                       
-                        if (allMods.Count != 0)
-                            AddModsToContainer(); // Add all mods to mods container
-
-                        ChangeLoadingPageState(false, "");
-
-                    }
-                    else
-                    {
-                        ChangeLoadingPageState(true, "An unknown error occured while trying to retrieve all mods.", false);
-                    }
-                }
-                else
+                if (e.Error != null)
                 {
                     ChangeLoadingPageState(true, string.Format("(1) An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, e.Error.Message), false);
+                    return;
                 }
+
+                // Get the result and do validation
+                string result = e.Result;
+
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    ChangeLoadingPageState(true, "An unknown error occured while trying to retrieve all mods.", false);
+                    return;
+                }
+
+                // Parse mods
+                allMods = JsonConvert.DeserializeObject<List<ModDetails>>(result);
+
+#if DEBUG
+                // Debug
+                Console.WriteLine("- - - Mods - - -");
+                allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
+#endif
+
+                if (allMods.Count != 0)
+                    AddModsToContainer(); // Add all mods to mods container
+
+                ChangeLoadingPageState(false, "");
             }
             catch (Exception ex)
             {
@@ -480,33 +546,34 @@ namespace GTAIVDowngrader.Dialogs
                 if (e.Cancelled)
                     return;
 
-                if (e.Error == null)
-                {
-                    // Read file
-                    string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-                    if (!File.Exists(filePath))
-                    {
-                        ChangeLoadingPageState(true, string.Format("(1) An error occured while trying to retrieve all mods."), false);
-                        return;
-                    }
-
-                    allMods = JsonConvert.DeserializeObject<List<JsonObjects.ModInformation>>(File.ReadAllText(filePath));
-
-#if DEBUG
-                    Console.WriteLine("- - - Mods - - -");
-                    allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
-#endif
-
-                    if (allMods.Count != 0)
-                        AddModsToContainer(); // Add all mods to mods container
-
-                    ChangeLoadingPageState(false, "");
-                }
-                else
+                if (e.Error != null)
                 {
                     ChangeLoadingPageState(true, string.Format("(2) An error occured while trying to retrieve all mods.{0}{1}", Environment.NewLine, e.Error.Message), false);
+                    return;
                 }
+
+                // Read file
+                string filePath = string.Format("{0}\\Red Wolf Interactive\\IV Downgrader\\DownloadedData\\modInfos.json", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+
+                if (!File.Exists(filePath))
+                {
+                    ChangeLoadingPageState(true, string.Format("(1) An error occured while trying to retrieve all mods."), false);
+                    return;
+                }
+
+                // Parse mods
+                allMods = JsonConvert.DeserializeObject<List<ModDetails>>(File.ReadAllText(filePath));
+
+#if DEBUG
+                // Debug
+                Console.WriteLine("- - - Mods - - -");
+                allMods.ForEach(m => Console.WriteLine(m.ToString())); // Print to console
+#endif
+
+                if (allMods.Count != 0)
+                    AddModsToContainer(); // Add all mods to mods container
+
+                ChangeLoadingPageState(false, "");
             }
             catch (Exception ex)
             {
@@ -531,6 +598,12 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            if (Core.IsInSimpleMode)
+            {
+                instance.NextButton.Content = "Downgrade";
+                NextInstruction.Text = "To downgrade, press the 'Downgrade' button.";
+            }
+
             instance.NextButtonClicked += Instance_NextButtonClicked;
             instance.BackButtonClicked += Instance_BackButtonClicked;
 
@@ -539,29 +612,28 @@ namespace GTAIVDowngrader.Dialogs
 
             // Init WebClient
             downloadWebClient = new WebClient();
-
-            if (Core.UseAlternativeDownloadLinks)
-                downloadWebClient.Credentials = new NetworkCredential("ivdowngr", "7MY4qi2a8g");
-
+            downloadWebClient.Encoding = Encoding.UTF8;
             downloadWebClient.DownloadStringCompleted += DownloadWebClient_DownloadStringCompleted;
             downloadWebClient.DownloadFileCompleted += DownloadWebClient_DownloadFileCompleted;
 
             // Set ToolTip for InstallPrerequisites CheckBox
-            if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
+            if (DowngradingInfo.ConfigureForGFWL)
             {
-                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and Visual C++ 2005 SP1 which is required for GTA IV and most mods.{0}" +
+                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and the all-in-one Visual C++ 2005-2022 Redistributable.{0}" +
+                    "These are required for GTA IV and some mods.{0}" +
                     "It will also install the Prerequisites required by GFWL because you checked the 'Configure this downgrade for GFWL' checkbox earlier.{0}" +
                     "You can uncheck this if you are sure that you already have everything.", Environment.NewLine);
             }
             else
             {
-                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and Visual C++ 2005 SP1 which is required for GTA IV and most mods.{0}" +
+                InstallPrerequisitesCheckBox.ToolTip = string.Format("This will download and install DirectX June 2010 SDK and the all-in-one Visual C++ 2005-2022 Redistributable.{0}" +
+                    "These are required for GTA IV and some mods.{0}" +
                     "You can uncheck this if you are sure that you already have those.", Environment.NewLine);
             }
 
             // Remove previously selected mods and optionals so they aren't twice in the list
-            Core.CurrentDowngradingInfo.SelectedMods.Clear();
-            Core.CurrentDowngradingInfo.SelectedOptionalComponents.Clear();
+            DowngradingInfo.SelectedMods.Clear();
+            DowngradingInfo.SelectedOptionalComponents.Clear();
 
             // Download stuff
             RetrieveMods();
@@ -581,8 +653,8 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void ProblemsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (errorText != null)
-                MessageBox.Show(errorText.ToString(), "Problems", MessageBoxButton.OK);
+            if (modCheckResultBuilder != null)
+                MessageBox.Show(modCheckResultBuilder.ToString(), "Problems", MessageBoxButton.OK);
         }
 
     }

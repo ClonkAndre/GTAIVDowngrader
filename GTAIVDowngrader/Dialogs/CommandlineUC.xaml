@@ -14,16 +14,15 @@
         <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char7.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\char7.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,20,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" Margin="20,20,20,35">
                 <TextBlock Text="Commandline Arguments" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    In this step, you can choose whether or not to include a <Run Text="commandline.txt" FontWeight="Bold"/> in your GTA IV root directory.<LineBreak/>
-                    A commandline.txt is mostly for troubleshooting, and its very recommended to have one!
-                    <LineBreak/><LineBreak/>
-                    Now you've the choice to include the recommended commandline into your games root folder, or you can create your own one!
+                    In this step, you can choose whether or not to include a <Run Text="commandline.txt" FontWeight="Bold"/> in your downgraded GTA IV directory.<LineBreak/>
+                    Having one is recommended, as certain arguments can improve performance, remove limitations and more!<LineBreak/>
+                    Either choose the recommended commandline, or create your own!
                 </TextBlock>
                 <RadioButton x:Name="RecommendedCommandlineRadioButton" Checked="RecommendedCommandlineRadioButton_CheckedChanged" Unchecked="RecommendedCommandlineRadioButton_CheckedChanged" Foreground="White" FontSize="16" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,15,0,0">
                     <StackPanel>

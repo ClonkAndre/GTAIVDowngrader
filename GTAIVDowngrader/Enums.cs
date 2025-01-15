@@ -32,41 +32,6 @@
         Warning,
         Error
     }
-    public enum GameVersion
-    {
-        v1080,
-        v1070,
-        v1040
-    }
-    public enum ModVersion
-    {
-        All = 3,
-        v1080 = 0,
-        v1070 = 1,
-        v1040 = 2,
-    }
-    public enum RadioDowngrader
-    {
-        None,
-        SneedsDowngrader,
-        LegacyDowngrader
-    }
-    public enum VladivostokTypes
-    {
-        None,
-        New,
-        Old
-    }
-    public enum ModType
-    {
-        ASILoader,
-        ASIMod,
-        ScriptHook,
-        ScriptHookMod,
-        ScriptHookHook,
-        ScriptHookDotNet,
-        ScriptHookDotNetMod
-    }
     public enum NotificationType
     {
         Info,

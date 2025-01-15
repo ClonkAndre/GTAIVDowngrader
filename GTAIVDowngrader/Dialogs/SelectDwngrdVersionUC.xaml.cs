@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -30,12 +33,12 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (DowngradingInfo.DowngradeTo == "1040")
             {
-                Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
-                Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
-                Core.CurrentDowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
-                Core.CurrentDowngradingInfo.SetConfigureForGFWL(false);
+                DowngradingInfo.SetRadioDowngrader("LegacyRadioDowngrader");
+                DowngradingInfo.SetVladivostokType(null);
+                DowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
+                DowngradingInfo.SetConfigureForGFWL(false);
 
                 // Show message and skip select components tab if in offline mode
                 if (Core.IsInOfflineMode)
@@ -46,7 +49,7 @@ namespace GTAIVDowngrader.Dialogs
                         Steps.S9_Confirm);
 
                     // Force this to be true
-                    Core.CurrentDowngradingInfo.SetInstallPrerequisites(true);
+                    DowngradingInfo.SetInstallPrerequisites(true);
                 }
                 else
                     instance.NextStep(3);
@@ -70,21 +73,26 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, (IV1040Radiobtn.IsChecked.Value || IV1070Radiobtn.IsChecked.Value || IV1080Radiobtn.IsChecked.Value));
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
         }
 
         private void IV1080Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetDowngradeVersion(GameVersion.v1080);
+            DowngradingInfo.SetDowngradeVersion("1080");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void IV1070Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetDowngradeVersion(GameVersion.v1070);
+            DowngradingInfo.SetDowngradeVersion("1070");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void IV1040Radiobtn_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetDowngradeVersion(GameVersion.v1040);
+            DowngradingInfo.SetDowngradeVersion("1040");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
 

@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 using CCL;
 
-using GTAIVDowngrader.JsonObjects;
+using GTAIVDowngrader.Classes.Json.Modification;
 
 namespace GTAIVDowngrader.Controls
 {
@@ -15,7 +15,7 @@ namespace GTAIVDowngrader.Controls
 
         #region Variables and Properties
         // Variables
-        public ModInformation ModInfo;
+        public ModDetails ModInfo;
 
         // Properties
         public string Title
@@ -41,7 +41,7 @@ namespace GTAIVDowngrader.Controls
         #endregion
 
         #region Constructor
-        public ModItem(ModInformation modInfo)
+        public ModItem(ModDetails modInfo)
         {
             InitializeComponent();
 
@@ -54,14 +54,16 @@ namespace GTAIVDowngrader.Controls
             // Set warning and/or web page
             if (!string.IsNullOrWhiteSpace(ModInfo.WarningMessage))
             {
-                WarningImage.ToolTip = ModInfo.WarningMessage;
+                WarningImage.ToolTip = ModInfo.WarningMessage.Replace("\\n", "\n");
                 WarningImage.Visibility = Visibility.Visible;
             }
             if (!string.IsNullOrWhiteSpace(ModInfo.OfficialModWebPage))
+            {
                 WebImage.Visibility = Visibility.Visible;
+            }
 
             // Set optionals components
-            if (ModInfo.OptionalComponents != null)
+            if (ModInfo.OptionalComponents.Count != 0)
             {
                 // Clear container
                 OptionalsWrapPanel.Children.Clear();
@@ -76,7 +78,7 @@ namespace GTAIVDowngrader.Controls
                     cBox.Foreground = Brushes.White;
                     cBox.Tag = info;
                     cBox.Content = info.Title;
-                    cBox.ToolTip = info.Description;
+                    cBox.ToolTip = info.Description.Replace("\\n", "\n");
                     cBox.Margin = new Thickness(0, 0, 5, 0);
 
                     if (info.CheckedByDefault)

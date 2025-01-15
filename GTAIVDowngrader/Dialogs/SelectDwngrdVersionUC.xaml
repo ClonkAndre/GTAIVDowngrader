@@ -14,7 +14,7 @@
         <Grid x:Name="MainGrid" Grid.Row="0">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char1.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,30,20,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\char1.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,30,20,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,20">
@@ -34,18 +34,18 @@
                     <LineBreak/><LineBreak/>
                     A quick summary on all the benefits of each version
                     <LineBreak/>
-                    - <Run Text="1080" FontWeight="Bold"/>: Best for using ASI Mods and great performance.
+                    - <Run Text="1080" FontWeight="Bold"/>: Best for using ASI &amp; IV-SDK .NET Mods. Also offers great performance.
                     <LineBreak/>
-                    - <Run Text="1070" FontWeight="Bold"/>: Best for using ASI &amp; .NET Mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.lcpdfr.com/lcpdfr" FontWeight="Bold">LCPDFR</Hyperlink>.
+                    - <Run Text="1070" FontWeight="Bold"/>: Best for using ASI, IV-SDK .NET &amp; ScriptHookDotNet Mods such as <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://www.lcpdfr.com/lcpdfr" FontWeight="Bold">LCPDFR</Hyperlink>.
                     <LineBreak/>
-                    - <Run Text="1040" FontWeight="Bold"/>: Best for using ENBs because of greater visuals. <Run Text="Warning" FontWeight="Medium"/>: This version has <Run Text="no" FontWeight="Medium"/> DLC support.
+                    - <Run Text="1040" FontWeight="Bold"/>: Best for using ENBs because of greater visuals. <Run Text="Warning:" Foreground="Red" FontWeight="Medium"/> This version has <Run Text="no" Foreground="Red" FontWeight="Medium"/> DLC support.
                     
                     <LineBreak/><LineBreak/>
                     <Run Text="Select which version you would like to downgrade to" FontSize="15"/>
                 </TextBlock>
-                <RadioButton x:Name="IV1080Radiobtn" Checked="IV1080Radiobtn_Checked" Content="1.0.8.0 (Recommended)" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,9,0,0"/>
-                <RadioButton x:Name="IV1070Radiobtn" Checked="IV1070Radiobtn_Checked" Content="1.0.7.0" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
-                <RadioButton x:Name="IV1040Radiobtn" Checked="IV1040Radiobtn_Checked" Content="1.0.4.0" FontSize="16" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
+                <RadioButton x:Name="IV1080Radiobtn" Checked="IV1080Radiobtn_Checked" Content="1.0.8.0 (Recommended)" IsChecked="True" FontSize="18" Foreground="White" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,9,0,0"/>
+                <RadioButton x:Name="IV1070Radiobtn" Checked="IV1070Radiobtn_Checked" Content="1.0.7.0" FontSize="18" Foreground="#d9d9d9" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
+                <RadioButton x:Name="IV1040Radiobtn" Checked="IV1040Radiobtn_Checked" Content="1.0.4.0" FontSize="18" Foreground="#d9d9d9" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,6,0,0"/>
             </StackPanel>
 
             <TextBlock Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="30,15"/>

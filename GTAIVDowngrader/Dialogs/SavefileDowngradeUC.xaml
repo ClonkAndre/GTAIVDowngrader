@@ -14,7 +14,7 @@
         <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char6.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,10,20,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\char6.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,10,20,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
@@ -22,21 +22,33 @@
                 <TextBlock Text="Save file downgrading" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
 
                 <TextBlock x:Name="NonOfflineModeText" Visibility="Visible" TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    This step is necessary if you want to keep your current save files because trying to load your saves won't work after downgrading.
+
+                    This step is essential if you want to keep your current save files, as attempting to load them after downgrading will likely cause issues.
                     <LineBreak/>
-                    Conveniently, this process is automatic now thanks to <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://gtasnp.com" FontWeight="Bold">GTASnP.com</Hyperlink>!
+                    Fortunately, this process is now automatic, thanks to GTASnP.com! Simply proceed to the next step to downgrade your save files.
+                    <LineBreak/>
+                    If you do not wish to downgrade, you can skip this step.
+                    
                     <LineBreak/><LineBreak/>
                     
-                    If you still want to downgrade your save files manually, and you need help, you can watch <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://youtu.be/ObvIv5Q-8zU?t=1212" FontWeight="Bold">this video</Hyperlink> which shows you how to downgrade your save files.
-                    <LineBreak/><LineBreak/>
+                    <Run Text="Still want to downgrade manually?" FontSize="18" FontWeight="Medium"/><LineBreak/>
+                    To locate your current save files, navigate to:
+                    <LineBreak/>
+                    <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontSize="14" FontWeight="Medium">Users → [USERNAME] → Documents → Rockstar Games → GTA IV → savegames</Hyperlink>
                     
-                    You can skip this step if you do not wish to downgrade your save files.
                     <LineBreak/><LineBreak/>
+                    In the savegames folder, you should find files named "<Run Text="SGTA4[NUMBER]" FontWeight="Bold"/>" these are your save files.
+                    <LineBreak/>
+                    If the folder is empty, your save files might be in the "<Run Text="Profiles" FontWeight="Bold"/>" folder. To check:
+                    <LineBreak/><LineBreak/>
+                    1. Open the folder mentioned above and go back one level.<LineBreak/>
+                    2. Navigate to the "<Run Text="Profiles" FontWeight="Bold"/>" folder.<LineBreak/>
+                    3. Inside, look for a folder with a name made up of random numbers and letters (e.g., 02526A2B).<LineBreak/>
+                    4. Open this folder to eventually find your save files.
                     
-                    Locate your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users > (Username) > Documents > Rockstar Games > GTA IV > savegames</Hyperlink>.
-                    In the savegames folder, you should see <Run Text="SGTA4[NUMBER]" FontWeight="Bold" FontStyle="Oblique"/> file(s), these are your saves.
                     <LineBreak/><LineBreak/>
-                    Nothing in there? Your save files could also be in your profile folder. Open the folder above, go back one folder, go into the <Run Text="Profiles" FontWeight="Bold"/> folder, then there should be a folder with random <Run Text="numbers" FontWeight="Bold"/> and <Run Text="letters" FontWeight="Bold"/>, go into this folder and then in there you might see your save files.
+                    Now that you found your save files, watch <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://youtu.be/ObvIv5Q-8zU?t=1212" FontWeight="Bold">this video</Hyperlink> which shows you how to downgrade your save files.
+                    
                 </TextBlock>
 
                 <TextBlock x:Name="OfflineModeText" Visibility="Collapsed" TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
@@ -51,10 +63,10 @@
                     You can skip this step if you do not wish to downgrade your save files.
                     <LineBreak/><LineBreak/>
                     
-                    Locate your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users > (Username) > Documents > Rockstar Games > GTA IV > savegames</Hyperlink>.
+                    Locate your current saves, head to: <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="http://gotoDocumentsFolder/" FontWeight="Bold">Users -> [USERNAME] -> Documents -> Rockstar Games -> GTA IV -> savegames</Hyperlink>.
                     In the savegames folder, you should see <Run Text="SGTA4[NUMBER]" FontWeight="Bold" FontStyle="Oblique"/> file(s), these are your saves.
                     <LineBreak/><LineBreak/>
-                    Nothing in there? Your save files could also be in your profile folder. Open the folder above, go back one folder, go into the <Run Text="Profiles" FontWeight="Bold"/> folder, then there should be a folder with random <Run Text="numbers" FontWeight="Bold"/> and <Run Text="letters" FontWeight="Bold"/>, go into this folder and then in there you might see your save files.
+                    Nothing in there? Your save files could also be in your profile folder. Open the folder above, go back one folder, go into the <Run Text="Profiles" FontWeight="Bold"/> folder, then there should be a folder with random <Run Text="numbers" FontWeight="Bold"/> and <Run Text="letters" FontWeight="Bold"/> (Example: 02526A2B), go into this folder, and in there might be your save files.
                 </TextBlock>
 
             </StackPanel>

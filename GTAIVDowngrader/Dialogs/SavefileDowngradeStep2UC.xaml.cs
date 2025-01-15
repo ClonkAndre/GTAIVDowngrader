@@ -6,7 +6,6 @@ using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -48,6 +47,15 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Methods
+        private void Reset()
+        {
+            selectedSaveFiles = null;
+            ChangeSelectedFilesTextVisibility(false);
+            UpdateStatusProgressBar(0);
+            ChangeButtonEnabledStates(false);
+            UpdateStatusText("Idle");
+        }
+
         private void ChangeSelectedFilesTextVisibility(bool visible)
         {
             Dispatcher.Invoke(() => {
@@ -143,8 +151,8 @@ namespace GTAIVDowngrader.Dialogs
 
             ChangeProgressBarIndeterminateState(false);
 
-            long bytesReceived = FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).Size;
-            long totalBytesToReceived = FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).Size;
+            string bytesReceived =          FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).ToString();
+            string totalBytesToReceived =   FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).ToString();
 
             UpdateStatusText(string.Format("Uploading {0} | {1} of {2} uploaded", e.UserState.ToString(), bytesReceived, totalBytesToReceived));
         }
@@ -204,12 +212,12 @@ namespace GTAIVDowngrader.Dialogs
                 // Checks
                 if (!isValidSaveGame)
                 {
-                    Core.Notification.ShowNotification(NotificationType.Warning, 3000, "Invalid file", string.Format("{0} is not a valid GTA IV save game file.", saveFileName));
+                    Core.Notification.ShowNotification(NotificationType.Warning, 5000, "Invalid file", string.Format("'{0}' is not a valid save game file.", saveFileName));
                     break;
                 }
                 if (!isGTAIVSaveGame)
                 {
-                    Core.Notification.ShowNotification(NotificationType.Warning, 3000, "Wrong game", string.Format("{0} is not a valid GTA IV save game file.", saveFileName));
+                    Core.Notification.ShowNotification(NotificationType.Warning, 5000, "Wrong game", string.Format("'{0}' is not a GTA IV save game file.", saveFileName));
                     break;
                 }
 
@@ -269,17 +277,29 @@ namespace GTAIVDowngrader.Dialogs
             {
                 UpdateStatusText("Uploading complete! Continuing with downloading converted saves...");
 
-                SaveFileDownload nextSaveFileToBeDownloaded = saveFilesDownloadQueue.Dequeue();
-                string downloadUrl = string.Format("https://gtasnp.com/download/file/{0}?downgrade_version=1&slot={1}", nextSaveFileToBeDownloaded.ID, nextSaveFileToBeDownloaded.Slot.ToString());
+                if (saveFilesDownloadQueue.Count != 0)
+                {
+                    SaveFileDownload nextSaveFileToBeDownloaded = saveFilesDownloadQueue.Dequeue();
+                    string downloadUrl = string.Format("https://gtasnp.com/download/file/{0}?downgrade_version=1&slot={1}", nextSaveFileToBeDownloaded.ID, nextSaveFileToBeDownloaded.Slot);
 
-                string dir = ".\\Data\\Savegames";
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
+                    string dir = ".\\Data\\Savegames";
+                    if (!Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
 
-                webClient.DownloadFileAsync(new Uri(downloadUrl), string.Format("{0}\\{1}", dir, nextSaveFileToBeDownloaded.FileName), nextSaveFileToBeDownloaded.FileName);
+                    webClient.DownloadFileAsync(new Uri(downloadUrl), string.Format("{0}\\{1}", dir, nextSaveFileToBeDownloaded.FileName), nextSaveFileToBeDownloaded.FileName);
 
-                // Log
-                Core.AddLogItem(LogType.Info, string.Format("(2) - Uploading complete! Started downloading file {0}", nextSaveFileToBeDownloaded.FileName));
+                    // Log
+                    Core.AddLogItem(LogType.Info, string.Format("(2) - Uploading complete! Started downloading file {0}", nextSaveFileToBeDownloaded.FileName));
+                }
+                else
+                {
+                    Reset();
+
+                    Core.Notification.ShowNotification(NotificationType.Error, 7000, "Failed to download save file(s)", "There were no save files in the queue to be downloaded. Selected save file(s) might've been invalid.");
+
+                    // Log
+                    Core.AddLogItem(LogType.Info, "There were no save files in the queue to be downloaded! This could mean that the selected save files were not valid.");
+                }
             }
         }
 
@@ -294,8 +314,8 @@ namespace GTAIVDowngrader.Dialogs
 
             ChangeProgressBarIndeterminateState(false);
 
-            long bytesReceived = FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).Size;
-            long totalBytesToReceived = FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).Size;
+            string bytesReceived =          FileHelper.GetExactFileSizeAdvanced(e.BytesReceived).ToString();
+            string totalBytesToReceived =   FileHelper.GetExactFileSizeAdvanced(e.TotalBytesToReceive).ToString();
 
             UpdateStatusText(string.Format("Downloading {0} | {1} of {2} downloaded", e.UserState.ToString(), bytesReceived, totalBytesToReceived));
         }
@@ -333,7 +353,7 @@ namespace GTAIVDowngrader.Dialogs
                     UpdateStatusProgressBar(100);
                     ChangeButtonEnabledStates(true);
 
-                    UpdateStatusText("Coverting and downloading saves completed! You can now continue.");
+                    UpdateStatusText("Converting and downloading saves completed! You can now continue.");
 
                     // Log
                     Core.AddLogItem(LogType.Info, "(1) - Coverting and downloading saves completed!");
@@ -343,27 +363,30 @@ namespace GTAIVDowngrader.Dialogs
             }
 
             // Download next save file
-            if (saveFilesDownloadQueue.Count != 0) {
+            if (saveFilesDownloadQueue.Count != 0)
+            {
                 SaveFileDownload nextSaveFileToBeDownloaded = saveFilesDownloadQueue.Dequeue();
                 string downloadUrl = string.Format("https://gtasnp.com/download/file/{0}?downgrade_version=1&slot={1}", nextSaveFileToBeDownloaded.ID, nextSaveFileToBeDownloaded.Slot.ToString());
 
                 string dir = ".\\Data\\Savegames";
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
 
                 webClient.DownloadFileAsync(new Uri(downloadUrl), string.Format("{0}\\{1}", dir, nextSaveFileToBeDownloaded.FileName), nextSaveFileToBeDownloaded.FileName);
 
                 // Log
                 Core.AddLogItem(LogType.Info, string.Format("(2) - Downloading next file {0}", nextSaveFileToBeDownloaded.FileName));
             }
-            else {
+            else
+            {
                 selectedSaveFiles = null;
                 ChangeSelectedFilesTextVisibility(false);
                 UpdateStatusProgressBar(100);
                 ChangeButtonEnabledStates(true);
-                UpdateStatusText("Coverting and downloading saves completed! You can now continue.");
+                UpdateStatusText("Converting and downloading saves completed! You can now continue.");
 
                 // Log
-                Core.AddLogItem(LogType.Info, "(2) - Coverting and downloading saves completed!");
+                Core.AddLogItem(LogType.Info, "(2) - Converting and downloading saves completed!");
             }
         }
         #endregion
@@ -381,25 +404,33 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
 
-            if (Core.IsPrideMonth)
-                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char5.png", UriKind.Relative));
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
         }
 
         private void SelectFilesButton_Click(object sender, RoutedEventArgs e)
         {
             using (CommonOpenFileDialog ofd = new CommonOpenFileDialog())
             {
-                ofd.Title = "Select save files that should be downgraded";
+                ofd.Title = "Select save file(s) that should be downgraded";
                 ofd.Multiselect = true;
                 if (ofd.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    selectedSaveFiles = ofd.FileNames.ToArray();
-                    
-                    if (selectedSaveFiles.Length == 1)
-                        SelectedFilesTextBlock.Text = string.Format("{0} save file selected", selectedSaveFiles.Length.ToString());
-                    else 
-                        SelectedFilesTextBlock.Text = string.Format("{0} save files selected", selectedSaveFiles.Length.ToString());
+                    // Check selected files
+                    string[] files = ofd.FileNames.ToArray();
 
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        if (Path.GetExtension(files[i]) != string.Empty)
+                        {
+                            Core.Notification.ShowNotification(NotificationType.Warning, 6000, "Invalid file save file(s)", "One or more selected files are not valid.");
+                            return;
+                        }
+                    }
+
+                    selectedSaveFiles = files;
+                    SelectedFilesTextBlock.Text = string.Format("{0} save file(s) selected", selectedSaveFiles.Length);
+                    
                     ChangeSelectedFilesTextVisibility(true);
                 }
             }

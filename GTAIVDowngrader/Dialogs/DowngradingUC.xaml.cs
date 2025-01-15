@@ -12,14 +12,22 @@ using System.Windows.Media;
 using System.Windows.Shell;
 
 using CCL;
+using Newtonsoft.Json.Linq;
+using IniParser;
+using IniParser.Model;
 
 using GTAIVDowngrader.Classes;
-using GTAIVDowngrader.JsonObjects;
+using GTAIVDowngrader.Classes.Json;
+using GTAIVDowngrader.Classes.Json.Modification;
+using GTAIVDowngrader.Classes.Json.PostInstallActions;
 
 namespace GTAIVDowngrader.Dialogs
 {
     public partial class DowngradingUC : UserControl
     {
+
+        // This class can be made a lot better.
+        // I will probably refactor this class in future updates.
 
         // - - - Downgrading Order - - -
         // 1. Create Backup if user wants to otherwise skip to 2.
@@ -32,33 +40,42 @@ namespace GTAIVDowngrader.Dialogs
         // 8. Install optional mod components if there are any otherwise skip to 9.
         // 9. Finish
 
+        #region Consts
+        public const string TEMP_FOLDER = ".\\Data\\Temp";
+        #endregion
+
         #region Variables and Enums
         private MainWindow instance;
 
         // Download Stuff
         private WebClient downloadWebClient;
-        private Queue<FileDownload> downloadQueue;
+        private Queue<FileDetails> downloadQueue;
+        private List<string> cancelledDownloadItems;
         private DateTime downloadStartTime; // Remaining Time Calculation
 
         // States
-        private InstallState currentInstallState;
+        private DowngradeStep currentDowngradeStep;
         private Prerequisites currentPrerequisite;
 
         // Other
-        private string modToInstall;
+        private FileIniDataParser iniParser;
+
+        private ModDetails currentModToInstall;
+        private OptionalComponentInfo currentOptionalComponentToInstall;
+
         private bool errored, backupErrored, prerequisiteErrored;
         private bool canDownloadFiles;
+        private bool alreadyFinished;
         private int progress;
 
         // Enums
-        public enum InstallState
+        public enum DowngradeStep
         {
             Backup,
             Download, // Can Download: Prerequisites, Old and New Vladivostok, No EFLC Music in IV Fix and selected Mods.
             Prerequisites,
             RadioDowngrade,
-            RadioOldVladivostok,
-            RadioNewVladivostok,
+            RadioVladivostokDowngrade,
             RadioNoEFLCMusicInIVFix,
             GameDowngrade,
             ModInstall,
@@ -74,19 +91,25 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Constructor
-        public DowngradingUC()
-        {
-            downloadQueue = new Queue<FileDownload>();
-            InitializeComponent();
-        }
         public DowngradingUC(MainWindow window)
         {
             instance = window;
-            downloadQueue = new Queue<FileDownload>();
+            downloadQueue = new Queue<FileDetails>();
+            cancelledDownloadItems = new List<string>();
+            iniParser = new FileIniDataParser();
+
+            InitializeComponent();
+        }
+        public DowngradingUC()
+        {
+            downloadQueue = new Queue<FileDetails>();
+            cancelledDownloadItems = new List<string>();
+            iniParser = new FileIniDataParser();
+
             InitializeComponent();
         }
         #endregion
-        
+
         #region Methods
 
         private void AddLogItem(LogType type, string str, bool includeTimeStamp = true, bool printInListBox = true)
@@ -119,100 +142,130 @@ namespace GTAIVDowngrader.Dialogs
 
         private void ClearReadOnly(DirectoryInfo parentDirectory)
         {
-            if (parentDirectory != null)
-            {
-#if DEBUG
-                if (!UAC.IsAppRunningWithAdminPrivileges())
-                    return;
-#endif
+            if (parentDirectory == null)
+                return;
+            if (!parentDirectory.Exists)
+                return;
 
-                parentDirectory.Attributes = FileAttributes.Normal;
-                foreach (FileInfo fi in parentDirectory.GetFiles())
+            // Remove the read-only attribute if it is set
+            if ((parentDirectory.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                parentDirectory.Attributes &= ~FileAttributes.ReadOnly;
+
+            foreach (FileInfo fi in parentDirectory.GetFiles())
+            {
+                // Remove the read-only attribute if it is set
+                if ((fi.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                    fi.Attributes &= ~FileAttributes.ReadOnly;
+            }
+            foreach (DirectoryInfo di in parentDirectory.GetDirectories())
+            {
+                ClearReadOnly(di);
+            }
+        }
+        private void RenameFile(string oldFileName, string newFileName)
+        {
+            try
+            {
+                string oldPath = string.Format("{0}\\{1}", DowngradingInfo.IVWorkingDirectoy, oldFileName);
+                string newPath = string.Format("{0}\\{1}", DowngradingInfo.IVWorkingDirectoy, newFileName);
+
+                if (!File.Exists(oldPath))
                 {
-                    fi.Attributes = FileAttributes.Normal;
+                    AddLogItem(LogType.Warning, string.Format("Could not find file '{0}' to rename to '{1}'", oldFileName, newFileName));
+                    return;
                 }
-                foreach (DirectoryInfo di in parentDirectory.GetDirectories())
-                {
-                    ClearReadOnly(di);
-                }
+
+                // Check if file with the target name already exists
+                if (File.Exists(newPath))
+                    File.Delete(newPath);
+
+                File.Move(oldPath, newPath);
+                AddLogItem(LogType.Info, string.Format("Renamed file '{0}' to '{1}'", oldFileName, newFileName));
+            }
+            catch (Exception ex)
+            {
+                AddLogItem(LogType.Error, string.Format("An error occured while trying to rename file '{0}' to '{1}'. Details: {2}", oldFileName, newFileName, ex.Message));
             }
         }
 
-        private void ChangeProgressBarIndeterminateState(bool isIndeterminate)
+        private void UpdateCurrentStep(DowngradeStep step)
         {
+            // Log
+            Core.AddLogItem(LogType.Info, string.Format("Changing step from '{0}' to '{1}'.", currentDowngradeStep, step));
+
+            currentDowngradeStep = step;
+
             Dispatcher.Invoke(() =>
             {
-                DowngradeProgressBar.IsIndeterminate = isIndeterminate;
-            });
-        }
-        private void UpdateStatusText(string txt)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                StatusLabel.Text = txt;
-            });
-        }
-        private void UpdateExtractionProgressBar(string currentFile, int progress, int totalFiles)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                StatusLabel.Text = string.Format("Extracting file {0}, Progress: {1}/{2}", currentFile, progress, totalFiles);
-                DowngradeProgressBar.Maximum = totalFiles;
-                DowngradeProgressBar.Value = progress;
-            });
-        }
-        private void RefreshCurrentStepLabel()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                switch (currentInstallState)
+                instance.ChangeActionButtonVisiblity(false, currentDowngradeStep == DowngradeStep.Download, false, true);
+
+                switch (currentDowngradeStep)
                 {
-                    case InstallState.Download:
+                    case DowngradeStep.Download:
                         CurrentStepLabel.Text = "Current Step: Downloading files";
                         break;
-                    case InstallState.Backup:
+                    case DowngradeStep.Backup:
                         CurrentStepLabel.Text = "Current Step: Backing up original game files";
                         break;
-                    case InstallState.Prerequisites:
+                    case DowngradeStep.Prerequisites:
                         CurrentStepLabel.Text = "Current Step: Installing Prerequisites";
                         break;
-                    case InstallState.RadioDowngrade:
+                    case DowngradeStep.RadioDowngrade:
                         CurrentStepLabel.Text = "Current Step: Radio Downgrade";
                         break;
-                    case InstallState.RadioOldVladivostok:
-                        CurrentStepLabel.Text = "Current Step: Old Vladivostok Install";
+                    case DowngradeStep.RadioVladivostokDowngrade:
+                        CurrentStepLabel.Text = "Current Step: Vladivostok Downgrade";
                         break;
-                    case InstallState.RadioNewVladivostok:
-                        CurrentStepLabel.Text = "Current Step: New Vladivostok Install";
-                        break;
-                    case InstallState.RadioNoEFLCMusicInIVFix:
+                    case DowngradeStep.RadioNoEFLCMusicInIVFix:
                         CurrentStepLabel.Text = "Current Step: No EFLC Music In IV Fix Install";
                         break;
-                    case InstallState.GameDowngrade:
+                    case DowngradeStep.GameDowngrade:
                         CurrentStepLabel.Text = "Current Step: Game Downgrade";
                         break;
-                    case InstallState.ModInstall:
+                    case DowngradeStep.ModInstall:
                         CurrentStepLabel.Text = "Current Step: Mod Install";
                         break;
-                    case InstallState.OptionalComponentsInstall:
+                    case DowngradeStep.OptionalComponentsInstall:
                         CurrentStepLabel.Text = "Current Step: Installing optional mod components";
                         break;
                 }
             });
         }
-        private void Finish()
+        private void UpdateStatusText(string txt)
+        {
+            Dispatcher.Invoke(() => StatusLabel.Text = txt);
+        }
+        private void ChangeProgressBarIndeterminateState(bool isIndeterminate)
+        {
+            Dispatcher.Invoke(() => DowngradeProgressBar.IsIndeterminate = isIndeterminate);
+        }
+        private void UpdateStatusProgressBar(bool isIndeterminate, int progress, int totalFiles)
         {
             Dispatcher.Invoke(() =>
             {
-                instance.taskbarItemInfo.ProgressValue = 100;
-                instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
-                instance.GetMainProgressBar().IsIndeterminate = false;
-                instance.GetMainProgressBar().Value = 100;
-                instance.GetMainProgressBar().Foreground = Brushes.DarkGreen;
-                DowngradeProgressBar.Foreground = Brushes.Green;
-                CurrentStepLabel.Text = "Current Step: Finished";
-                StatusLabel.Text = "Finshed! Click on 'Next' to continue.";
+                if (isIndeterminate)
+                {
+                    DowngradeProgressBar.IsIndeterminate = true;
+                }
+                else
+                {
+                    DowngradeProgressBar.IsIndeterminate = false;
+                    DowngradeProgressBar.Maximum = totalFiles;
+                    DowngradeProgressBar.Value = progress;
+                }
+            });
+        }
+        
+        private void Finish()
+        {
+            if (alreadyFinished)
+            {
+                Debugger.Log(0, "Downgrading Process", "Was trying to call Finish() twice.\n");
+                return;
+            }
 
+            Dispatcher.Invoke(() =>
+            {
                 // Remove read-only attributes
                 RemoveReadOnlyAttribute(true);
 
@@ -220,12 +273,37 @@ namespace GTAIVDowngrader.Dialogs
                 CreateLaunchGTAIVExecutable();
 
                 // Perfom last steps
-                if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
+                if (DowngradingInfo.DowngradeTo == "1040")
                     DeleteDLCsFor1040();
 
+                if (Core.IsInSimpleMode)
+                {
+                    instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+                    instance.GetMainProgressBar().IsIndeterminate = false;
+                    instance.GetMainProgressBar().Value = 0;
+
+                    instance.NextStep(4);
+
+                    return;
+                }
+                else
+                {
+                    instance.taskbarItemInfo.ProgressValue = 100;
+                    instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
+                    instance.GetMainProgressBar().IsIndeterminate = false;
+                    instance.GetMainProgressBar().Value = 100;
+                    instance.GetMainProgressBar().Foreground = Brushes.DarkGreen;
+                    DowngradeProgressBar.Foreground = Brushes.Green;
+                }
+
                 AddLogItem(LogType.Info, "Finshed!");
+                CurrentStepLabel.Text = "Current Step: Finished";
+                StatusLabel.Text = "Finshed! Click on 'Next' to continue.";
+
                 instance.ChangeActionButtonEnabledState(true, true, true, true);
             });
+
+            alreadyFinished = true;
         }
 
         #region PreChecks
@@ -233,7 +311,7 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                string pluginsFolder = string.Format("{0}\\plugins", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+                string pluginsFolder = string.Format("{0}\\plugins", DowngradingInfo.IVWorkingDirectoy);
                 if (Directory.Exists(pluginsFolder))
                 {
                     Directory.Delete(pluginsFolder, true);
@@ -245,7 +323,7 @@ namespace GTAIVDowngrader.Dialogs
                         AddLogItem(LogType.Warning, "plugins folder was not deleted! Please delete manually.");
                 }
 
-                string scriptsFolder = string.Format("{0}\\scripts", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+                string scriptsFolder = string.Format("{0}\\scripts", DowngradingInfo.IVWorkingDirectoy);
                 if (Directory.Exists(scriptsFolder))
                 {
                     Directory.Delete(scriptsFolder, true);
@@ -269,16 +347,16 @@ namespace GTAIVDowngrader.Dialogs
                 string localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string settingsFilePath = string.Format("{0}\\Rockstar Games\\GTA IV\\Settings\\SETTINGS.CFG", localAppDataPath);
 
-                if (File.Exists(settingsFilePath))
-                {
-                    File.Delete(settingsFilePath);
+                if (!File.Exists(settingsFilePath))
+                    return;
 
-                    // Check if deletion was successfull
-                    if (!File.Exists(settingsFilePath))
-                        AddLogItem(LogType.Info, "Deleted settings.cfg file from LocalAppData.");
-                    else
-                        AddLogItem(LogType.Warning, "settings.cfg file was not deleted!");
-                }
+                File.Delete(settingsFilePath);
+
+                // Check if deletion was successful
+                if (!File.Exists(settingsFilePath))
+                    AddLogItem(LogType.Info, "Deleted settings.cfg file from LocalAppData.");
+                else
+                    AddLogItem(LogType.Warning, "settings.cfg file was not deleted!");
             }
             catch (Exception ex)
             {
@@ -287,10 +365,13 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void CreateXLivelessAddonFolders()
         {
-            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (DowngradingInfo.DowngradeTo != "1040")
+                return;
+
+            try
             {
-                string savesDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\saves";
-                string settingsDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\settings";
+                string savesDir =       DowngradingInfo.IVWorkingDirectoy + "\\saves";
+                string settingsDir =    DowngradingInfo.IVWorkingDirectoy + "\\settings";
 
                 // Create saves folder
                 Directory.CreateDirectory(savesDir);
@@ -302,29 +383,47 @@ namespace GTAIVDowngrader.Dialogs
                 if (Directory.Exists(settingsDir))
                     AddLogItem(LogType.Info, "Created settings folder for XLivelessAddon.");
             }
+            catch (Exception ex)
+            {
+                AddLogItem(LogType.Error, string.Format("An error occured while trying to create XLivelessAddon folders! Details: {0}", ex.Message));
+            }
         }
-        private bool KillAnyGTAProcessIfRunning()
+        private void KillAnyGTAProcessIfRunning()
         {
             try
             {
-                Process gtaEncoderProcess = Process.GetProcessesByName("gtaEncoder").FirstOrDefault();
-                Process gta4BrowserProcess = Process.GetProcessesByName("gta4Browser").FirstOrDefault();
-                Process gtaivProcess = Process.GetProcessesByName("GTAIV").FirstOrDefault();
-
-                // No process is running
+                Process gtaivProcess =          Process.GetProcessesByName("GTAIV").FirstOrDefault();
+                Process gtaEncoderProcess =     Process.GetProcessesByName("gtaEncoder").FirstOrDefault();
+                Process gta4BrowserProcess =    Process.GetProcessesByName("gta4Browser").FirstOrDefault();
+                
+                // Check if no process is running
                 if (gtaEncoderProcess == null
                     && gta4BrowserProcess == null
                     && gtaivProcess == null)
                 {
-                    return false;
+                    return;
                 }
 
-                // Some process is still running
+                AddLogItem(LogType.Info, "Found some GTA IV processes which are still running. Trying to kill them...");
+
+                // Some processes are still running
+                if (gtaivProcess != null)
+                {
+                    gtaivProcess.Kill();
+
+                    if (gtaivProcess.WaitForExit(3000))
+                    {
+                        AddLogItem(LogType.Info, "Killed GTAIV Process.");
+
+                        gtaivProcess.Dispose();
+                        gtaivProcess = null;
+                    }
+                }
                 if (gtaEncoderProcess != null)
                 {
                     gtaEncoderProcess.Kill();
 
-                    if (gtaEncoderProcess.WaitForExit(100))
+                    if (gtaEncoderProcess.WaitForExit(3000))
                     {
                         AddLogItem(LogType.Info, "Killed gtaEncoder Process.");
 
@@ -336,7 +435,7 @@ namespace GTAIVDowngrader.Dialogs
                 {
                     gta4BrowserProcess.Kill();
 
-                    if (gta4BrowserProcess.WaitForExit(100))
+                    if (gta4BrowserProcess.WaitForExit(3000))
                     {
                         AddLogItem(LogType.Info, "Killed gta4Browser Process.");
 
@@ -344,24 +443,12 @@ namespace GTAIVDowngrader.Dialogs
                         gta4BrowserProcess = null;
                     }
                 }
-                if (gtaivProcess != null)
-                {
-                    gtaivProcess.Kill();
 
-                    if (gtaivProcess.WaitForExit(100))
-                    {
-                        AddLogItem(LogType.Info, "Killed GTAIV Process.");
-
-                        gtaivProcess.Dispose();
-                        gtaivProcess = null;
-                    }
-                }
-
-                return true;
+                AddLogItem(LogType.Info, "Any currently opened GTA IV Process got killed.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                AddLogItem(LogType.Error, string.Format("Failed to kill any opened GTA IV Processes. Details: {0}", ex.Message));
             }
         }
         #endregion
@@ -369,86 +456,102 @@ namespace GTAIVDowngrader.Dialogs
         #region Backup
         private void StartCreatingBackup()
         {
-            string sourcePath = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
-            string targetPath = Core.CurrentDowngradingInfo.IVTargetBackupDirectory;
-            bool createZIP = Core.CurrentDowngradingInfo.CreateBackupInZipFile;
+            string sourcePath = DowngradingInfo.IVWorkingDirectoy;
+            string targetPath = DowngradingInfo.IVTargetBackupDirectory;
+            bool createZIP = DowngradingInfo.CreateBackupInZipFile;
 
-            currentInstallState = InstallState.Backup;
-            RefreshCurrentStepLabel();
-            Task.Run(() => {
+            UpdateCurrentStep(DowngradeStep.Backup);
 
+            Task.Run(() =>
+            {
                 AddLogItem(LogType.Info, "Creating a backup...");
 
-                try {
+                try
+                {
                     string[] directorys = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
                     string[] files = Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories);
                     int total = directorys.Length + files.Length;
 
-                    if (createZIP) {
-                        string zipFileName = string.Format("{0}\\GTAIV.Backup.{1}.{2}{3}{4}.zip", targetPath, DateTime.Now.Year.ToString(), DateTime.Now.Hour.ToString(), DateTime.Now.Minute.ToString(), DateTime.Now.Second.ToString());
+                    if (createZIP)
+                    {
+                        string zipFileName = string.Format("{0}\\GTAIV.Backup.{1}.{2}{3}{4}.zip", targetPath, DateTime.Now.Year, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
 
-                        Dispatcher.Invoke(() => {
-                            DowngradeProgressBar.IsIndeterminate = true;
-                            StatusLabel.Text = string.Format("Backing up game files to file {0}", Path.GetFileName(zipFileName));
-                        });
+                        // Update status progress bar
+                        UpdateStatusProgressBar(true, 0, 0);
+                        UpdateStatusText(string.Format("Backing up game files to file {0}", Path.GetFileName(zipFileName)));
 
                         // ZIP
-                        System.IO.Compression.ZipFile.CreateFromDirectory(sourcePath, zipFileName);
+                        ZipFile.CreateFromDirectory(sourcePath, zipFileName);
                     }
-                    else {
-                        Dispatcher.Invoke(() => { DowngradeProgressBar.Maximum = total; });
-
+                    else
+                    {
                         // Create all of the directories
-                        foreach (string dirPath in directorys) {
+                        foreach (string dirPath in directorys)
+                        {
                             progress++;
-                            Dispatcher.Invoke(() => {
-                                StatusLabel.Text = string.Format("Copying directory: {0}, Progress: {1}/{2}", Path.GetDirectoryName(dirPath), progress.ToString(), total.ToString());
-                                DowngradeProgressBar.Value = progress;
-                            });
+
+                            // Update status progress bar
+                            UpdateStatusProgressBar(false, progress, total);
+                            UpdateStatusText(string.Format("Copying directory: {0}, Progress: {1}/{2}", Path.GetDirectoryName(dirPath), progress, total));
+
                             Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
                         }
 
                         // Copy all the files & Replaces any files with the same name
-                        foreach (string newPath in files) {
+                        foreach (string newPath in files)
+                        {
                             progress++;
-                            Dispatcher.Invoke(() => {
-                                StatusLabel.Text = string.Format("Copying file: {0}, Progress: {1}/{2}", Path.GetFileName(newPath), progress.ToString(), total.ToString());
-                                DowngradeProgressBar.Value = progress;
-                            });
+
+                            // Update status progress bar
+                            UpdateStatusProgressBar(false, progress, total);
+                            UpdateStatusText(string.Format("Copying file: {0}, Progress: {1}/{2}", Path.GetFileName(newPath), progress, total));
+
                             File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
                         }
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     AddLogItem(LogType.Error, string.Format("Failed to create backup! Details: {0}", ex.Message));
                     backupErrored = true;
                 }
 
-            }).ContinueWith(result => { // Finished
+            }).ContinueWith(r =>
+            {
+                if (!backupErrored)
+                    AddLogItem(LogType.Info, "Backup created!");
 
-                if (!backupErrored) AddLogItem(LogType.Info, "Backup created!");
+                // Reset status progress bar
+                UpdateStatusProgressBar(false, 0, 0);
 
-                Dispatcher.Invoke(() => {
-                    DowngradeProgressBar.IsIndeterminate = false;
-
-                    if (canDownloadFiles) { // Download Files
+                Dispatcher.Invoke(() =>
+                {
+                    if (canDownloadFiles)
+                    {
+                        // Download Files
                         StartDownloads();
                     }
-                    else { // Continue with something else
-                        if (Core.CurrentDowngradingInfo.InstallPrerequisites) { // Install Prerequisites
+                    else // Continue with something else
+                    {
+                        if (DowngradingInfo.InstallPrerequisites)
+                        {
+                            // Install Prerequisites
                             StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                         }
-                        else {
-                            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) { // Install GFWL Prerequisites
+                        else
+                        {
+                            if (DowngradingInfo.ConfigureForGFWL)
+                            {
+                                // Install GFWL Prerequisites
                                 StartInstallPrerequisites(Prerequisites.GFWL);
                             }
-                            else { // Continue with Radio/Game downgrade
-                                if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None) {
-                                    BeginExtractionProcess(InstallState.RadioDowngrade);
-                                }
-                                else {
-                                    BeginExtractionProcess(InstallState.GameDowngrade);
-                                }
+                            else
+                            {
+                                // Continue with Radio/Game downgrade
+                                if (DowngradingInfo.WasAnyRadioDowngraderSelected())
+                                    BeginExtractionProcess(DowngradeStep.RadioDowngrade);
+                                else
+                                    BeginExtractionProcess(DowngradeStep.GameDowngrade);
                             }
                         }
                     }
@@ -459,231 +562,113 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Download
-        private bool PopulateDownloadQueueList(out bool returnOutOfLoadedMethod)
+        private bool PopulateDownloadQueueList()
         {
             try
             {
 
-                string filePath;
+                // Game Downgrading
+                string archiveName = string.Format("{0}.zip", DowngradingInfo.DowngradeTo);
+                string filePath = GetFileLocationInTempFolder(archiveName);
 
-                // Game stuff
-                switch (Core.CurrentDowngradingInfo.DowngradeTo)
+                if (!File.Exists(filePath))
                 {
-                    case GameVersion.v1080:
-                        {
-                            filePath = GetFileLocationInTempFolder("1080.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1080.zip")));
-                                else
-                                    return ShowMissingFileWarning("1080.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
+                    if (!Core.IsInOfflineMode)
+                        downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                    else
+                        return ShowMissingFileWarning(archiveName);
+                }
+                else
+                {
 
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("1080.zip", out returnOutOfLoadedMethod);
+                    // Check if already existing zip file is corrupted or not
+                    if (IsZipFileCorrupted(filePath))
+                    {
+                        if (Core.IsInOfflineMode)
+                            return ShowCorruptedFileWarning(archiveName);
 
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1080.zip")));
-                                    AddLogItem(LogType.Info, "1080.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "1080.zip is already downloaded. Skipping.");
+                        downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded but the file is corrupted. Adding to download queue to redownload.", archiveName));
+                    }
+                    else
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
 
-                            }
-                        }
-                        break;
-                    case GameVersion.v1070:
-                        {
-                            filePath = GetFileLocationInTempFolder("1070.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1070.zip")));
-                                else
-                                    return ShowMissingFileWarning("1070.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("1070.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1070.zip")));
-                                    AddLogItem(LogType.Info, "1070.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "1070.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
-                    case GameVersion.v1040:
-                        {
-                            filePath = GetFileLocationInTempFolder("1040.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1040.zip")));
-                                else
-                                    return ShowMissingFileWarning("1040.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("1040.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("1040.zip")));
-                                    AddLogItem(LogType.Info, "1040.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "1040.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
                 }
 
-                // Radio stuff
-                switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
+                // Radio Downgrading
+                if (DowngradingInfo.WasAnyRadioDowngraderSelected())
                 {
-                    case RadioDowngrader.SneedsDowngrader:
-                        {
-                            filePath = GetFileLocationInTempFolder("SneedsRadioDowngrader.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("SneedsRadioDowngrader.zip")));
-                                else
-                                    return ShowMissingFileWarning("SneedsRadioDowngrader.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
+                    archiveName = string.Format("{0}.zip", DowngradingInfo.SelectedRadioDowngrader);
+                    filePath = GetFileLocationInTempFolder(archiveName);
 
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("SneedsRadioDowngrader.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("SneedsRadioDowngrader.zip")));
-                                    AddLogItem(LogType.Info, "SneedsRadioDowngrader.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "SneedsRadioDowngrader.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
-                    case RadioDowngrader.LegacyDowngrader:
-                        {
-                            filePath = GetFileLocationInTempFolder("LegacyRadioDowngrader.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("LegacyRadioDowngrader.zip")));
-                                else
-                                    return ShowMissingFileWarning("LegacyRadioDowngrader.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("LegacyRadioDowngrader.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("LegacyRadioDowngrader.zip")));
-                                    AddLogItem(LogType.Info, "LegacyRadioDowngrader.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "LegacyRadioDowngrader.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
-                }
-                switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
-                {
-                    case VladivostokTypes.New:
-                        {
-                            filePath = GetFileLocationInTempFolder("WithNewVladivostok.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithNewVladivostok.zip")));
-                                else
-                                    return ShowMissingFileWarning("WithNewVladivostok.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("WithNewVladivostok.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithNewVladivostok.zip")));
-                                    AddLogItem(LogType.Info, "WithNewVladivostok.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "WithNewVladivostok.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
-                    case VladivostokTypes.Old:
-                        {
-                            filePath = GetFileLocationInTempFolder("WithoutNewVladivostok.zip");
-                            if (!File.Exists(filePath))
-                            {
-                                if (!Core.IsInOfflineMode)
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithoutNewVladivostok.zip")));
-                                else
-                                    return ShowMissingFileWarning("WithoutNewVladivostok.zip", out returnOutOfLoadedMethod);
-                            }
-                            else
-                            {
-
-                                // Check if already existing zip file is corrupted or not
-                                if (IsZipFileCorrupted(filePath))
-                                {
-                                    if (Core.IsInOfflineMode)
-                                        return ShowCorruptedFileWarning("WithoutNewVladivostok.zip", out returnOutOfLoadedMethod);
-
-                                    downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("WithoutNewVladivostok.zip")));
-                                    AddLogItem(LogType.Info, "WithoutNewVladivostok.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
-                                }
-                                else
-                                    AddLogItem(LogType.Info, "WithoutNewVladivostok.zip is already downloaded. Skipping.");
-
-                            }
-                        }
-                        break;
-                }
-
-                if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
-                {
-                    filePath = GetFileLocationInTempFolder("EpisodeOnlyMusicCE.zip");
                     if (!File.Exists(filePath))
                     {
                         if (!Core.IsInOfflineMode)
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("EpisodeOnlyMusicCE.zip")));
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
                         else
-                            return ShowMissingFileWarning("EpisodeOnlyMusicCE.zip", out returnOutOfLoadedMethod);
+                            return ShowMissingFileWarning(archiveName);
+                    }
+                    else
+                    {
+                        // Check if already existing zip file is corrupted or not
+                        if (IsZipFileCorrupted(filePath))
+                        {
+                            if (Core.IsInOfflineMode)
+                                return ShowCorruptedFileWarning(archiveName);
+
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                            AddLogItem(LogType.Info, string.Format("{0} is already downloaded but the file is corrupted. Adding to download queue to redownload.", archiveName));
+                        }
+                        else
+                        {
+                            AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+                        }
+                    }
+
+                    // Vladivostok Type
+                    if (DowngradingInfo.IsSelectedRadioDowngraderSneeds())
+                    {
+                        archiveName = string.Format("{0}.zip", DowngradingInfo.SelectedVladivostokType);
+                        filePath = GetFileLocationInTempFolder(archiveName);
+
+                        if (!File.Exists(filePath))
+                        {
+                            if (!Core.IsInOfflineMode)
+                                downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                            else
+                                return ShowMissingFileWarning(archiveName);
+                        }
+                        else
+                        {
+                            // Check if already existing zip file is corrupted or not
+                            if (IsZipFileCorrupted(filePath))
+                            {
+                                if (Core.IsInOfflineMode)
+                                    return ShowCorruptedFileWarning(archiveName);
+
+                                downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                                AddLogItem(LogType.Info, string.Format("{0} is already downloaded but the file is corrupted. Adding to download queue to redownload.", archiveName));
+                            }
+                            else
+                            {
+                                AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+                            }
+                        }
+                    }
+                }
+
+                // Radio Downgrading - No EFLC Music in IV Fix
+                if (DowngradingInfo.InstallNoEFLCMusicInIVFix)
+                {
+                    archiveName = "NoEpisodeMusicInIV.zip";
+                    filePath = GetFileLocationInTempFolder(archiveName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        if (!Core.IsInOfflineMode)
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        else
+                            return ShowMissingFileWarning(archiveName);
                     }
                     else
                     {
@@ -692,180 +677,176 @@ namespace GTAIVDowngrader.Dialogs
                         if (IsZipFileCorrupted(filePath))
                         {
                             if (Core.IsInOfflineMode)
-                                return ShowCorruptedFileWarning("EpisodeOnlyMusicCE.zip", out returnOutOfLoadedMethod);
+                                return ShowCorruptedFileWarning(archiveName);
 
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("EpisodeOnlyMusicCE.zip")));
-                            AddLogItem(LogType.Info, "EpisodeOnlyMusicCE.zip is already downloaded but the file is corrupted. Adding to download queue to redownload.");
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                            AddLogItem(LogType.Info, string.Format("{0} is already downloaded but the file is corrupted. Adding to download queue to redownload.", archiveName));
                         }
                         else
-                            AddLogItem(LogType.Info, "EpisodeOnlyMusicCE.zip is already downloaded. Skipping.");
-                        
+                            AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+
                     }
-                } 
+                }
 
                 // Add mods and optional mod components if offline mode is not activated
                 if (!Core.IsInOfflineMode)
                 {
-                    for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
-                        downloadQueue.Enqueue(new FileDownload(Core.CurrentDowngradingInfo.SelectedMods[i]));
+                    ModDetails[] selectedMods = DowngradingInfo.SelectedMods.ToArray();
+                    for (int i = 0; i < selectedMods.Length; i++)
+                        downloadQueue.Enqueue(selectedMods[i].FileDetails);
 
-                    for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count; i++)
-                        downloadQueue.Enqueue(new FileDownload(Core.CurrentDowngradingInfo.SelectedOptionalComponents[i]));
+                    OptionalComponentInfo[] selectedOptionalComponents = DowngradingInfo.SelectedOptionalComponents.ToArray();
+                    for (int i = 0; i < selectedOptionalComponents.Length; i++)
+                        downloadQueue.Enqueue(selectedOptionalComponents[i].FileDetails);
                 }
 
                 // Prerequisites
-                if (Core.CurrentDowngradingInfo.InstallPrerequisites)
-                {
-                    filePath = GetFileLocationInTempFolder("directx_Jun2010_redist.exe");
-                    if (!File.Exists(filePath))
-                    {
-                        if (!Core.IsInOfflineMode)
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("directx_Jun2010_redist.exe")));
-                        else
-                            return ShowMissingFileWarning("directx_Jun2010_redist.exe", out returnOutOfLoadedMethod);
-                    }
-                    else
-                        AddLogItem(LogType.Info, "directx_Jun2010_redist.exe is already downloaded. Skipping.");
-
-                    filePath = GetFileLocationInTempFolder("vcredist_x86.exe");
-                    if (!File.Exists(filePath))
-                    {
-                        if (!Core.IsInOfflineMode)
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("vcredist_x86.exe")));
-                        else
-                            return ShowMissingFileWarning("vcredist_x86.exe", out returnOutOfLoadedMethod);
-                    }
-                    else
-                        AddLogItem(LogType.Info, "vcredist_x86.exe is already downloaded. Skipping.");
-                }
-                if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
-                {
-                    filePath = GetFileLocationInTempFolder("gfwlivesetup.exe");
-                    if (!File.Exists(filePath))
-                    {
-                        if (!Core.IsInOfflineMode)
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("gfwlivesetup.exe")));
-                        else
-                            return ShowMissingFileWarning("gfwlivesetup.exe", out returnOutOfLoadedMethod);
-                    }
-                    else
-                        AddLogItem(LogType.Info, "gfwlivesetup.exe is already downloaded. Skipping.");
-
-                    filePath = GetFileLocationInTempFolder("xliveredist.msi");
-                    if (!File.Exists(filePath))
-                    {
-                        if (!Core.IsInOfflineMode)
-                            downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("xliveredist.msi")));
-                        else
-                            return ShowMissingFileWarning("xliveredist.msi", out returnOutOfLoadedMethod);
-                    }
-                    else
-                        AddLogItem(LogType.Info, "xliveredist.msi is already downloaded. Skipping.");
-
-                    if (Environment.Is64BitOperatingSystem)
-                    {
-                        filePath = GetFileLocationInTempFolder("wllogin_64.msi");
-                        if (!File.Exists(filePath))
-                        {
-                            if (!Core.IsInOfflineMode)
-                                downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("wllogin_64.msi")));
-                            else
-                                return ShowMissingFileWarning("wllogin_64.msi", out returnOutOfLoadedMethod);
-                        }
-                        else
-                            AddLogItem(LogType.Info, "wllogin_64.msi is already downloaded. Skipping.");
-                    }
-                    else
-                    {
-                        filePath = GetFileLocationInTempFolder("wllogin_32.msi");
-                        if (!File.Exists(filePath))
-                        {
-                            if (!Core.IsInOfflineMode)
-                                downloadQueue.Enqueue(new FileDownload(Core.GetDowngradeFileByFileName("wllogin_32.msi")));
-                            else
-                                return ShowMissingFileWarning("wllogin_32.msi", out returnOutOfLoadedMethod);
-                        }
-                        else
-                            AddLogItem(LogType.Info, "wllogin_32.msi is already downloaded. Skipping.");
-                    }
-                }
-
-                // Log
-                if (downloadQueue.Count != 0)
+                if (DowngradingInfo.InstallPrerequisites)
                 {
 
-                    // Log download queue list to file
-                    FileDownload[] items = downloadQueue.ToArray();
-                    for (int i = 0; i < items.Length; i++)
+                    // DirectX
+                    archiveName = "directx_Jun2010_redist.exe";
+                    filePath = GetFileLocationInTempFolder(archiveName);
+
+                    if (!File.Exists(filePath))
                     {
-                        FileDownload item = items[i];
-
-#if DEBUG
-                        AddLogItem(LogType.Info, string.Format("Populated download queue list with: {0}, URL: {1}", item.FileName, item.DownloadURL), true, true);
-#else
-                        AddLogItem(LogType.Info, string.Format("Populated download queue list with: {0}, URL: {1}", item.FileName, item.DownloadURL), true, false);
-#endif
-
+                        if (!Core.IsInOfflineMode)
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        else
+                            return ShowMissingFileWarning(archiveName);
+                    }
+                    else
+                    {
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
                     }
 
-                    AddLogItem(LogType.Info, string.Format("Finished populating download queue list with {0} items.", downloadQueue.Count));
-                }
-                else
-                    AddLogItem(LogType.Info, "Nothing selected to populate download queue list.");
+                    // Visual C++
+                    archiveName = "VisualCppRedist_AIO_x86_x64.exe";
+                    filePath = GetFileLocationInTempFolder(archiveName);
 
-                returnOutOfLoadedMethod = false;
-                return downloadQueue.Count > 0;
+                    if (!File.Exists(filePath))
+                    {
+                        if (!Core.IsInOfflineMode)
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        else
+                            return ShowMissingFileWarning(archiveName);
+                    }
+                    else
+                    {
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+                    }
+
+                }
+                if (DowngradingInfo.ConfigureForGFWL)
+                {
+
+                    // gfwlivesetup.exe
+                    archiveName = "gfwlivesetup.exe";
+                    filePath = GetFileLocationInTempFolder(archiveName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        if (!Core.IsInOfflineMode)
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        else
+                            return ShowMissingFileWarning(archiveName);
+                    }
+                    else
+                    {
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+                    }
+
+                    // xliveredist.msi
+                    archiveName = "xliveredist.msi";
+                    filePath = GetFileLocationInTempFolder(archiveName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        if (!Core.IsInOfflineMode)
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        else
+                            return ShowMissingFileWarning(archiveName);
+                    }
+                    else
+                    {
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+                    }
+
+                    // wllogin_32.msi / wllogin_64.msi
+                    archiveName = Environment.Is64BitOperatingSystem == false ? "wllogin_32.msi" : "wllogin_64.msi";
+                    filePath = GetFileLocationInTempFolder(archiveName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        if (!Core.IsInOfflineMode)
+                            downloadQueue.Enqueue(Core.GetDowngradeFileByFileName(archiveName).FileDetails);
+                        else
+                            return ShowMissingFileWarning(archiveName);
+                    }
+                    else
+                    {
+                        AddLogItem(LogType.Info, string.Format("{0} is already downloaded. Skipping.", archiveName));
+                    }
+
+                }
+
+                // Let user know what is going to be downloaded
+                FileDetails[] items = downloadQueue.ToArray();
+                for (int i = 0; i < items.Length; i++)
+                {
+                    FileDetails item = items[i];
+                    AddLogItem(LogType.Info, string.Format("Added '{0}' to download queue. URL: {1}", item.Name, item.DownloadURL), true, true);
+                }
+
+                AddLogItem(LogType.Info, string.Format("{0} items were added to download queue.", downloadQueue.Count));
             }
             catch (Exception ex)
             {
-                AddLogItem(LogType.Warning, string.Format("Could not populate the download queue list! Details: {0}", ex.Message));
+                AddLogItem(LogType.Warning, string.Format("Failed to add an item to the download queue! Details: {0}", ex.Message));
             }
 
-            returnOutOfLoadedMethod = false;
-            return false;
+            return downloadQueue.Count > 0;
         }
         private void StartDownloads()
         {
             try
             {
-                currentInstallState = InstallState.Download;
-                RefreshCurrentStepLabel();
+                UpdateCurrentStep(DowngradeStep.Download);
 
                 AddLogItem(LogType.Info, "Starting downloads...");
 
                 // Get next download item in queue and log
-                FileDownload nextDownloadItem = downloadQueue.Dequeue();
-                AddLogItem(LogType.Info, string.Format("Downloading {0}...", nextDownloadItem.FileName));
+                FileDetails downloadItem = downloadQueue.Dequeue();
 
-                // Check and create temp dir if it doesn't exists
-                string tempDir = ".\\Data\\Temp";
-                if (!Directory.Exists(tempDir))
-                    Directory.CreateDirectory(tempDir);
+                AddLogItem(LogType.Info, string.Format("Downloading {0}...", downloadItem.Name));
+
+                // Create temp folders
+                CreateTempFolder();
 
                 // Start downloading
                 downloadStartTime = DateTime.Now;
-                downloadWebClient.DownloadFileAsync(new Uri(nextDownloadItem.DownloadURL), string.Format("{0}\\{1}", tempDir, nextDownloadItem.FileName), nextDownloadItem);
+                downloadWebClient.DownloadFileAsync(new Uri(downloadItem.DownloadURL), GetFileLocationInTempFolder(downloadItem.Name), downloadItem);
             }
             catch (Exception ex)
             {
-                AddLogItem(LogType.Error, string.Format("Error while trying to start downloading stuff from the download queue! Continuing without mods. Details: {0}", ex.Message));
+                AddLogItem(LogType.Error, string.Format("Error while trying to start downloading stuff from the queue! Continuing. Details: {0}", ex.Message));
 
-                if (Core.CurrentDowngradingInfo.InstallPrerequisites) // Install Prerequisites
+                if (DowngradingInfo.InstallPrerequisites) // Install Prerequisites
                 {
                     StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                 }
                 else
                 {
-                    if (Core.CurrentDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
+                    if (DowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
                     {
                         StartInstallPrerequisites(Prerequisites.GFWL);
                     }
                     else // Continue with Radio/Game downgrade
                     {
-                        if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
-                            BeginExtractionProcess(InstallState.RadioDowngrade);
+                        if (DowngradingInfo.WasAnyRadioDowngraderSelected())
+                            BeginExtractionProcess(DowngradeStep.RadioDowngrade);
                         else
-                            BeginExtractionProcess(InstallState.GameDowngrade);
+                            BeginExtractionProcess(DowngradeStep.GameDowngrade);
                     }
                 }
             }
@@ -873,27 +854,18 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Prerequisites
-        private void StartInstallPrerequisites(Prerequisites state)
+        private void StartInstallPrerequisites(Prerequisites current)
         {
             prerequisiteErrored = false;
 
-            currentInstallState = InstallState.Prerequisites;
-            currentPrerequisite = state;
-            RefreshCurrentStepLabel();
+            currentPrerequisite = current;
+            UpdateCurrentStep(DowngradeStep.Prerequisites);
 
-            Dispatcher.Invoke(() =>
-            {
-                DowngradeProgressBar.IsIndeterminate = true;
-                StatusLabel.Text = "Installing Prerequisites. This process could take a few minutes...";
-            });
+            UpdateStatusProgressBar(true, 0, 0);
+            UpdateStatusText("Installing Prerequisites. This process could take a few minutes...");
 
             Task.Run(() =>
             {
-
-                // Create temp folders
-                string tempDirDirectXLoc = ".\\Data\\Temp\\DirectX";
-                if (!Directory.Exists(tempDirDirectXLoc))
-                    Directory.CreateDirectory(tempDirDirectXLoc);
 
                 // Get and set file name for selected prerequisite
                 string fileName = string.Empty;
@@ -901,21 +873,16 @@ namespace GTAIVDowngrader.Dialogs
                 switch (currentPrerequisite)
                 {
                     case Prerequisites.VisualCPlusPlus:
-                        fileName = ".\\Data\\Temp\\vcredist_x86.exe";
+                        fileName = GetFileLocationInTempFolder("VisualCppRedist_AIO_x86_x64.exe");
                         break;
                     case Prerequisites.DirectXExtract:
-                        fileName = ".\\Data\\Temp\\directx_Jun2010_redist.exe";
+                        fileName = GetFileLocationInTempFolder("directx_Jun2010_redist.exe");
                         break;
                     case Prerequisites.DirectX:
-
-                        string setupFile = string.Format("{0}\\DXSETUP.exe", tempDirDirectXLoc);
-
-                        if (File.Exists(setupFile))
-                            fileName = setupFile;
-
+                        fileName = string.Format("{0}\\DXSETUP.exe", CreateTempFolder("DirectX"));
                         break;
                     case Prerequisites.GFWL:
-                        fileName = ".\\Data\\Temp\\gfwlivesetup.exe";
+                        fileName = GetFileLocationInTempFolder("gfwlivesetup.exe");
                         break;
                 }
 
@@ -935,24 +902,28 @@ namespace GTAIVDowngrader.Dialogs
                     switch (currentPrerequisite)
                     {
                         case Prerequisites.VisualCPlusPlus:
-                            AddLogItem(LogType.Info, "Installing Visual C++...");
-                            p.StartInfo.Arguments = "/Q";
+                            {
+                                AddLogItem(LogType.Info, "Installing Visual C++ Redistributables...");
+                                p.StartInfo.Arguments = "/ai /gm2";
+                            }
                             break;
                         case Prerequisites.DirectXExtract:
-                            AddLogItem(LogType.Info, "Extracting DirectX setup files...");
-                            p.StartInfo.Arguments = string.Format("/Q /C /T:\"{0}\"", Path.GetFullPath(tempDirDirectXLoc));
+                            {
+                                AddLogItem(LogType.Info, "Extracting DirectX setup files...");
+                                p.StartInfo.Arguments = string.Format("/Q /C /T:\"{0}\"", Path.GetFullPath(CreateTempFolder("DirectX")));
+                            }
                             break;
                         case Prerequisites.DirectX:
-                            AddLogItem(LogType.Info, "Installing DirectX...");
-                            if (Directory.Exists(tempDirDirectXLoc))
                             {
-                                string setupFile = string.Format("{0}\\DXSETUP.exe", tempDirDirectXLoc);
-                                if (File.Exists(setupFile))
-                                    p.StartInfo.Arguments = "/silent";
+                                AddLogItem(LogType.Info, "Installing DirectX...");
+                                p.StartInfo.Arguments = "/silent";
                             }
                             break;
                         case Prerequisites.GFWL:
-                            AddLogItem(LogType.Info, "Installing Games for Windows Live...");
+                            {
+                                AddLogItem(LogType.Info, "Installing Games for Windows Live...");
+                                // This does not have a silent install option
+                            }
                             break;
                     }
 
@@ -963,7 +934,7 @@ namespace GTAIVDowngrader.Dialogs
                     }
                     catch (Exception ex)
                     {
-                        AddLogItem(LogType.Error, string.Format("An error occured while installing prerequisite '{0}'. Details: {1}", currentPrerequisite.ToString(), ex.Message));
+                        AddLogItem(LogType.Error, string.Format("An error occured while installing prerequisite '{0}'. Details: {1}", currentPrerequisite, ex.Message));
                         prerequisiteErrored = true;
                     }
                 }
@@ -973,7 +944,7 @@ namespace GTAIVDowngrader.Dialogs
                 {
                     case Prerequisites.VisualCPlusPlus:
                         if (!prerequisiteErrored)
-                            AddLogItem(LogType.Info,"Visual C++ installed!");
+                            AddLogItem(LogType.Info, "Visual C++ Redistributables installed!");
 
                         StartInstallPrerequisites(Prerequisites.DirectXExtract);
                         break;
@@ -988,13 +959,13 @@ namespace GTAIVDowngrader.Dialogs
                         if (!prerequisiteErrored)
                             AddLogItem(LogType.Info, "DirectX installed!");
 
-                        Dispatcher.Invoke(() => { DowngradeProgressBar.IsIndeterminate = false; });
+                        UpdateStatusProgressBar(false, 0, 0);
 
                         // Install GFWL if selected or continue with Radio Downgrade
-                        if (Core.CurrentDowngradingInfo.ConfigureForGFWL)
+                        if (DowngradingInfo.ConfigureForGFWL)
                             StartInstallPrerequisites(Prerequisites.GFWL);
                         else
-                            BeginExtractionProcess(InstallState.RadioDowngrade);
+                            BeginExtractionProcess(DowngradeStep.RadioDowngrade);
 
                         break;
 
@@ -1002,8 +973,9 @@ namespace GTAIVDowngrader.Dialogs
                         if (!prerequisiteErrored)
                             AddLogItem(LogType.Info, "Games for Windows Live installed!");
 
-                        Dispatcher.Invoke(() => { DowngradeProgressBar.IsIndeterminate = false; });
-                        BeginExtractionProcess(InstallState.RadioDowngrade);
+                        UpdateStatusProgressBar(false, 0, 0);
+
+                        BeginExtractionProcess(DowngradeStep.RadioDowngrade);
                         break;
                 }
             });
@@ -1013,7 +985,7 @@ namespace GTAIVDowngrader.Dialogs
         #region Radio
         private void StartRadioDowngrade()
         {
-            string radioDowngradeInstallFile = string.Format("{0}\\install.bat", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+            string radioDowngradeInstallFile = string.Format("{0}\\install.bat", DowngradingInfo.IVWorkingDirectoy);
             if (File.Exists(radioDowngradeInstallFile))
             {
                 try
@@ -1043,8 +1015,8 @@ namespace GTAIVDowngrader.Dialogs
                                 string arg2 = commands[2];
                                 string arg3 = commands[3];
 
-                                string argFullPath1 = string.Format("{0}\\{1}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, commands[1]);
-                                string argFullPath2 = string.Format("{0}\\{1}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, commands[2]);
+                                string argFullPath1 = string.Format("{0}\\{1}", DowngradingInfo.IVWorkingDirectoy, commands[1]);
+                                string argFullPath2 = string.Format("{0}\\{1}", DowngradingInfo.IVWorkingDirectoy, commands[2]);
 
                                 // Check if files exist
                                 if (!File.Exists(argFullPath1))
@@ -1075,8 +1047,8 @@ namespace GTAIVDowngrader.Dialogs
                                 string oldFileName = Path.GetFileName(commands[1].Replace('"', ' ').Replace(" ", ""));
                                 string newFileName = commands[2].Replace('"', ' ').Replace(" ", "");
 
-                                string oldPath = string.Format("{0}\\{1}\\{2}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, directoryName, oldFileName);
-                                string newPath = string.Format("{0}\\{1}\\{2}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, directoryName, newFileName);
+                                string oldPath = string.Format("{0}\\{1}\\{2}", DowngradingInfo.IVWorkingDirectoy, directoryName, oldFileName);
+                                string newPath = string.Format("{0}\\{1}\\{2}", DowngradingInfo.IVWorkingDirectoy, directoryName, newFileName);
 
                                 // Check if file exist
                                 if (!File.Exists(oldPath))
@@ -1098,7 +1070,7 @@ namespace GTAIVDowngrader.Dialogs
 
                                 string fileName = commands[1].Replace('"', ' ').Replace(" ", "");
                                 string justFileName = Path.GetFileName(fileName);
-                                string fileToDelete = string.Format("{0}\\{1}", Core.CurrentDowngradingInfo.IVWorkingDirectoy, fileName);
+                                string fileToDelete = string.Format("{0}\\{1}", DowngradingInfo.IVWorkingDirectoy, fileName);
 
                                 // Check if file exist
                                 if (!File.Exists(fileToDelete))
@@ -1139,12 +1111,12 @@ namespace GTAIVDowngrader.Dialogs
             try
             {
                 // Get jptch.exe file location
-                string jptchExecutable = string.Format("{0}\\jptch.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+                string jptchExecutable = string.Format("{0}\\jptch.exe", DowngradingInfo.IVWorkingDirectoy);
 
                 // Start jptch
                 ProcessStartInfo info = new ProcessStartInfo();
                 info.FileName = jptchExecutable;
-                info.WorkingDirectory = Core.CurrentDowngradingInfo.IVWorkingDirectoy;
+                info.WorkingDirectory = DowngradingInfo.IVWorkingDirectoy;
                 info.Arguments = string.Format("{0} {1} {2}", arg1, arg2, arg3);
                 info.CreateNoWindow = true;
                 info.UseShellExecute = false;
@@ -1165,27 +1137,20 @@ namespace GTAIVDowngrader.Dialogs
             if (succeeded)
                 AddLogItem(LogType.Info, "Radio downgrade finished!");
 
-            ChangeProgressBarIndeterminateState(false);
+            UpdateStatusProgressBar(false, 0, 0);
 
-            Dispatcher.Invoke(() => {
-                if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader)
+            Dispatcher.Invoke(() =>
+            {
+                if (DowngradingInfo.IsSelectedRadioDowngraderSneeds())
                 {
-                    switch (Core.CurrentDowngradingInfo.SelectedVladivostokType)
-                    {
-                        case VladivostokTypes.Old:
-                            BeginExtractionProcess(InstallState.RadioOldVladivostok);
-                            break;
-                        case VladivostokTypes.New:
-                            BeginExtractionProcess(InstallState.RadioNewVladivostok);
-                            break;
-                    }
+                    BeginExtractionProcess(DowngradeStep.RadioVladivostokDowngrade);
                 }
                 else
                 {
-                    if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
-                        BeginExtractionProcess(InstallState.RadioNoEFLCMusicInIVFix);
+                    if (DowngradingInfo.InstallNoEFLCMusicInIVFix)
+                        BeginExtractionProcess(DowngradeStep.RadioNoEFLCMusicInIVFix);
                     else
-                        BeginExtractionProcess(InstallState.GameDowngrade);
+                        BeginExtractionProcess(DowngradeStep.GameDowngrade);
                 }
             });
         }
@@ -1214,227 +1179,314 @@ namespace GTAIVDowngrader.Dialogs
                     file.ExtractToFile(completeFileName, true);
 
                 progress++;
-                UpdateExtractionProgressBar(file.Name, progress, archive.Entries.Count);
+                UpdateStatusText(string.Format("Extracting file {0}, Progress: {1}/{2}", file.Name, progress, archive.Entries.Count));
+                UpdateStatusProgressBar(false, progress, archive.Entries.Count);
             }
         }
-        private void BeginExtractionProcess(InstallState state)
+        private void BeginExtractionProcess(DowngradeStep state)
         {
-            currentInstallState = state;
-            RefreshCurrentStepLabel();
+            UpdateCurrentStep(state);
 
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 string fileLoc = string.Empty;
 
-                // Set file location from InstallState
+                // Get the location of the archive based on the current step
                 switch (state)
                 {
 
-                    // Radio Downgrade
-                    case InstallState.RadioDowngrade:
-
-                        switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
+                    // Game Downgrade
+                    case DowngradeStep.GameDowngrade:
                         {
-                            case RadioDowngrader.SneedsDowngrader:
-                                fileLoc = ".\\Data\\Temp\\SneedsRadioDowngrader.zip";
-                                AddLogItem(LogType.Info, "Extracting files for Sneeds Radio Downgrader...");
-                                break;
-                            case RadioDowngrader.LegacyDowngrader:
-                                fileLoc = ".\\Data\\Temp\\LegacyRadioDowngrader.zip";
-                                AddLogItem(LogType.Info, "Extracting files for Legacy Radio Downgrader...");
-                                break;
-                            default:
-                                AddLogItem(LogType.Warning, "selectedRadioDowngrader is none! Continuing without radio downgrade.");
+                            fileLoc = GetFileLocationInTempFolder(string.Format("{0}.zip", DowngradingInfo.DowngradeTo));
+                            AddLogItem(LogType.Info, "Extracting files for game downgrader...");
+                        }
+                        break;
+
+                    // Radio Downgrade
+                    case DowngradeStep.RadioDowngrade:
+                        {
+                            if (DowngradingInfo.WasAnyRadioDowngraderSelected())
+                            {
+                                fileLoc = GetFileLocationInTempFolder(string.Format("{0}.zip", DowngradingInfo.SelectedRadioDowngrader));
+                                AddLogItem(LogType.Info, "Extracting files for radio downgrader...");
+                            }
+                            else
+                            {
+                                AddLogItem(LogType.Info, "Skipping radio downgrading step as no radio downgrader was selected.");
                                 FinishRadioDowngrader(false);
                                 return;
+                            }
                         }
-
                         break;
-                    case InstallState.RadioOldVladivostok:
-
-                        fileLoc = ".\\Data\\Temp\\WithoutNewVladivostok.zip";
-                        AddLogItem(LogType.Info, "Extracting old Vladivostok files...");
-
-                        break;
-                    case InstallState.RadioNewVladivostok:
-
-                        fileLoc = ".\\Data\\Temp\\WithNewVladivostok.zip";
-                        AddLogItem(LogType.Info, "Extracting new Vladivostok files...");
-
-                        break;
-                    case InstallState.RadioNoEFLCMusicInIVFix:
-
-                        fileLoc = ".\\Data\\Temp\\EpisodeOnlyMusicCE.zip";
-                        AddLogItem(LogType.Info, "Extracting files for No EFLC Music In IV Fix...");
-
-                        break;
-
-                        // Game Downgrade
-                    case InstallState.GameDowngrade:
-
-                        switch (Core.CurrentDowngradingInfo.DowngradeTo)
+                    case DowngradeStep.RadioVladivostokDowngrade:
                         {
-                            case GameVersion.v1080:
-                                fileLoc = ".\\Data\\Temp\\1080.zip";
-                                break;
-                            case GameVersion.v1070:
-                                fileLoc = ".\\Data\\Temp\\1070.zip";
-                                break;
-                            case GameVersion.v1040:
-                                fileLoc = ".\\Data\\Temp\\1040.zip";
-                                break;
+                            fileLoc = GetFileLocationInTempFolder(string.Format("{0}.zip", DowngradingInfo.SelectedVladivostokType));
+                            AddLogItem(LogType.Info, "Extracting Vladivostok Downgrade files...");
                         }
-                        AddLogItem(LogType.Info, "Extracting files for game downgrader...");
-
                         break;
-                    case InstallState.ModInstall:
-
-                        fileLoc = string.Format(".\\Data\\Temp\\{0}", modToInstall);
-
+                    case DowngradeStep.RadioNoEFLCMusicInIVFix:
+                        {
+                            fileLoc = GetFileLocationInTempFolder("NoEpisodeMusicInIV.zip");
+                            AddLogItem(LogType.Info, "Extracting files for No EFLC Music In IV Fix...");
+                        }
                         break;
-                    case InstallState.OptionalComponentsInstall:
 
-                        fileLoc = string.Format(".\\Data\\Temp\\{0}", modToInstall);
-
+                    // Mod Install
+                    case DowngradeStep.ModInstall:
+                        {
+                            fileLoc = GetFileLocationInTempFolder(currentModToInstall.FileDetails.Name);
+                            AddLogItem(LogType.Info, string.Format("{0} is currently being extracted and installed...", currentModToInstall.FileDetails.Name));
+                        }
+                        break;
+                    case DowngradeStep.OptionalComponentsInstall:
+                        fileLoc = GetFileLocationInTempFolder(currentOptionalComponentToInstall.FileDetails.Name);
                         break;
                 }
 
-                // Checks
+                // Some checks
                 if (string.IsNullOrEmpty(fileLoc))
                 {
-                    AddLogItem(LogType.Warning, "fileLoc is empty!");
+                    AddLogItem(LogType.Warning, "!!! fileLoc is empty - This should never be the case. Please send the log file to the developer. !!!");
+                    AddLogItem(LogType.Warning, string.Format("Current State: {0}", state), true, false);
                     return;
                 }
                 if (!File.Exists(fileLoc))
                 {
-                    AddLogItem(LogType.Warning, string.Format("File {0} not found. Skipping.", Path.GetFileName(fileLoc)));
+                    AddLogItem(LogType.Warning, string.Format("File '{0}' was not found and could not be extracted. Skipping.", Path.GetFileName(fileLoc)));
+                    return;
+                }
+                if (IsZipFileCorrupted(fileLoc))
+                {
+                    AddLogItem(LogType.Warning, string.Format("Skipping file '{0}' because it appears to be corrupted!", Path.GetFileName(fileLoc)));
                     return;
                 }
 
-                // Begin extracting file
+                // Begin extracting archive
                 try
                 {
                     using (ZipArchive archive = ZipFile.OpenRead(fileLoc))
                     {
-                        ExtractToDirectory(archive, Core.CurrentDowngradingInfo.IVWorkingDirectoy, true);
+                        ExtractToDirectory(archive, DowngradingInfo.IVWorkingDirectoy, true);
                     }
                 }
                 catch (Exception ex)
                 {
                     errored = true;
 
-                    AddLogItem(LogType.Error, string.Format("An error occured. Details: {0}", ex.Message));
-                    instance.ChangeStep(Steps.Error, new List<object>() { ex, string.Format("Crashed at step: {0}", currentInstallState.ToString()) });
+                    AddLogItem(LogType.Error, string.Format("An error occured while extracting '{0}'! Details: {1}", Path.GetFileName(fileLoc), ex.Message));
+                    instance.ChangeStep(Steps.Error, new List<object>() { ex, string.Format("Crashed at step: {0}", currentDowngradeStep.ToString()) });
                 }
 
-            }).ContinueWith(result => {
+            }).ContinueWith(r =>
+            {
                 if (errored)
                     return;
 
-                switch(currentInstallState)
+                switch (currentDowngradeStep)
                 {
-                    case InstallState.RadioDowngrade:
+                    case DowngradeStep.RadioDowngrade:
 
                         AddLogItem(LogType.Info, "Radio downgrade files extracted!");
-                        AddLogItem(LogType.Info, string.Format("Starting {0} radio downgrade.", Core.CurrentDowngradingInfo.SelectedRadioDowngrader == RadioDowngrader.SneedsDowngrader ? "sneeds" : "legacy"));
+                        AddLogItem(LogType.Info, "Starting radio downgrade.");
 
                         UpdateStatusText("Radio is currently getting downgraded...");
 
                         StartRadioDowngrade();
 
                         break;
-                    case InstallState.RadioOldVladivostok:
+                    case DowngradeStep.RadioVladivostokDowngrade:
 
-                        AddLogItem(LogType.Info, "Old Vladivostok files extracted and installed!");
+                        AddLogItem(LogType.Info, "Vladivostok Downgrade files extracted and installed!");
 
-                        if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
-                            BeginExtractionProcess(InstallState.RadioNoEFLCMusicInIVFix);
+                        if (DowngradingInfo.InstallNoEFLCMusicInIVFix)
+                            BeginExtractionProcess(DowngradeStep.RadioNoEFLCMusicInIVFix);
                         else
-                            BeginExtractionProcess(InstallState.GameDowngrade);
+                            BeginExtractionProcess(DowngradeStep.GameDowngrade);
 
                         break;
-                    case InstallState.RadioNewVladivostok:
+                    case DowngradeStep.RadioNoEFLCMusicInIVFix:
 
-                        AddLogItem(LogType.Info, "New Vladivostok files extracted and installed!");
-
-                        if (Core.CurrentDowngradingInfo.InstallNoEFLCMusicInIVFix)
-                            BeginExtractionProcess(InstallState.RadioNoEFLCMusicInIVFix);
-                        else
-                            BeginExtractionProcess(InstallState.GameDowngrade);
-
-                        break;
-                    case InstallState.RadioNoEFLCMusicInIVFix:
                         AddLogItem(LogType.Info, "No EFLC Music In IV Fix files extracted and installed!");
-                        BeginExtractionProcess(InstallState.GameDowngrade);
+                        BeginExtractionProcess(DowngradeStep.GameDowngrade);
+
                         break;
-                    case InstallState.GameDowngrade:
+                    case DowngradeStep.GameDowngrade:
+
                         AddLogItem(LogType.Info, "Game downgrade files extracted and installed!");
 
-                        if (Core.CurrentDowngradingInfo.SelectedMods.Count != 0)
+                        if (DowngradingInfo.SelectedMods.Count != 0)
                         {
                             AddLogItem(LogType.Info, "Extracting and installing selected mods and optional components...");
                             StartInstallingMods();
                         }
                         else
+                        {
                             Finish();
+                        }
 
                         break;
-                    case InstallState.ModInstall:
+                    case DowngradeStep.ModInstall:
 
-                        if (Core.CurrentDowngradingInfo.SelectedMods.Count != 0)
+                        if (!cancelledDownloadItems.Contains(currentModToInstall.FileDetails.Name))
+                        {
+                            // Rename dinput8.dll to xlive.dll if current mod is an ASI Loader and if the user does not want to configure for GFWL
+                            if (currentModToInstall.IsASILoader)
+                            {
+                                if (!DowngradingInfo.ConfigureForGFWL)
+                                    RenameFile("dinput8.dll", "xlive.dll");
+                            }
+
+                            // Execute post install actions of current mod
+                            ExecutePostInstallActionsOfCurrentMod();
+                        }
+
+                        // Reset current mod to be installed
+                        currentModToInstall = null;
+
+                        if (DowngradingInfo.SelectedMods.Count != 0)
+                        {
                             StartInstallingMods();
+                        }
                         else
                         {
-                            if (Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count != 0)
+                            if (DowngradingInfo.SelectedOptionalComponents.Count != 0)
                                 StartInstallingOptionalModComponents();
                             else
                                 Finish();
                         }
 
                         break;
-                    case InstallState.OptionalComponentsInstall:
+                    case DowngradeStep.OptionalComponentsInstall:
+
+                        // Reset current optional to be installed
+                        currentOptionalComponentToInstall = null;
+
                         StartInstallingOptionalModComponents();
+
                         break;
                 }
-
-                result.Dispose();
             });
         }
         #endregion
-
+        
         #region Mods
+        private void ExecutePostInstallActionsOfCurrentMod()
+        {
+            if (currentModToInstall == null)
+                return;
+            if (currentModToInstall.PostInstallActions.Count == 0)
+                return;
+
+            AddLogItem(LogType.Info, string.Format("Executing {0} post install action(s) of mod '{1}'...", currentModToInstall.PostInstallActions.Count, currentModToInstall.FileDetails.Name));
+
+            try
+            {
+                for (int i = 0; i < currentModToInstall.PostInstallActions.Count; i++)
+                {
+                    PostInstallAction postInstallAction = currentModToInstall.PostInstallActions[i];
+
+                    if (postInstallAction.Action == null)
+                        continue;
+
+                    switch (postInstallAction.Type)
+                    {
+                        case PostInstallActionType.EditIniFile:
+                            {
+                                EditIniFileAction editIniFileAction = (postInstallAction.Action as JObject).ToObject<EditIniFileAction>();
+
+                                if (editIniFileAction.EditEntries.Count == 0)
+                                    break;
+
+                                AddLogItem(LogType.Info, string.Format("Executing 'Edit Ini File' post install action of mod '{0}' for file '{1}'", currentModToInstall.FileDetails.Name, editIniFileAction.TargetFileName));
+
+                                // Build file path
+                                string path = string.Format("{0}\\{1}", DowngradingInfo.IVWorkingDirectoy, editIniFileAction.TargetFileName);
+
+                                // Check if file exists
+                                if (!File.Exists(path))
+                                {
+                                    AddLogItem(LogType.Warning, string.Format("Could not open file to edit '{0}' for mod '{1}'! The file does not exists. Skipping.", editIniFileAction.TargetFileName, currentModToInstall.FileDetails.Name));
+                                    continue;
+                                }
+
+                                // Check if the path is within the expected directory
+                                if (!new DirectoryInfo(path).FullName.Contains(DowngradingInfo.IVWorkingDirectoy))
+                                {
+                                    AddLogItem(LogType.Warning, string.Format("Mod '{0}' tried to edit a file outside of the GTA IV directory! Skipping. File: {1}", currentModToInstall.FileDetails.Name, editIniFileAction.TargetFileName));
+                                    break;
+                                }
+
+                                // Try open file
+                                IniData iniData = iniParser.ReadFile(path);
+
+                                if (iniData == null)
+                                {
+                                    AddLogItem(LogType.Warning, string.Format("Could not open file to edit '{0}' for mod '{1}'! Skipping.", editIniFileAction.TargetFileName, currentModToInstall.FileDetails.Name));
+                                    break;
+                                }
+
+                                iniData.Configuration.AssigmentSpacer = string.Empty;
+
+                                // Edit each entry
+                                for (int e = 0; e < editIniFileAction.EditEntries.Count; e++)
+                                {
+                                    IniFileSection editSection = editIniFileAction.EditEntries[e];
+
+                                    // If section is empty, edit global section instead
+                                    if (string.IsNullOrWhiteSpace(editSection.Section))
+                                    {
+                                        if (iniData.Global.ContainsKey(editSection.Key))
+                                            iniData.Global[editSection.Key] = editSection.NewValue;
+                                    }
+                                    else
+                                    {
+                                        if (iniData.Sections.ContainsSection(editSection.Section))
+                                            iniData[editSection.Section][editSection.Key] = editSection.NewValue;
+                                    }
+                                }
+
+                                // Save file
+                                //iniParser.WriteFile(path, iniData); // <- This does not remove empty lines from the ini file - Maybe there's a property for that?
+
+                                // This removes empty lines from the ini file because apparently they could break stuff (Atleast in ZolikaPatch)
+                                // A better way of doing this would be to override the ini file parser and add that functionality there. But this works for now.
+                                File.WriteAllLines(path, iniData.ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries));
+
+                            }
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLogItem(LogType.Error, string.Format("An error occured while trying to execute post install actions of mod '{0}'! Details: {1}", currentModToInstall.FileDetails.Name, ex.Message));
+            }
+        }
         private void StartInstallingMods()
         {
-            if (Core.CurrentDowngradingInfo.SelectedMods.Count != 0)
+            if (DowngradingInfo.SelectedMods.Count != 0)
             {
-                for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedMods.Count; i++)
-                {
-                    ModInformation item = Core.CurrentDowngradingInfo.SelectedMods[i];
-                    modToInstall = item.FileName;
-                    Core.CurrentDowngradingInfo.SelectedMods.RemoveAt(i);
-                    break;
-                }
-
-                BeginExtractionProcess(InstallState.ModInstall);
+                currentModToInstall = DowngradingInfo.SelectedMods.Dequeue();
+                BeginExtractionProcess(DowngradeStep.ModInstall);
             }
             else
+            {
                 Finish();
+            }
         }
         private void StartInstallingOptionalModComponents()
         {
-            if (Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count != 0)
+            if (DowngradingInfo.SelectedOptionalComponents.Count != 0)
             {
-                for (int i = 0; i < Core.CurrentDowngradingInfo.SelectedOptionalComponents.Count; i++)
-                {
-                    OptionalComponentInfo item = Core.CurrentDowngradingInfo.SelectedOptionalComponents[i];
-                    modToInstall = item.FileName;
-                    Core.CurrentDowngradingInfo.SelectedOptionalComponents.RemoveAt(i);
-                    break;
-                }
-
-                BeginExtractionProcess(InstallState.OptionalComponentsInstall);
+                // TODO: Prevent installing optional components when the parent mod did not install due to corrupted archive or something
+                currentOptionalComponentToInstall = DowngradingInfo.SelectedOptionalComponents.Dequeue();
+                BeginExtractionProcess(DowngradeStep.OptionalComponentsInstall);
             }
             else
+            {
                 Finish();
+            }
         }
         #endregion
 
@@ -1443,8 +1495,8 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                string tbogtDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\TBoGT";
-                string tladDir = Core.CurrentDowngradingInfo.IVWorkingDirectoy + "\\TLAD";
+                string tbogtDir = DowngradingInfo.IVWorkingDirectoy + "\\TBoGT";
+                string tladDir = DowngradingInfo.IVWorkingDirectoy + "\\TLAD";
                 if (Directory.Exists(tbogtDir))
                 {
                     Directory.Delete(tbogtDir, true);
@@ -1465,14 +1517,17 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void RemoveReadOnlyAttribute(bool again)
         {
+            if (!Core.IsAppRunningWithAdminPrivileges)
+                return;
+
             ChangeProgressBarIndeterminateState(true);
 
             if (again)
-                AddLogItem(LogType.Info, "Removing any read-only attributes inside the GTA IV directory again...");
+                AddLogItem(LogType.Info, "Trying to remove any read-only attributes inside the GTA IV directory again...");
             else
-                AddLogItem(LogType.Info, "Removing any read-only attributes inside the GTA IV directory...");
+                AddLogItem(LogType.Info, "Trying to remove any read-only attributes inside the GTA IV directory...");
 
-            ClearReadOnly(new DirectoryInfo(Core.CurrentDowngradingInfo.IVWorkingDirectoy));
+            ClearReadOnly(new DirectoryInfo(DowngradingInfo.IVWorkingDirectoy));
 
             AddLogItem(LogType.Info, "Removed attributes.");
             ChangeProgressBarIndeterminateState(false);
@@ -1481,10 +1536,8 @@ namespace GTAIVDowngrader.Dialogs
         {
             try
             {
-                AddLogItem(LogType.Info, "Creating a copy of PlayGTAIV.exe which is renamed to LaunchGTAIV.exe incase of PlayGTAIV.exe not working.");
-
-                string playGTAIV = string.Format("{0}\\PlayGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
-                string launchGTAIV = string.Format("{0}\\LaunchGTAIV.exe", Core.CurrentDowngradingInfo.IVWorkingDirectoy);
+                string playGTAIV = string.Format("{0}\\PlayGTAIV.exe", DowngradingInfo.IVWorkingDirectoy);
+                string launchGTAIV = string.Format("{0}\\LaunchGTAIV.exe", DowngradingInfo.IVWorkingDirectoy);
 
                 if (File.Exists(launchGTAIV))
                 {
@@ -1493,7 +1546,7 @@ namespace GTAIVDowngrader.Dialogs
                 }
 
                 File.Copy(playGTAIV, launchGTAIV);
-                AddLogItem(LogType.Info, "Created copy of PlayGTAIV.exe which got renamed to LaunchGTAIV.exe.");
+                AddLogItem(LogType.Info, "Created copy of PlayGTAIV.exe named \"LaunchGTAIV.exe\".");
             }
             catch (Exception ex)
             {
@@ -1505,33 +1558,52 @@ namespace GTAIVDowngrader.Dialogs
         #endregion
 
         #region Functions
+        private string CreateTempFolder(string subFolder = null)
+        {
+            try
+            {
+                string tmpFolder = string.Concat(TEMP_FOLDER, "\\", subFolder);
+
+                if (!Directory.Exists(tmpFolder))
+                    Directory.CreateDirectory(tmpFolder);
+
+                return tmpFolder;
+            }
+            catch (Exception ex)
+            {
+                Core.AddLogItem(LogType.Error, string.Format("An error occured while trying to create temp folder! Details: {0}", ex.Message));
+                instance.ShowErrorScreen(ex);
+            }
+
+            return null;
+        }
         private string GetFileLocationInTempFolder(string fileName)
         {
             return string.Format(".\\Data\\Temp\\{0}", fileName);
         }
         private bool IsZipFileCorrupted(string filePath)
         {
-            try {
+            try
+            {
                 using (ZipArchive arch = ZipFile.OpenRead(filePath))
                     return false;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 return true;
             }
         }
 
-        private bool ShowMissingFileWarning(string file, out bool returnOutOfLoadedMethod)
+        private bool ShowMissingFileWarning(string file)
         {
-            returnOutOfLoadedMethod = true;
             instance.ShowStandaloneWarningScreen("Downgrading file missing", string.Format("Could not continue downgrading because the file {1} is missing.{0}" +
-                "Place all required files for your downgrade in the 'Data\\Temp' folder and try again.", Environment.NewLine, file));
+                "Place all the required files for your downgrade in the 'Data -> Temp' folder and try again.", Environment.NewLine, file));
             return false;
         }
-        private bool ShowCorruptedFileWarning(string file, out bool returnOutOfLoadedMethod)
+        private bool ShowCorruptedFileWarning(string file)
         {
-            returnOutOfLoadedMethod = true;
             instance.ShowStandaloneWarningScreen("Downgrading file appears to be corrupted", string.Format("Could not continue downgrading because the file {1} appears to be corrupted.{0}" +
-                "Redownload the file and place it in the 'Data\\Temp' folder and try again.", Environment.NewLine, file));
+                "Either try do redowngrade, or download the file manually and place it in the 'Data -> Temp' folder and try again.", Environment.NewLine, file));
             return false;
         }
         #endregion
@@ -1541,71 +1613,61 @@ namespace GTAIVDowngrader.Dialogs
         {
             instance.NextStep();
         }
+        private void Instance_BackButtonClicked(object sender, EventArgs e)
+        {
+            if (downloadWebClient == null)
+                return;
+            if (!downloadWebClient.IsBusy)
+                return;
+
+            switch (MessageBox.Show("Canceling the current download may lead to unforeseen issues. Only proceed if you believe the download is stuck. Are you sure you want to cancel?", "Cancel current download", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+            {
+                case MessageBoxResult.Yes:
+
+                    if (currentDowngradeStep == DowngradeStep.Download)
+                    {
+                        try
+                        {
+                            downloadWebClient.CancelAsync();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    break;
+            }
+        }
 
         private void DownloadClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            FileDownload downloadItem = (FileDownload)e.UserState;
+            FileDetails downloadItem = (FileDetails)e.UserState;
 
             try
             {
                 if (e.Cancelled)
-                    AddLogItem(LogType.Warning, string.Format("Download was cancelled for {0}", downloadItem.FileName));
+                {
+                    AddLogItem(LogType.Warning, string.Format("Download was cancelled for {0}!", downloadItem.Name));
+                    cancelledDownloadItems.Add(downloadItem.Name);
+                }
                 if (e.Error != null)
-                    AddLogItem(LogType.Error, string.Format("An error occured while downloading item {0}. Details: {1}", downloadItem.FileName, e.Error.Message));
+                    AddLogItem(LogType.Error, string.Format("An error occured while downloading item {0}. Details: {1}", downloadItem.Name, e.Error.Message));
 
                 // Download
                 Task.Run(() =>
                 {
-
-                    // Decompress file if necessary
-                    if (downloadItem.NeedsToBeDecompressed)
-                    {
-
-                        string txt = string.Format("Decompressing {0}...", downloadItem.FileName);
-                        AddLogItem(LogType.Info, txt);
-                        UpdateStatusText(txt);
-                        ChangeProgressBarIndeterminateState(true);
-
-                        string fileLoc = string.Format(".\\Data\\Temp\\{0}", downloadItem.FileName);
-
-                        // Get byte array from file
-                        byte[] bArr = null;
-                        using (FileStream fs = new FileStream(fileLoc, FileMode.Open, FileAccess.Read))
-                        {
-                            bArr = FileHelper.GetByteArray(fs).Result;
-                        }
-
-                        // Decompress byte array
-                        bArr = DataCompression.DecompressByteArray(bArr);
-
-                        // Write decompressed byte array to file
-                        using (FileStream fs = new FileStream(fileLoc, FileMode.Open, FileAccess.Write))
-                        {
-                            fs.Write(bArr, 0, bArr.Length);
-                        }
-
-                        // Free stuff
-                        bArr = null;
-
-                        // Force garbage collection to free some memory
-                        GC.Collect();
-
-                        AddLogItem(LogType.Info, string.Format("{0} decompressed!", downloadItem.FileName));
-                        ChangeProgressBarIndeterminateState(false);
-
-                    }
-
                     // Download remaining files or continue with downgrading
-                    if (downloadQueue.Count != 0) // Download remaining files
+                    if (downloadQueue.Count != 0)
                     {
 
-                        // Get next download item in queue and log
-                        FileDownload nextDownloadItem = downloadQueue.Dequeue();
-                        AddLogItem(LogType.Info, string.Format("Downloading {0}...", nextDownloadItem.FileName));
+                        // Get next download item in queue
+                        FileDetails nextDownloadItem = downloadQueue.Dequeue();
+
+                        AddLogItem(LogType.Info, string.Format("Downloading {0}...", nextDownloadItem.Name));
 
                         // Start downloading
                         downloadStartTime = DateTime.Now;
-                        Dispatcher.Invoke(() => downloadWebClient.DownloadFileAsync(new Uri(nextDownloadItem.DownloadURL), string.Format(".\\Data\\Temp\\{0}", nextDownloadItem.FileName), nextDownloadItem));
+                        Dispatcher.Invoke(() => downloadWebClient.DownloadFileAsync(new Uri(nextDownloadItem.DownloadURL), GetFileLocationInTempFolder(nextDownloadItem.Name), nextDownloadItem));
 
                     }
                     else // Continue with downgrading
@@ -1614,22 +1676,22 @@ namespace GTAIVDowngrader.Dialogs
                         {
                             AddLogItem(LogType.Info, "Download of files completed!");
 
-                            if (Core.CurrentDowngradingInfo.InstallPrerequisites) // Install Prerequisites
+                            if (DowngradingInfo.InstallPrerequisites) // Install Prerequisites
                             {
                                 StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                             }
                             else
                             {
-                                if (Core.CurrentDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
+                                if (DowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
                                 {
                                     StartInstallPrerequisites(Prerequisites.GFWL);
                                 }
                                 else // Continue with Radio/Game downgrade
                                 {
-                                    if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
-                                        BeginExtractionProcess(InstallState.RadioDowngrade);
+                                    if (DowngradingInfo.WasAnyRadioDowngraderSelected())
+                                        BeginExtractionProcess(DowngradeStep.RadioDowngrade);
                                     else
-                                        BeginExtractionProcess(InstallState.GameDowngrade);
+                                        BeginExtractionProcess(DowngradeStep.GameDowngrade);
                                 }
                             }
                         });
@@ -1639,53 +1701,82 @@ namespace GTAIVDowngrader.Dialogs
             }
             catch (Exception ex)
             {
-                AddLogItem(LogType.Error, string.Format("[Try Catch] An error occured while downloading item {0}. Details: {1}", downloadItem.FileName, ex.Message));
+                AddLogItem(LogType.Error, string.Format("[Try Catch] An error occured while downloading item {0}. Details: {1}", downloadItem.Name, ex.Message));
                 instance.ShowErrorScreen(ex);
             }
         }
         private void DownloadClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            FileDownload currentDownloadItem = (FileDownload)e.UserState;
+            FileDetails currentDownloadItem = (FileDetails)e.UserState;
 
             TimeSpan timeSpent = DateTime.Now - downloadStartTime;
-            int secondsRemaining = (int)(timeSpent.TotalSeconds / e.BytesReceived * (currentDownloadItem.FileSize - e.BytesReceived));
+            int secondsRemaining = (int)(timeSpent.TotalSeconds / e.BytesReceived * (currentDownloadItem.SizeInBytes - e.BytesReceived));
             TimeSpan estTime = TimeSpan.FromSeconds(secondsRemaining);
 
-            double percentageDownloaded = (double)e.BytesReceived / currentDownloadItem.FileSize * 100;
+            double percentageDownloaded = (double)e.BytesReceived / currentDownloadItem.SizeInBytes * 100;
             DowngradeProgressBar.Value = percentageDownloaded;
-            StatusLabel.Text = string.Format("Downloaded {0} of {1} ({2}%). Estimated time remaining: {3}", FileHelper.GetExactFileSizeAdvanced(e.BytesReceived), FileHelper.GetExactFileSizeAdvanced(currentDownloadItem.FileSize), Math.Round(percentageDownloaded, 0).ToString(), estTime.ToString(@"hh\:mm\:ss"));
+
+            StatusLabel.Text = string.Format("Downloaded {0} of {1} ({2}%). Estimated time remaining: {3}",
+                FileHelper.GetExactFileSizeAdvanced(e.BytesReceived),
+                FileHelper.GetExactFileSizeAdvanced(currentDownloadItem.SizeInBytes),
+                Math.Round(percentageDownloaded, 0),
+                estTime.ToString(@"hh\:mm\:ss"));
         }
         #endregion
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             instance.NextButtonClicked -= Instance_NextButtonClicked;
+            instance.BackButtonClicked -= Instance_BackButtonClicked;
+            instance.BackButton.Content = "Back";
 
+            // Lists
+            if (downloadQueue != null)
+            {
+                downloadQueue.Clear();
+                downloadQueue = null;
+            }
+            if (cancelledDownloadItems != null)
+            {
+                cancelledDownloadItems.Clear();
+                cancelledDownloadItems = null;
+            }
+            
             // Destroy WebClient
-            downloadWebClient.DownloadProgressChanged -= DownloadClient_DownloadProgressChanged;
-            downloadWebClient.DownloadFileCompleted -= DownloadClient_DownloadFileCompleted;
-            downloadWebClient.CancelAsync();
-            downloadWebClient.Dispose();
-            downloadWebClient = null;
+            if (downloadWebClient != null)
+            {
+                downloadWebClient.DownloadProgressChanged -= DownloadClient_DownloadProgressChanged;
+                downloadWebClient.DownloadFileCompleted -= DownloadClient_DownloadFileCompleted;
+
+                if (downloadWebClient.IsBusy)
+                    downloadWebClient.CancelAsync();
+
+                downloadWebClient.Dispose();
+                downloadWebClient = null;
+            }
+
+            // Other
+            iniParser = null;
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             instance.NextButtonClicked += Instance_NextButtonClicked;
+            instance.BackButtonClicked += Instance_BackButtonClicked;
 
             instance.ChangeActionButtonVisiblity(false, false, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, false);
 
+            instance.BackButton.Content = "Skip current download";
+
             // Init WebClient
             downloadWebClient = new WebClient();
-            downloadWebClient.Credentials = new NetworkCredential("ivdowngr", "7MY4qi2a8g");
             downloadWebClient.DownloadProgressChanged += DownloadClient_DownloadProgressChanged;
             downloadWebClient.DownloadFileCompleted += DownloadClient_DownloadFileCompleted;
 
-            // Populate download queue
-            canDownloadFiles = PopulateDownloadQueueList(out bool returnOutOfLoadedMethod);
+            AddLogItem(LogType.Info, "- - - Starting Downgrading Process - - -");
 
-            if (returnOutOfLoadedMethod)
-                return;
+            // Populate download queue
+            canDownloadFiles = PopulateDownloadQueueList();
 
             // Change progressbar states
             instance.taskbarItemInfo.ProgressState = TaskbarItemProgressState.Indeterminate;
@@ -1695,8 +1786,7 @@ namespace GTAIVDowngrader.Dialogs
             RemoveOldFolders();
             RemoveSettings();
             CreateXLivelessAddonFolders();
-            if (KillAnyGTAProcessIfRunning())
-                AddLogItem(LogType.Info, "Any currently opened GTA IV Process got killed.");
+            KillAnyGTAProcessIfRunning();
 
             // Removing read-only attributes
             RemoveReadOnlyAttribute(false);
@@ -1704,7 +1794,7 @@ namespace GTAIVDowngrader.Dialogs
             // Start things
             try
             {
-                if (Core.CurrentDowngradingInfo.WantsToCreateBackup) // Create Backup
+                if (DowngradingInfo.WantsToCreateBackup) // Create Backup
                 {
                     StartCreatingBackup();
                 }
@@ -1716,22 +1806,22 @@ namespace GTAIVDowngrader.Dialogs
                     }
                     else // Continue without downloading files
                     {
-                        if (Core.CurrentDowngradingInfo.InstallPrerequisites) // Install Prerequisites
+                        if (DowngradingInfo.InstallPrerequisites) // Install Prerequisites
                         {
                             StartInstallPrerequisites(Prerequisites.VisualCPlusPlus);
                         }
                         else
                         {
-                            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
+                            if (DowngradingInfo.ConfigureForGFWL) // Install GFWL Prerequisites
                             {
                                 StartInstallPrerequisites(Prerequisites.GFWL);
                             }
                             else // Continue with Radio/Game downgrade
                             {
-                                if (Core.CurrentDowngradingInfo.SelectedRadioDowngrader != RadioDowngrader.None)
-                                    BeginExtractionProcess(InstallState.RadioDowngrade);
+                                if (DowngradingInfo.WasAnyRadioDowngraderSelected())
+                                    BeginExtractionProcess(DowngradeStep.RadioDowngrade);
                                 else
-                                    BeginExtractionProcess(InstallState.GameDowngrade);
+                                    BeginExtractionProcess(DowngradeStep.GameDowngrade);
                             }
                         }
                     }

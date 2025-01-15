@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 
 namespace GTAIVDowngrader.Dialogs
@@ -29,6 +30,7 @@ namespace GTAIVDowngrader.Dialogs
         #region Events
         private void Instance_SkipButtonClicked(object sender, EventArgs e)
         {
+            Core.AddLogItem(LogType.Info, "User skipped the savefile downgrade process.");
             instance.NextStep(2);
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
@@ -49,9 +51,14 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, false, true, true);
 
-            // Change progressbar states
+            // Reset progressbar stuff
             instance.taskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
             instance.GetMainProgressBar().Value = 0;
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             if (Core.IsInOfflineMode)
             {
@@ -70,7 +77,8 @@ namespace GTAIVDowngrader.Dialogs
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             Uri uri = e.Uri;
-            switch (uri.Host) {
+            switch (uri.Host)
+            {
                 case "gotodocumentsfolder":
                     string documentsFolder = string.Format("{0}\\Rockstar Games\\GTA IV\\savegames", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
                     if (Directory.Exists(documentsFolder))

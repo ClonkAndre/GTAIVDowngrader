@@ -15,27 +15,24 @@
         <Grid x:Name="MainGrid">
 
             <!-- Background Char -->
-            <Image Grid.RowSpan="2" Source="..\Resources\chars\char2.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,15,20,0"/>
+            <Image x:Name="bgChar" Grid.RowSpan="2" Source="..\Resources\chars\char2.png" RenderOptions.BitmapScalingMode="HighQuality" Opacity="0.35" Stretch="Uniform" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,15,20,0"/>
 
             <!-- Content -->
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20">
                 <TextBlock Text="We're ready!" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
-                <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    Before we downgrade your game, there are a few things that you've to check:
+                <TextBlock TextWrapping="WrapWithOverflow" FontSize="15" Foreground="White" HorizontalAlignment="Left">
+                    Before starting the downgrade process, here are a few things for you to check:
                     <LineBreak/><LineBreak/>
-                    1. (Optional) Make sure that you've a backup of your <Run Text="freshly" FontWeight="Bold"/> installed game (<Run Text="No mods" FontWeight="Bold"/>).<LineBreak/>
-                    2. Make sure that your game is not in a system folder like <Run Text="Program Files" FontWeight="Bold"/> or <Run Text="Program Files (x86)" FontWeight="Bold"/>.<LineBreak/>
-                    3. Make sure that your game or this downgrader is not on a <Run Text="A:\" FontWeight="Bold"/> or <Run Text="B:\" FontWeight="Bold"/> drive. Those drive letters are usually used by floppy disk drives, and can cause errors while downgrading.
-                    <LineBreak/><LineBreak/>
-                    Other than that, we're ready to downgrade your game! Are you?
-                    <LineBreak/>
-                    Press the '<Run Text="Downgrade" FontWeight="Bold"/>' button to downgrade.
+                    1. (<Run Text="Important" Foreground="Red" FontWeight="Bold"/>) Make sure to deactivate your antivirus software or add an exclusion for your GTA IV directory. Some antivirus programs may flag false positives, which can interfere with the downgrade.<LineBreak/>
+                    2. (<Run Text="Recommended" Foreground="Green" FontWeight="Bold"/>) Make sure that you've a backup of your <Run Text="fresh, unmodified" FontWeight="Bold"/> copy of GTA IV.<LineBreak/>
+                    3. Make sure that your game (or this downgrader) is not in a system folder like <Run Text="Program Files" FontWeight="Bold"/> or <Run Text="Program Files (x86)" FontWeight="Bold"/>.<LineBreak/>
+                    4. Make sure that your game (or this downgrader) is not on a <Run Text="A:\" FontWeight="Bold"/> or <Run Text="B:\" FontWeight="Bold"/> drive. Those drive letters are usually used by floppy disk drives, and could cause errors while downgrading.
                     <LineBreak/><LineBreak/>
                     If you want us to create a backup of your game, check this checkbox.
                 </TextBlock>
 
                 <!-- Backup -->
-                <CheckBox x:Name="MakeABackupForMeCheckbox" Checked="MakeABackupForMeCheckbox_CheckedChanged" Unchecked="MakeABackupForMeCheckbox_CheckedChanged" Content="Make a backup for me" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,10,0,0"/>
+                <CheckBox x:Name="MakeABackupForMeCheckbox" Checked="MakeABackupForMeCheckbox_CheckedChanged" Unchecked="MakeABackupForMeCheckbox_CheckedChanged" Content="Create a backup for me" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,5,0,0"/>
                 <StackPanel x:Name="BackupStackPanel" Background="#59000000" Visibility="Collapsed" Margin="0,3,0,0">
                     <TextBlock Text="Please select a directory in which the backup of the game should be stored." TextWrapping="WrapWithOverflow" FontSize="12" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left" Margin="8,7,0,0"/>
                     <DockPanel Margin="10,5,10,0">

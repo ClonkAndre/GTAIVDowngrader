@@ -17,13 +17,15 @@
             <StackPanel Margin="20,20">
                 <TextBlock Text="Downgrading" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    Your GTA IV directory is currently being downgraded, this process might take a few minutes. If you think the downgrader is stuck, please try to run the Downgrader with admin rights.
+                    Your GTA IV directory is currently being downgraded, this process might take a few minutes.<LineBreak/>
+                    If you think the downgrader is stuck, please try to run the Downgrader with admin rights.
                 </TextBlock>
                 <TextBlock x:Name="CurrentStepLabel" Text="Current step: None" FontWeight="Medium" Foreground="White" Width="720" HorizontalAlignment="Left" Margin="0,20,0,0"/>
                 <TextBlock x:Name="StatusLabel" Text="Starting..." TextTrimming="WordEllipsis" Foreground="White" Width="720" HorizontalAlignment="Left" Margin="0,2,0,0"/>
                 <ProgressBar x:Name="DowngradeProgressBar" Foreground="#0050BF" Background="#1Affffff" BorderThickness="0" Height="18" Margin="0,5,0,0"/>
             </StackPanel>
             <ListBox x:Name="StatusListbox" Foreground="White" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" MinHeight="250" MinWidth="727" Margin="20,175,20,20"/>
+        
         </Grid>
 
     </Grid>

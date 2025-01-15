@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -30,43 +33,43 @@ namespace GTAIVDowngrader.Dialogs
             if (Core.IsInOfflineMode)
             {
                 instance.ShowMessageDialogScreen("Offline Mode Information",
-                    string.Format("The downgrader is currently in offline mode and therefore, it cannot download any modifications.{0}" +
-                    "After the downgrade, you gonna have to download and install each mod that you want manually!", Environment.NewLine),
+                    string.Format("The downgrader is currently in offline mode and therefore it cannot download any modifications.{0}" +
+                    "After the downgrade, you gonna have to download and install each mod that you want manually!{0}{0}" +
+                    "Highly Recommended Mods{0}" +
+                    "- Ultimate ASI Loader{0}" +
+                    "- ZolikaPatch", Environment.NewLine),
                     Steps.S9_Confirm);
 
                 // Force this to be true
-                Core.CurrentDowngradingInfo.SetInstallPrerequisites(true);
+                DowngradingInfo.SetInstallPrerequisites(true);
             }
             else
+            {
                 instance.NextStep(1);
+            }
         }
         #endregion
 
         #region Events
         private void Instance_BackButtonClicked(object sender, EventArgs e)
         {
-            if (Core.CurrentDowngradingInfo.DowngradeTo == GameVersion.v1040)
+            if (DowngradingInfo.DowngradeTo == "1040")
                 instance.PreviousStep(1);
             else
                 instance.PreviousStep();
         }
         private void Instance_SkipButtonClicked(object sender, EventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
+            DowngradingInfo.SetRadioDowngrader(null);
+            DowngradingInfo.SetVladivostokType(null);
             NextStep();
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            switch (Core.CurrentDowngradingInfo.SelectedRadioDowngrader)
-            {
-                case RadioDowngrader.SneedsDowngrader:
-                    instance.NextStep();
-                    break;
-                default:
-                    NextStep();
-                    break;
-            }
+            if (DowngradingInfo.IsSelectedRadioDowngraderSneeds())
+                instance.NextStep();
+            else
+                NextStep();
         }
         #endregion
 
@@ -85,10 +88,15 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonVisiblity(true, true, true, true);
             instance.ChangeActionButtonEnabledState(true, true, true, false);
 
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
+
             // Reset
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.None);
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.None);
-            Core.CurrentDowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
+            DowngradingInfo.SetRadioDowngrader(null);
+            DowngradingInfo.SetVladivostokType(null);
+            DowngradingInfo.SetInstallNoEFLCMusicInIVFix(false);
             SneedsRadioDowngraderCheckbox.IsChecked = false;
             LegacyRadioDowngraderCheckbox.IsChecked = false;
             NoEFLCMusicInIVCheckbox.IsChecked = false;
@@ -96,17 +104,17 @@ namespace GTAIVDowngrader.Dialogs
 
         private void SneedsRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.SneedsDowngrader);
+            DowngradingInfo.SetRadioDowngrader("SneedsRadioDowngrader");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void LegacyRadioDowngraderCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetRadioDowngrader(RadioDowngrader.LegacyDowngrader);
+            DowngradingInfo.SetRadioDowngrader("LegacyRadioDowngrader");
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NoEFLCMusicInIVCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetInstallNoEFLCMusicInIVFix(NoEFLCMusicInIVCheckbox.IsChecked.Value);
+            DowngradingInfo.SetInstallNoEFLCMusicInIVFix(NoEFLCMusicInIVCheckbox.IsChecked.Value);
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)

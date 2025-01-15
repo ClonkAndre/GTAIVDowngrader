@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -30,19 +33,34 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
+            // Set selected type
+            if (OldVladivostokCheckbox.IsChecked.Value)
+            {
+                DowngradingInfo.SetVladivostokType("OldVladivostok");
+            }
+            else if (NewVladivostokCheckbox.IsChecked.Value)
+            {
+                DowngradingInfo.SetVladivostokType("NewVladivostok");
+            }
+
             // Show message and skip select components tab if in offline mode
             if (Core.IsInOfflineMode)
             {
                 instance.ShowMessageDialogScreen("Offline Mode Information",
-                    string.Format("The downgrader is currently in offline mode and therefore, it cannot download any modifications.{0}" +
-                    "After the downgrade, you gonna have to download and install each mod that you want manually!", Environment.NewLine),
+                    string.Format("The downgrader is currently in offline mode and therefore it cannot download any modifications.{0}" +
+                    "After the downgrade, you gonna have to download and install each mod that you want manually!{0}{0}" +
+                    "Highly Recommended Mods{0}" +
+                    "- Ultimate ASI Loader{0}" +
+                    "- ZolikaPatch", Environment.NewLine),
                     Steps.S9_Confirm);
 
                 // Force this to be true
-                Core.CurrentDowngradingInfo.SetInstallPrerequisites(true);
+                DowngradingInfo.SetInstallPrerequisites(true);
             }
             else
+            {
                 instance.NextStep();
+            }
         }
         #endregion
 
@@ -58,17 +76,25 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, OldVladivostokCheckbox.IsChecked.Value || NewVladivostokCheckbox.IsChecked.Value);
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
         }
 
         private void OldVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.Old);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
         }
         private void NewVladivostokCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetVladivostokType(VladivostokTypes.New);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Core.AskUserToOpenURL(e.Uri);
         }
 
     }

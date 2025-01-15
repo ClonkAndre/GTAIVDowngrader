@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -49,8 +52,13 @@ namespace GTAIVDowngrader.Dialogs
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
 
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
+
             // Change location text based on downgrading options
-            if (Core.CurrentDowngradingInfo.ConfigureForGFWL) {
+            if (DowngradingInfo.ConfigureForGFWL) {
                 gfwlLocationTextBlock.Visibility = Visibility.Visible;
                 xliveLocationTextBlock.Visibility = Visibility.Collapsed;
             }

@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Red Wolf Interactive")]
 [assembly: AssemblyProduct("IV Downgrader")]
-[assembly: AssemblyCopyright("Copyright © Red Wolf Interactive 2021-2024")]
+[assembly: AssemblyCopyright("Copyright © Red Wolf Interactive 2021-2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,5 +51,4 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.1.0.*")]
-// [assembly: AssemblyFileVersion("1.1.*")]
+[assembly: AssemblyVersion("2.2.0.*")]

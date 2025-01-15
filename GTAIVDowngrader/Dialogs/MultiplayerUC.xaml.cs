@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -31,7 +34,7 @@ namespace GTAIVDowngrader.Dialogs
         }
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
-            Core.CurrentDowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
+            DowngradingInfo.SetConfigureForGFWL(ConfigureForGFWLCheckBox.IsChecked.Value);
 
             if (ConfigureForGFWLCheckBox.IsChecked.Value)
             {
@@ -63,6 +66,11 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, true);
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

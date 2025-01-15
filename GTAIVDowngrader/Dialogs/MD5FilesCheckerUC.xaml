@@ -17,14 +17,16 @@
             <StackPanel VerticalAlignment="Top" Margin="20,20">
                 <TextBlock Text="Analysing your GTA IV directory" FontSize="20" FontWeight="Bold" Foreground="White"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left" Margin="0,10,0,0">
-                    This step checks if the GTA IV directory is modded or not. We will create a unique MD5 Hash out of this directory, from which we will know if the directory is modded or not. It also checks if the version of GTAIV.exe really is 1.2.0.43.<LineBreak/>
-                    If a <Run Text="warning" FontWeight="Bold"/> occures while creating and comparing the MD5 Hash, please make sure to <Run Text="properly" FontWeight="Bold"/> read what the <Run Text="warning" FontWeight="Bold"/> says.
+                    This step checks if the selected GTA IV directory is modded or not.<LineBreak/>
+                    We will create a unique MD5 Hash out of this directory, from which we will know if the directory is modded or not.<LineBreak/>
+                    If a <Run Text="warning" Foreground="#FFFFFF00" FontWeight="Bold"/> occures while creating and comparing the MD5 Hash, please make sure to <Run Text="READ" FontWeight="Bold"/> what the <Run Text="warning" Foreground="#FFFFFF00" FontWeight="Bold"/> says.
+                    The same goes for <Run Text="errors" Foreground="Red" FontWeight="Bold"/>.
                 </TextBlock>
                 <ProgressBar x:Name="StatusProgressBar" Foreground="#0050BF" Background="#1Affffff" BorderThickness="0" Height="18" Margin="0,20,0,0"/>
             </StackPanel>
 
             <Image x:Name="StatusImage" RenderOptions.BitmapScalingMode="HighQuality" Width="32" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,160,30,0"/>
-            <TextBlock x:Name="StatusLabel" Text="NAN" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" FontSize="16" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="65,165,90,0"/>
+            <TextBlock x:Name="StatusLabel" Text="Nothing" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" FontSize="16" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="60,164,90,0"/>
         </Grid>
 
     </Grid>

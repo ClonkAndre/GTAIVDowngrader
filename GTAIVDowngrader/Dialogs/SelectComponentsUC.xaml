@@ -17,14 +17,22 @@
             <StackPanel Grid.Row="0" VerticalAlignment="Top" Margin="20,20,30,0">
                 <TextBlock Text="Select mods that should be installed" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
                 <TextBlock TextWrapping="WrapWithOverflow" FontSize="14" Foreground="White" HorizontalAlignment="Left">
-                    Here you can choose what you want to install with the downgrade. Just click on a item and it will get downloaded and installed when downgrading process started.
+                    Here you have the choice to select some mods for this downgrade.
+                    Click on an item to select it, and it will automatically be downloaded and installed while the downgrading process is running.
+                    Please note that some mods in here might not be up-to-date. Make sure to visit the offical mod page for updates.
                 </TextBlock>
 
                 <DockPanel Height="31" Margin="0,10,0,0">
-                    <Button x:Name="SelectAllButton" Click="SelectAllButton_Click" IsEnabled="False" Content="Select All" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="80" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Button x:Name="SelectAllButton" Click="SelectAllButton_Click" IsEnabled="False" Content="Select All" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Button x:Name="DeselectAllButton" Click="DeselectAllButton_Click" IsEnabled="False" Content="Deselect All" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <Button x:Name="RefreshButton" Click="RefreshButton_Click" IsEnabled="True" Content="Refresh" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="70" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <Button x:Name="ProblemsButton" Click="ProblemsButton_Click" Visibility="Collapsed" IsEnabled="True" Content="There are problems with your current mod configuration. Click here to see them." Background="#870000" Style="{StaticResource MetroButton}" Height="28" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Button x:Name="RefreshButton" Click="RefreshButton_Click" IsEnabled="True" Content="Refresh list" Background="#0050bf" Style="{StaticResource MetroButton}" Height="28" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Button x:Name="ProblemsButton" Click="ProblemsButton_Click" Visibility="Collapsed" IsEnabled="True" Content="Click to view the problems detected in your mod configuration." Background="#870000" Style="{StaticResource MetroButton}" Height="28" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                    <StackPanel Margin="5,-3,0,0" HorizontalAlignment="Right" Width="210">
+                        <TextBlock Text="Filter" FontSize="10" Foreground="White"/>
+                        <TextBox x:Name="FilterTextBox" TextChanged="FilterTextBox_TextChanged" BorderBrush="Black"/>
+                    </StackPanel>
+                    
                 </DockPanel>
             </StackPanel>
 
@@ -40,12 +48,13 @@
                 </Grid>
             </ScrollViewer>
 
-            <CheckBox x:Name="InstallPrerequisitesCheckBox" IsChecked="True" FontSize="14" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Margin="20,0,0,37">
+            <CheckBox x:Name="InstallPrerequisitesCheckBox" IsChecked="True" FontSize="16" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Margin="20,0,0,37">
                 <TextBlock>
                     Download and install Prerequisites (<Run Text="Recommended" FontWeight="Bold"/>)
                 </TextBlock>
             </CheckBox>
-            <TextBlock Grid.Row="0" Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
+            <TextBlock x:Name="NextInstruction" Grid.Row="0" Text="To proceed, press the 'Next' button." FontSize="12" Foreground="#adadad" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,15"/>
+            <TextBlock x:Name="SelectedModsInfoLabel" FontSize="12" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30,15"/>
         </Grid>
 
     </Grid>

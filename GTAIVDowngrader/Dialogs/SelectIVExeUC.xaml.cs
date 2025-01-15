@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
+
+using GTAIVDowngrader.Classes;
 
 namespace GTAIVDowngrader.Dialogs
 {
@@ -64,7 +68,7 @@ namespace GTAIVDowngrader.Dialogs
                     return;
                 }
 
-                StatusTextBlock.Text = "Please select a GTA IV directory, or the GTAIV.exe file.";
+                StatusTextBlock.Text = "Please either browse for a directory or file.";
                 instance.ChangeActionButtonEnabledState(true, true, true, false);
             }
             catch (Exception ex)
@@ -95,7 +99,7 @@ namespace GTAIVDowngrader.Dialogs
         private void Instance_NextButtonClicked(object sender, EventArgs e)
         {
             // Set IVExecutablePath and IVWorkingDirectory
-            Core.CurrentDowngradingInfo.SetPath(gtaivExecutablePath);
+            DowngradingInfo.SetPath(gtaivExecutablePath);
 
             // Go to next step
             instance.NextStep();
@@ -114,6 +118,11 @@ namespace GTAIVDowngrader.Dialogs
 
             instance.ChangeActionButtonVisiblity(true, true, false, true);
             instance.ChangeActionButtonEnabledState(true, true, true, false);
+
+            if (Core.Is420())
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char2.png", UriKind.Relative));
+            if (Core.IsPrideMonth)
+                bgChar.Source = new BitmapImage(new Uri("..\\Resources\\chars\\char9.png", UriKind.Relative));
 
             CheckDirectoryOrFile(PathTextBox.Text);
         }
