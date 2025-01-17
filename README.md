@@ -28,12 +28,13 @@ The downgrader downloads larger files such as the Game and/or Radio Downgrader f
 For smaller things such as mods or data, a seperate [GitHub](https://github.com/ClonkAndre/GTAIVDowngraderOnline_Files) repo is used.
 
 ## Other Links
+[Nexus Mods](https://www.nexusmods.com/gta4/mods/516)  
 [GTAForums](https://gtaforums.com/topic/976691-gta-iv-downgrader)  
 [LCPDFR](https://www.lcpdfr.com/downloads/gta4mods/misc/38986-gta-iv-downgrader/)  
 [GTAinside](https://www.gtainside.com/gta4/tools/184088-gta-iv-downgrader/)
 
 ## Credits
-**QA Tester**: Internet Rob, catsmackaroo, DayL and Not AJ  
+**QA Tester**: Internet Rob, catsmackaroo, DayL, Not AJ and BrynnaDaRosa  
 **Ideas**: Internet Rob and catsmackaroo  
 **Logo**: catsmackaroo  
 **Icon**: nastyyaboi  
